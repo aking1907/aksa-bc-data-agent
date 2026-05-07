@@ -1,0 +1,4 @@
+interface:
+  display_name: "BCDA Test Validation"
+  short_description: "Map tests to SDD acceptance gates"
+  default_prompt: "Use $bcda-test-validation to plan or verify tests for correction, rollback, audit, SUPER access, and upgrade behavior."

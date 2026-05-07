@@ -1,0 +1,4 @@
+interface:
+  display_name: "BCDA UX Design"
+  short_description: "Design safe correction workflows"
+  default_prompt: "Use $bcda-ux-design to design Business Central pages and workflows for safe data correction."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "BCDA SDD Steward"
+  short_description: "Keep SDD docs aligned before code"
+  default_prompt: "Use $bcda-sdd-steward to align requirements, acceptance criteria, traceability, and readiness before implementation."

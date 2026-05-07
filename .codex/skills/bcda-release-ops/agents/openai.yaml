@@ -1,0 +1,4 @@
+interface:
+  display_name: "BCDA Release Ops"
+  short_description: "Prepare sandbox-first BC releases"
+  default_prompt: "Use $bcda-release-ops to prepare deployment, operations, upgrade, and release evidence for BC Data Agent."

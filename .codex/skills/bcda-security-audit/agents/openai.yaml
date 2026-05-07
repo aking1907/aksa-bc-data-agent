@@ -1,0 +1,4 @@
+interface:
+  display_name: "BCDA Security Audit"
+  short_description: "Protect high-risk BC data changes"
+  default_prompt: "Use $bcda-security-audit to evaluate SUPER access, redaction, audit, rollback, and posted-data risk."

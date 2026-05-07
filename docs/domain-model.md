@@ -1,0 +1,93 @@
+# Domain Model
+
+## Bounded Domain
+
+The bounded domain is controlled Business Central data correction. The app owns correction governance, audit, policy, and rollback metadata. Business Central owns the business records being corrected.
+
+## Core Terms
+
+| Term | Meaning | Owner |
+| --- | --- | --- |
+| Correction Request | A governed request to change one or more fields on one or more target records. | BC Data Agent |
+| Change Line | One proposed field-level mutation inside a correction request. | BC Data Agent |
+| Target Record | The Business Central record being inspected or changed. | Business Central |
+| Hidden Data | Data not normally available through user-facing pages, personalization, or standard workflows. | Business Central |
+| Posted Data | Data in posted document, ledger, register, or historical tables where edits are high-risk. | Business Central |
+| Before-Image | Captured value and context before mutation, used for audit and rollback. | BC Data Agent |
+| Audit Metadata | Mandatory operation evidence such as user, company, target, result, reason, ticket, and timestamps. | BC Data Agent |
+| Rollback Snapshot | Optional protected value payload used to restore prior values when rollback is enabled and retained. | BC Data Agent |
+| Rollback Operation | A governed reversal that writes previous values back to target records. | BC Data Agent |
+| Retention Policy | User-controlled rule for how long BCDA-owned operation records remain in the database. | BC Data Agent and Business Central |
+| Data Policy | Configuration that allows, blocks, or restricts correction behavior by table, field, risk, and workflow policy. | BC Data Agent |
+| Break-Glass Change | High-risk correction allowed only under existing `SUPER` access, reason, approval, and audit requirements. | BC Data Agent |
+
+## Entities
+
+| Entity | Description |
+| --- | --- |
+| Setup | Global configuration for correction behavior, retention, and default safety policy. |
+| Data Policy | Allow/block rules for tables and fields. |
+| Correction Request | Request header, status, reason, ticket, requestor, approver, and risk. |
+| Correction Line | Table, key, field, value, validation mode, status, and error information. |
+| Audit Entry | Append-only record of preview, approval, execution, failure, and rollback activity. |
+| Value Snapshot | Protected before-image and after-image data needed for audit or rollback. |
+| Rollback Operation | Links rollback activity to original audit entries and records conflict decisions. |
+| Retention Status | Operational view of configured retention, expired snapshots, and cleanup activity. |
+
+## Value Objects
+
+| Value Object | Fields |
+| --- | --- |
+| Record Identity | Company, table id/name, serialized primary key, display key. |
+| Field Identity | Field id/name, data type, caption, sensitivity classification. |
+| Correction Value | Serialized value, display value, hash, redaction state. |
+| Approval Decision | Approver, date/time, outcome, comment. |
+| Risk Classification | Normal, hidden, posted, financial, sensitive, blocked. |
+| Rollback Logging Mode | Enabled, disabled, or policy controlled. |
+| Retention Category | Audit metadata, rollback snapshot, or technical log. |
+
+## Invariants And Business Rules
+
+- A target data change cannot occur without a correction request.
+- A correction request cannot execute unless policy allows it.
+- Posted data changes require existing Business Central `SUPER` access and approval by default.
+- Every executed change writes mandatory audit metadata first.
+- Every executed change captures a before-image when rollback snapshot logging is enabled.
+- Every attempted execution writes audit evidence, including failure.
+- Audit entries are append-only.
+- Audit metadata is mandatory even when rollback snapshots are disabled.
+- Rollback snapshots are stored only when setup and policy enable them.
+- Rollback creates new changes and audit entries; it does not erase original activity.
+- Rollback must check that the current target value still matches the expected post-change value unless a policy-approved override exists.
+- Rollback is unavailable when snapshots were disabled, purged, or expired.
+- Retention cleanup must not delete active in-progress requests.
+- Blocked tables and fields cannot be changed.
+- Sensitive values cannot be exposed to users without `SUPER` access or through unauthorized logs, exports, or support channels.
+
+## Domain Events
+
+| Event | Trigger |
+| --- | --- |
+| CorrectionRequestCreated | A request is saved. |
+| CorrectionPreviewGenerated | A dry run is completed. |
+| CorrectionApproved | A SUPER approver approves a high-risk request. |
+| CorrectionRejected | A SUPER approver rejects a request. |
+| CorrectionExecutionStarted | Execution begins. |
+| CorrectionLineSucceeded | One change line succeeds. |
+| CorrectionLineFailed | One change line fails. |
+| CorrectionExecutionCompleted | Request execution ends. |
+| RollbackRequested | Rollback is initiated. |
+| RollbackCompleted | Rollback succeeds or finishes with partial failures. |
+| RollbackSnapshotExpired | Retention cleanup removes rollback payloads for an operation. |
+| RetentionPolicyApplied | App-owned operation data cleanup completes. |
+
+## Data Ownership
+
+BC Data Agent owns only its setup, policy, request, snapshot, audit, and rollback records. It does not own the target business records. Target record ownership remains with Business Central and the business process owner.
+
+## Open Modeling Decisions
+
+- How to serialize all supported field types safely.
+- Default and minimum retention periods for audit metadata and rollback snapshots.
+- Whether approval is one-person, two-person, or external workflow.
+- Which posted tables are blocked by default.

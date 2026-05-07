@@ -1,0 +1,4 @@
+interface:
+  display_name: "BCDA Symbol Discovery"
+  short_description: "Verify BC platform facts before code"
+  default_prompt: "Use $bcda-symbol-discovery to record Business Central symbol and runtime evidence before implementation depends on it."

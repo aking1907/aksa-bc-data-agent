@@ -1,0 +1,10 @@
+.vscode/
+.alpackages/
+.snapshots/
+.Translations/
+.alcache/
+
+*.zip
+*.tar.gz
+*.rar
+*.app

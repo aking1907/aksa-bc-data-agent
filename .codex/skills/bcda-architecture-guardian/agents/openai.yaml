@@ -1,0 +1,4 @@
+interface:
+  display_name: "BCDA Architecture Guardian"
+  short_description: "Guard architecture and ADR choices"
+  default_prompt: "Use $bcda-architecture-guardian to review an implementation idea against the BC Data Agent architecture and ADRs."
