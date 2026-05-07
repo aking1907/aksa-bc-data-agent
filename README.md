@@ -14,6 +14,7 @@ Changing hidden or posted data is powerful and risky. This project treats those 
 - `app.json` targets Business Central 2026 release wave 1 / version 28.0 with AL runtime 17.0.
 - Business Central-oriented `.gitignore` exists.
 - SDD documentation baseline exists under `docs/`.
+- AI cost tracking baseline exists under `cost/`.
 - Code generation is currently blocked by `docs/code-generation-readiness.md`.
 
 ## Current Boundaries
@@ -35,6 +36,7 @@ Changing hidden or posted data is powerful and risky. This project treats those 
 | `.gitignore` | Ignores AL packages, snapshots, cache, and generated packages. |
 | `.codex/skills/` | Project-local skills for SDD, architecture, AL implementation, UX, security, tests, release, and symbol discovery. |
 | `.codex/prompts/` | Reusable project prompts for kickoff, SDD, architecture, UX, security, testing, release, and gated implementation workflows. |
+| `cost/` | Compact AI cost policy, pricing assumptions, usage rollup, and generated cost report. |
 | `docs/sdd-index.md` | Source-of-truth documentation map. |
 | `docs/code-generation-readiness.md` | Gate before any AL code generation. |
 | `docs/security-review.md` | Security and risk review for high-risk data correction behavior. |

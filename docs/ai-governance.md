@@ -28,6 +28,16 @@ It must also use the relevant project-local skill from `.codex/skills/`:
 
 For repeatable workflows, start from the matching project prompt in `.codex/prompts/`. Use `session-kickoff.prompt.md` at the beginning of a new session and `docs-consistency-check.prompt.md` after substantial documentation changes.
 
+## Cost Governance
+
+AI usage cost is managed through the compact project artifacts in `cost/`.
+
+- Use `cost/ai-cost-policy.md` for model tier rules, thresholds, logging expectations, and escalation rules.
+- Use `cost/model-pricing.md` for dated pricing assumptions. Verify current provider pricing before formal budget reporting.
+- Store only compact non-sensitive rollups in `cost/ai-usage-log.csv`.
+- Regenerate the summary with `cost/update-ai-cost-report.ps1`.
+- Do not store raw prompts, full transcripts, tool output, secrets, customer data, Business Central posted values, hidden values, or rollback before-images in cost files.
+
 ## What AI May Do Now
 
 - Improve documentation.

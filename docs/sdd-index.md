@@ -60,6 +60,7 @@ Higher-order documents define intent. Lower-order documents may refine details, 
 | Release history | `release-notes.md` | Drafted |
 | Project skills | `.codex/skills/` | Drafted |
 | Project prompts | `.codex/prompts/` | Drafted |
+| AI cost governance | `cost/` | Initialized |
 
 ## SDD Rules
 
@@ -74,6 +75,7 @@ Higher-order documents define intent. Lower-order documents may refine details, 
 - Retention for app-owned operation data must be user-configurable and should use Business Central native retention policy capabilities when feasible.
 - Future implementation agents should use the relevant project skill from `.codex/skills/` before changing architecture, AL code, UX, tests, security, release, or symbol discovery artifacts.
 - Future implementation agents should start from the relevant project prompt in `.codex/prompts/` when beginning repeatable workflows.
+- Future AI-assisted work should keep compact cost rollups in `cost/` without storing prompts, transcripts, secrets, customer data, posted values, hidden values, or rollback before-images.
 
 ## Project Skills
 
