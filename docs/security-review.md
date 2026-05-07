@@ -2,7 +2,7 @@
 
 ## Review Status
 
-Draft. Requires human security and business owner review before implementation.
+Draft. Foundation data implementation is allowed under conservative decisions. Human security and business owner review is still required before target data mutation, rollback execution, export, or production enablement.
 
 ## Security Objectives
 
@@ -30,13 +30,14 @@ Draft. Requires human security and business owner review before implementation.
 | --- | --- | --- |
 | THR-001 | Unauthorized user edits data | Existing Business Central `SUPER` access gate and policy guard. |
 | THR-002 | Authorized user edits posted data without approval | Posted data approval requirement. |
-| THR-003 | User hides a bad correction | Append-only audit and no audit deletion. |
+| THR-003 | User hides a bad correction | Append-only audit during operations; governed retention is the only allowed removal path for expired operation records. |
 | THR-004 | Sensitive values leak through logs or exports | Redaction rules and sanitized errors. |
 | THR-005 | Rollback overwrites a legitimate later change | Conflict detection before rollback. |
 | THR-006 | Broad policy enables accidental mass damage | Deny-first policy and field-level scope. |
 | THR-007 | AI-generated code bypasses safeguards | Code-generation readiness gate and traceability review. |
 | THR-008 | Rollback snapshots are disabled without user awareness | Preview and execution confirmation must show rollback-unavailable state. |
 | THR-009 | Retention deletes data needed for support or compliance | Separate retention categories, conservative defaults, visible expiration, and cleanup evidence. |
+| THR-010 | One-person self-approval or no-approval mode weakens dual control | Approval with a separate approver is the safer default; no-approval and self-approval modes must be explicit setup choices and remain visible on the request/audit trail. |
 
 ## Access Model
 
@@ -48,7 +49,7 @@ Workflow responsibilities below are audit and process responsibilities, not cust
 | --- | --- |
 | SUPER Administrator | Configure setup and policy; cannot bypass audit. |
 | SUPER Requester/Executor | Create requests, run previews, execute approved requests. |
-| SUPER Approver | Approve or reject high-risk requests when approval policy requires separation. |
+| SUPER Approver | Approve or reject high-risk requests when approval policy requires approval. This may require a different user or allow self-approval depending on setup. |
 | SUPER Reviewer | Review and export audit according to redaction policy. |
 
 ## Required Controls Before Code

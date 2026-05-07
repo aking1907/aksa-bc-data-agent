@@ -1,6 +1,6 @@
 # SDD Index
 
-This is the source-of-truth map for the BC Data Agent project. The project is in documentation-first mode: no AL code should be generated until `docs/code-generation-readiness.md` explicitly allows it and the user asks for implementation.
+This is the source-of-truth map for the BC Data Agent project. The project is in gated implementation mode: AL code may be generated only within the scope that `docs/code-generation-readiness.md` explicitly allows and the user requests.
 
 ## Source Order
 
@@ -34,8 +34,9 @@ Higher-order documents define intent. Lower-order documents may refine details, 
 | 24 | `docs/ai-governance.md` | Rules for AI-assisted work. |
 | 25 | `docs/security-review.md` | High-risk security review. |
 | 26 | `docs/admin-guide.md` | Planned administrator guide. |
-| 27 | `docs/release-notes.md` | Release and documentation history. |
-| 28 | `README.md` | Human-facing entry point. |
+| 27 | `UserGuide.md` | Detailed user-facing guide for foundation behavior and planned workflows. |
+| 28 | `docs/release-notes.md` | Release and documentation history. |
+| 29 | `README.md` | Human-facing entry point. |
 
 ## Artifact Coverage Matrix
 
@@ -48,15 +49,16 @@ Higher-order documents define intent. Lower-order documents may refine details, 
 | App design | `app-design.md` | Drafted |
 | AL standards | `al-development-standards.md` | Drafted |
 | Data ownership | `data-model.md` | Drafted |
-| Platform evidence | `symbol-discovery.md` | Needs BC symbol verification |
+| Platform evidence | `symbol-discovery.md` | Foundation APIs verified; mutation behavior still needs sandbox proof |
 | APIs/contracts | `api-contract.md`, `implementation-contracts.md` | Drafted |
-| Implementation sequencing | `implementation-plan.md`, `code-generation-readiness.md` | Code blocked |
-| Readiness audit | `readiness-audit.md` | Not ready for code |
+| Implementation sequencing | `implementation-plan.md`, `code-generation-readiness.md` | Foundation code allowed |
+| Readiness audit | `readiness-audit.md` | Ready for foundation code only |
 | Tests | `test-plan.md`, `traceability-matrix.md` | Drafted |
 | Security and compliance | `security-review.md`, `risk-register.md` | Drafted |
 | Deployment and support | `deployment.md`, `operations-runbook.md` | Drafted |
 | Release lifecycle | `upgrade-release-strategy.md` | Drafted |
 | AI governance | `ai-governance.md` | Drafted |
+| User guidance | `UserGuide.md`, `docs/admin-guide.md` | Drafted |
 | Release history | `release-notes.md` | Drafted |
 | Project skills | `.codex/skills/` | Drafted |
 | Project prompts | `.codex/prompts/` | Drafted |
@@ -65,13 +67,14 @@ Higher-order documents define intent. Lower-order documents may refine details, 
 ## SDD Rules
 
 - Documentation leads implementation.
-- No AL source files are generated during this preparation step.
+- AL source files may be generated only within the scope currently allowed by `docs/code-generation-readiness.md`.
 - Every new code object must trace to a requirement, acceptance criterion, and test scenario.
 - Posted table and hidden data modifications are treated as break-glass operations.
-- Audit entries are append-only; rollback creates new audit entries and never deletes history.
+- Audit entries are append-only during operations; rollback creates new audit entries and never deletes history. Governed retention may later remove expired operation records according to configured retention policy.
 - Rollback must restore business data from captured before-images, not erase the evidence of the correction.
 - Sensitive values must be protected in UI, exports, logs, telemetry, and future tests.
 - Audit metadata is mandatory; rollback before-image snapshots are configurable and must be visibly enabled, disabled, retained, or expired.
+- Approval requirement and approval separation are configurable; approval with a separate approver remains the safer default, but one-person companies may explicitly disable approval for standard requests or allow self-approval.
 - Retention for app-owned operation data must be user-configurable and should use Business Central native retention policy capabilities when feasible.
 - Future implementation agents should use the relevant project skill from `.codex/skills/` before changing architecture, AL code, UX, tests, security, release, or symbol discovery artifacts.
 - Future implementation agents should start from the relevant project prompt in `.codex/prompts/` when beginning repeatable workflows.
@@ -89,6 +92,7 @@ Higher-order documents define intent. Lower-order documents may refine details, 
 | `bcda-test-validation` | Test planning, acceptance coverage, sandbox proof, and release validation. |
 | `bcda-release-ops` | Deployment, operations, upgrade, release notes, and support readiness. |
 | `bcda-symbol-discovery` | BC symbol/runtime evidence before platform-dependent code. |
+| `bcda-user-guide-steward` | Keep `UserGuide.md` aligned with behavior, setup, readiness, release, and support changes. |
 
 ## Project Prompts
 
@@ -106,14 +110,15 @@ Higher-order documents define intent. Lower-order documents may refine details, 
 | `test-validation.prompt.md` | Plan or review tests and release evidence. |
 | `release-ops.prompt.md` | Prepare deployment, operations, upgrade, or release notes. |
 | `docs-consistency-check.prompt.md` | Find and fix documentation drift. |
+| `user-guide-maintenance.prompt.md` | Keep `UserGuide.md` aligned with behavior, setup, release, and SDD changes. |
 
 ## Readiness Gates
 
 | Gate | Required Evidence | Current Status |
 | --- | --- | --- |
 | Discovery | Product intent, scope, risks, open decisions documented | Complete |
-| Platform verification | BC symbols and AL runtime behavior verified locally | Not complete |
+| Platform verification | BC symbols and foundation APIs verified locally; mutation behavior verified in sandbox | Partially complete |
 | Security review | `SUPER`-only access model, audit model, rollback rules reviewed | Drafted, needs human review |
-| Implementation readiness | `code-generation-readiness.md` says Ready | Not ready |
-| Build validation | AL package compiles in sandbox | Not started |
+| Implementation readiness | `code-generation-readiness.md` says Ready for the requested scope | Foundation only |
+| Build validation | AL package compiles in sandbox | Local foundation compile/analyzers passed; sandbox deployment validation not started |
 | Release validation | Sandbox correction, rollback, audit, and upgrade tests pass | Not started |

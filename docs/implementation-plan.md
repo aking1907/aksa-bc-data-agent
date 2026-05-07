@@ -13,7 +13,7 @@
 
 | Phase | Build Order | Exit Criteria |
 | --- | --- | --- |
-| 0 Documentation | Complete SDD package and readiness gate | Docs exist; AL code remains blocked. |
+| 0 Documentation | Complete SDD package and readiness gate | Docs exist; implementation scope is gated. |
 | 1 Symbol Discovery | Download symbols and verify BC runtime assumptions | `symbol-discovery.md` updated with evidence. |
 | 2 Foundation Data | Setup, policy, request, line, audit, snapshot, rollback storage | App compiles; table upgrade strategy drafted. |
 | 3 Security And Policy | `SUPER` access checks, policy evaluation, redaction rules | Non-`SUPER` users blocked; policy tests pass. |
@@ -40,22 +40,24 @@
 ## Definition Of Ready For Code
 
 - User confirms implementation should begin.
-- `code-generation-readiness.md` status is Ready.
+- `code-generation-readiness.md` status is Ready for the requested scope.
 - BC symbols are downloaded and documented.
 - Object ID allocation is confirmed.
 - Posted table default policy is confirmed.
 - Field type support boundary is confirmed.
-- Approval model among `SUPER` users is confirmed.
+- Approval model among `SUPER` users is configurable: approval with a separate approver by default, no-approval or self-approval allowed when setup permits it.
 - Rollback snapshot logging default is confirmed.
 - Audit/snapshot/technical log retention periods and implementation approach are confirmed.
 - Required analyzer baseline is confirmed.
+
+Foundation data code may start when the requested scope is limited to setup, policy, request, audit, snapshot, rollback-state, retention-log, SUPER-gated shell pages, and supporting services. Execution, rollback execution, export, and arbitrary target record preview require a later readiness review.
 
 ## Definition Of Done
 
 - Code compiles in target BC environment.
 - Requirements have acceptance and tests.
 - Unauthorized access is blocked.
-- Audit entries are append-only.
+- Audit entries are append-only during operations; governed retention handles expired operation records.
 - Rollback does not erase audit history.
 - Rollback-disabled and rollback-expired states are visible and safe.
 - Retention cleanup respects configured periods and protects active records.

@@ -26,6 +26,7 @@ References:
 - Make dangerous actions require preview first.
 - Show rollback availability before execution and after execution.
 - Keep audit metadata mandatory.
+- Make approval requirement and approval separation configurable so the app supports both dual-control companies and one-person companies.
 - Make rollback snapshot logging configurable, but never silent.
 - Make retention visible on setup, request preview, audit entries, and rollback pages.
 - Warn clearly when rollback snapshots are disabled or expired.
@@ -36,6 +37,7 @@ References:
 
 | Page | Page Type | Purpose |
 | --- | --- | --- |
+| BCDA Role Center | RoleCenter | Home/profile entry point that groups the available BCDA foundation tools for SUPER users. |
 | BCDA Setup | Card | Global safety, rollback logging, retention, export, and environment settings. |
 | BCDA Data Policies | List | Search and maintain table/field allow/block policies. |
 | BCDA Data Policy Card | Card | Configure one table/field policy, risk, validation, approval, rollback logging, and retention overrides. |
@@ -72,7 +74,7 @@ Primary actions:
 
 - New Correction.
 - Preview.
-- Submit For Approval or Approve when policy requires it.
+- Submit For Approval or Approve only when approval is required; require a different approver only when setup says separate approval is required.
 - Execute.
 - Rollback.
 
@@ -82,6 +84,14 @@ Secondary actions:
 - Export Audit.
 - Open Retention Status.
 - Show Technical Details.
+
+Role Center navigation:
+
+- Setup.
+- Data Policies.
+- Correction Requests.
+- Audit Entries.
+- Retention Logs.
 
 Dangerous actions:
 
@@ -128,4 +138,3 @@ Design rules:
 - Expired snapshots: show "Rollback unavailable because rollback snapshot retention has expired."
 - Policy blocked: show the exact policy reason and the next safe action.
 - Platform blocked: show sanitized platform behavior and link to escalation package fields.
-

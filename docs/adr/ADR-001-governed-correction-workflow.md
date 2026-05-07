@@ -15,7 +15,7 @@ All data mutation must go through a governed correction workflow:
 - Correction request first.
 - Existing `SUPER` access and policy evaluation before mutation.
 - Dry-run preview before execution.
-- Approval for posted or high-risk data by default.
+- Approval for posted or high-risk data by default, with configurable approval requirement and separation for standard request workflows.
 - Before-image capture before mutation.
 - Append-only audit for preview, approval, execution, failure, and rollback.
 - Rollback through a governed operation, not audit deletion.

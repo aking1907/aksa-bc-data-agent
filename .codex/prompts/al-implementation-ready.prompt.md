@@ -3,7 +3,7 @@
 Use this prompt only after the readiness gate is Ready.
 
 ```text
-Use $bcda-al-implementation, $bcda-sdd-steward, $bcda-security-audit, and $bcda-test-validation.
+Use $bcda-al-implementation, $bcda-sdd-steward, $bcda-security-audit, $bcda-test-validation, and $bcda-user-guide-steward when user-facing behavior changes.
 
 Implement this approved BC Data Agent AL change:
 <describe the implementation task>
@@ -15,6 +15,7 @@ Before editing:
 - Read docs/app-design.md and docs/al-development-standards.md.
 - Read docs/requirements.md, docs/acceptance-criteria.md, and docs/traceability-matrix.md.
 - Read docs/security-review.md and docs/symbol-discovery.md.
+- Read UserGuide.md when setup, pages, actions, validation, release guidance, or user-visible behavior may change.
 
 Implementation rules:
 - Do not create BCDA-specific permission set objects.
@@ -23,8 +24,8 @@ Implementation rules:
 - Make rollback snapshot logging configurable and visible.
 - Respect operation retention categories.
 - Keep page logic thin and use service codeunits.
+- Update or review UserGuide.md for user-facing behavior changes.
 - Pass required analyzers or document approved exceptions.
 
-End with files changed, requirement IDs, tests run, tests not run, and residual risks.
+End with files changed, requirement IDs, tests run, tests not run, UserGuide.md updated/reviewed status, and residual risks.
 ```
-

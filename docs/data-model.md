@@ -1,14 +1,14 @@
 # Data Model
 
-This document describes planned app-owned data. It is not AL code.
+This document describes app-owned data. Phase 2 foundation storage now exists in AL, while execution, preview, rollback execution, export, and cleanup behavior remain gated.
 
 ## App-Owned Entities
 
 | Entity | Purpose | Key Fields |
 | --- | --- | --- |
-| BCDA Setup | Global configuration and safety defaults. | Environment label, default policy mode, approval required, rollback snapshot default, audit retention period, snapshot retention period, technical log retention period, export enabled. |
+| BCDA Setup | Global configuration and safety defaults. | Environment label, default policy mode, approval required, require separate approver, rollback snapshot default, audit retention period, snapshot retention period, technical log retention period, export enabled. |
 | BCDA Data Policy | Allow/block rules for targets. | Table id, table name, field id, field name, operation, risk level, allow modify, rollback snapshot mode, requires approval, validation mode, retention override. |
-| BCDA Correction Request | Header for a correction workflow. | Request id, status, requested by, requested at, company, reason, ticket/reference, risk, approved by, approved at. |
+| BCDA Correction Request | Header for a correction workflow. | Request id, status, requested by, requested at, company, reason, ticket/reference, risk, approval required, require separate approver, approved by, approved at. |
 | BCDA Correction Line | One field-level proposed mutation. | Request id, line no., table id, record key, field id, proposed new value, optional old/new value refs, rollback snapshot mode, snapshot expiration date, validation mode, line status, sanitized error. |
 | BCDA Value Snapshot | Protected serialized values. | Snapshot id, value type, serialized value, display value, value hash, redaction level, retention category, expires at, purged. |
 | BCDA Audit Entry | Append-only evidence. | Entry no., operation, request id, line no., user id, timestamp, company, table id, record key, field id, result, rollback availability, optional value refs, error code. |

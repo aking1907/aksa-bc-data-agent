@@ -18,7 +18,7 @@ Access control must be based on existing Business Central `SUPER` access. Workfl
 
 - The app has a smaller custom security surface.
 - Non-`SUPER` users must not be able to use correction, audit, export, setup, or rollback features.
-- Approval policy can still require a second `SUPER` user, but that is a workflow control rather than a permission-set design.
+- Approval policy can still require a different `SUPER` user, but that is a configurable workflow control rather than a permission-set design. One-person companies can disable approval for standard requests or allow self-approval when they explicitly accept that control model.
 - Sandbox validation must explicitly prove non-`SUPER` users cannot access the functionality.
 
 ## Alternatives Considered

@@ -25,23 +25,38 @@ Use these files in this order:
 
 1. `cost/ai-usage-log.csv`
 2. `cost/ai-cost-report.md`
-3. `cost/update-ai-cost-report.ps1`
-4. `cost/model-pricing.md`
-5. `cost/ai-cost-policy.md`
-6. `docs/ai-governance.md`
-7. `docs/readiness-audit.md`
+3. `cost/update-ai-usage-from-codex.ps1`
+4. `cost/update-ai-cost-report.ps1`
+5. `cost/model-pricing.md`
+6. `cost/ai-cost-policy.md`
+7. `docs/ai-governance.md`
+8. `docs/readiness-audit.md`
 
 If the CSV is empty, do not invent historic project costs. Use available Codex session telemetry only when the user asks for project usage and the telemetry can be tied to this workspace path.
 
 ## Automation Command
 
-For BC Data Agent, regenerate the compact report with:
+For BC Data Agent, update telemetry rollups and regenerate the compact report with:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File cost\update-ai-usage-from-codex.ps1
+```
+
+Then run:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File cost\update-ai-cost-report.ps1
 ```
 
-The script must:
+The telemetry importer must:
+
+- read local Codex session logs from the configured Codex home,
+- filter sessions to the current project workspace,
+- sum unique `last_token_usage` token events without storing raw prompts or transcripts,
+- apply rates from `cost/model-pricing.md`,
+- update `cost/ai-usage-log.csv`.
+
+The report script must:
 
 - read `cost/ai-usage-log.csv`,
 - ignore `TOTAL` rows,
@@ -49,7 +64,7 @@ The script must:
 - regenerate `cost/ai-cost-report.md`,
 - keep raw prompts, tool outputs, customer data, Business Central data values, and full telemetry out of the repository.
 
-This project does not currently include an automated parser for raw Codex telemetry. If that is added later, update this skill, the script, and `docs/ai-governance.md` together.
+Do not manually invent token counts or dollar values when telemetry can be imported.
 
 ## SDD Alignment
 
@@ -75,7 +90,7 @@ Use this cadence instead:
 
 | Trigger | Required action |
 |---|---|
-| End of a meaningful coding, SDD, research, review, or reporting request | Add or update one compact checkpoint when telemetry is available, then run the report script. |
+| End of a meaningful coding, SDD, research, review, or reporting request | Run the Codex telemetry importer and report script when telemetry is available. If telemetry is unavailable, add a `blocked` precision checkpoint rather than inventing cost. |
 | Long-running work over 30 minutes | Review whether a checkpoint is warranted. |
 | Long-running work over 60 minutes | Add a checkpoint if telemetry is available and the work materially changed project artifacts. |
 | Estimated request cost over USD 5.00 | Add a checkpoint and mention the threshold in final notes when cost is in scope. |
@@ -89,7 +104,7 @@ When this skill is relevant, Codex must treat cost reporting as part of done cri
 
 - Before substantial work, check whether the report clearly belongs to BC Data Agent.
 - During substantial work, avoid repeatedly sending unnecessary large context.
-- Before final response, run the report script if cost files were changed.
+- Before final response, run the report script when project artifacts changed materially or cost reporting is in scope.
 - In final notes, mention whether the cost report was updated when cost reporting was in scope.
 
 ## Precision Labels
@@ -157,9 +172,12 @@ Round row-level cost to 6 decimal places. Round human-facing report totals to 2 
 The report must include measurements, not only final cost:
 
 - total sessions or request checkpoints,
+- a short executive summary in plain language,
 - total input, cached input, uncached input, output, reasoning output, and total tokens,
 - cache ratio,
 - output ratio,
+- cost composition for uncached input, cached input, and output,
+- estimated cache savings when cached-token pricing is available,
 - average estimated cost per session,
 - average estimated cost per telemetry event,
 - highest-cost session/task,
@@ -187,9 +205,15 @@ tokens_per_estimated_usd = total_tokens / estimated_cost_usd
 ```markdown
 # AI Cost Report
 
+## Executive Summary
+
 ## At A Glance
 
 ## Measurement Dashboard
+
+## What Drove The Cost
+
+## Cost Health Signals
 
 ## Cost By Session
 

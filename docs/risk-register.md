@@ -11,10 +11,11 @@
 | RSK-007 | Generic "modify any data" scope may encourage misuse. | High | Medium | High | Position product as break-glass correction with policy and audit. | Open |
 | RSK-008 | App-owned audit tables may grow large. | Medium | Medium | Medium | Retention policy, indexes, filters, and export/archive strategy. | Open |
 | RSK-009 | Extension upgrade may break snapshot deserialization. | High | Low | High | Serialization version and upgrade tests. | Open |
-| RSK-010 | Object ID range may be too small. | Medium | Medium | Medium | Confirm range before code generation. | Open |
+| RSK-010 | Object ID range may be too small. | Medium | Medium | Medium | Foundation objects use 34 IDs in range 88100-88149; preserve remaining IDs for gated execution/export objects or request a larger range before expansion. | Watch |
 | RSK-011 | Users may bypass standard BC correction flows unnecessarily. | Medium | Medium | Medium | Require reason, warnings, and policy guidance that normal flows are preferred. | Open |
 | RSK-012 | Production deployment may occur before sandbox validation. | High | Low | High | Deployment gate requires sandbox validation evidence. | Open |
 | RSK-013 | Rollback snapshots may be disabled for a correction where rollback is later needed. | High | Medium | High | Show rollback-unavailable state in preview and require confirmation; default posted/high-risk policies to require snapshots. | Open |
 | RSK-014 | Retention cleanup may remove operation data needed for support, audit, or rollback. | High | Medium | High | Separate retention categories, conservative defaults, visible expiration dates, and retention cleanup tests. | Open |
 | RSK-015 | Retention jobs may affect performance if they run too often or during business hours. | Medium | Medium | Medium | Prefer native retention policies, schedule outside business hours, and test with realistic data. | Open |
 | RSK-016 | UI may make dangerous changes feel too easy. | High | Medium | High | Use task-focused pages, preview-first flow, confirmation dialogs, visible risk, and less prominent dangerous actions. | Open |
+| RSK-017 | Self-approval or disabled approval may weaken dual-control oversight. | Medium | Medium | Medium | Keep approval with a separate approver as the safer default, make no-approval and self-approval explicit setup choices, show the setting on requests, and keep audit evidence. | Open |

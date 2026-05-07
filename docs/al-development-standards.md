@@ -1,6 +1,6 @@
 # AL Development Standards
 
-No AL code exists yet. When implementation begins, use this as the development quality bar.
+Phase 2 foundation AL code exists. Continue using this as the development quality bar for every new implementation slice.
 
 ## Microsoft Guidance Alignment
 
@@ -47,6 +47,7 @@ Expected analyzer baseline:
 - UICop: required.
 - PerTenantExtensionCop: expected for per-tenant deployment.
 - AppSourceCop: only if the app target changes to AppSource.
+- `PTE0004` is suppressed by `ruleset.json` because ADR-003 explicitly forbids BCDA-specific permission set objects; access must remain limited to existing Business Central `SUPER` users through object access behavior and runtime checks.
 
 Analyzer warnings that affect security, UI clarity, data classification, permissions, or runtime behavior are release blockers unless a documented exception exists.
 
@@ -67,4 +68,3 @@ When implementing operation retention:
 - Posted/high-risk data defaults to rollback snapshots required.
 - If rollback snapshots are disabled or expired, rollback actions must be unavailable.
 - Retention cleanup must never delete active in-progress requests.
-

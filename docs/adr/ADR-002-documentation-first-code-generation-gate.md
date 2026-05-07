@@ -10,7 +10,7 @@ The project touches high-risk Business Central data. Implementation details must
 
 ## Decision
 
-No AL code will be generated until `docs/code-generation-readiness.md` says the project is Ready and the user explicitly requests implementation.
+No AL code will be generated outside the scope that `docs/code-generation-readiness.md` marks Ready and the user explicitly requests.
 
 The readiness gate must confirm:
 
@@ -36,4 +36,3 @@ The readiness gate must confirm:
 
 - Update readiness status after symbol discovery and security review.
 - Require traceability updates with every code change.
-

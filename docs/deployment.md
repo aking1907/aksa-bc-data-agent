@@ -12,6 +12,7 @@ Production deployment is blocked until sandbox release validation passes and bus
 - Confirm object ID allocation.
 - Confirm company and tenant target.
 - Confirm `SUPER`-only access plan.
+- Confirm approval requirement and separate-approver policy for the target company.
 - Confirm no BCDA-specific permission sets will be created or assigned.
 - Confirm default posted table policy.
 - Confirm rollback snapshot logging default.
@@ -22,18 +23,17 @@ Production deployment is blocked until sandbox release validation passes and bus
 
 ## Install Or Deployment Steps
 
-Implementation has not started, so package deployment steps are not executable yet.
-
-Expected future flow:
+Foundation implementation has started. Package deployment is allowed only to sandbox for setup, policy, request, audit, retention, and SUPER access validation.
 
 1. Build AL package.
 2. Publish to sandbox.
 3. Run installation and setup checks.
 4. Confirm approved users already have the Business Central `SUPER` permission set.
-5. Configure setup, rollback logging, retention, and data policies.
-6. Run dry-run validation.
-7. Execute approved sandbox correction scenarios.
-8. Validate audit and rollback.
+5. Optionally assign or select the `BC Data Agent` profile for approved `SUPER` users who should use the BCDA Role Center.
+6. Confirm non-`SUPER` users cannot open BCDA pages.
+7. Configure setup, rollback logging, retention, and data policies.
+8. Create a foundation request and verify audit evidence for foundation actions.
+9. Do not run target data preview, target data execution, rollback execution, or export until the next readiness gate approves them.
 
 ## Configuration Steps
 
@@ -41,10 +41,11 @@ Expected future flow:
 - Configure default policy mode.
 - Configure posted table allow/block rules.
 - Configure approval policy among `SUPER` users.
+- Configure whether approval is required and whether required approval needs a different `SUPER` user or allows self-approval for one-person companies.
 - Configure redaction and export policy.
 - Configure rollback snapshot logging mode.
 - Configure audit metadata, rollback snapshot, and technical log retention.
-- Configure or verify Business Central retention policies for BCDA-owned operation tables when available.
+- Configure or verify Business Central retention policies for BCDA-owned operation tables using the foundation retention registration action.
 
 ## Upgrade Steps
 

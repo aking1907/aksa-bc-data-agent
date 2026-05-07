@@ -7,7 +7,7 @@ description: SDD governance for the BC Data Agent project. Use when Codex is ask
 
 ## Purpose
 
-Keep BC Data Agent implementation work governed by the SDD package. Treat the docs as the source of truth and block code generation when readiness says Not Ready.
+Keep BC Data Agent implementation work governed by the SDD package. Treat the docs as the source of truth and block code generation outside the readiness scope.
 
 ## Required Reading
 
@@ -35,7 +35,7 @@ Read these when the task touches architecture, security, tests, release, or oper
 
 1. Classify the request as documentation, discovery, implementation, review, or release.
 2. Check `docs/code-generation-readiness.md`.
-3. If status is Not Ready and the request would create AL code, stop implementation and update readiness/open-decision docs instead.
+3. If the request would create AL code outside the current readiness scope, stop implementation and update readiness/open-decision docs instead.
 4. Map every requested behavior to a requirement ID and acceptance criterion.
 5. Add or update traceability rows before or alongside implementation planning.
 6. Update related docs together when behavior changes.
@@ -52,11 +52,12 @@ When project behavior changes, update these together:
 - `docs/traceability-matrix.md`
 - `docs/risk-register.md`
 - `docs/deployment.md` and `docs/operations-runbook.md` when admin/user behavior changes
+- `UserGuide.md` when user-facing behavior, setup, page actions, validation steps, release guidance, or readiness scope changes
 
 ## Readiness Rules
 
 - Never treat a user request for speed as permission to skip SDD.
-- Never generate AL code while readiness is Not Ready.
+- Never generate AL code outside the exact scope approved by `docs/code-generation-readiness.md`.
 - Mark assumptions explicitly in `docs/open-decisions.md`.
 - Close or accept blocking decisions before moving readiness to Ready.
 - Record Business Central symbol evidence in `docs/symbol-discovery.md` before relying on platform internals.
@@ -69,4 +70,3 @@ End with:
 - Readiness status.
 - Blocking decisions, if any.
 - Whether AL code generation remains blocked.
-

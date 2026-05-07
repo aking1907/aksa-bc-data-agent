@@ -35,6 +35,7 @@ Read:
 - `docs/security-review.md`
 - `docs/test-plan.md`
 - `docs/symbol-discovery.md`
+- `UserGuide.md` when the change affects setup, pages, actions, validation, release guidance, or user-visible behavior
 
 ## Implementation Rules
 
@@ -45,12 +46,13 @@ Read:
 - Enforce policy immediately before execution and rollback.
 - Do not rely on UI-only checks for security.
 - Never add silent edit paths.
-- Never delete audit entries.
+- Never delete audit entries outside governed retention.
 - Never log full sensitive values to generic telemetry or test output.
 - Always write mandatory audit metadata, even when rollback snapshots are disabled.
 - Make rollback-disabled and snapshot-expired states visible and safe.
 - Prefer Business Central native retention policies for BCDA-owned operation tables when symbol discovery confirms support.
 - Prefer small, focused objects that match `docs/implementation-contracts.md`.
+- Use `bcda-user-guide-steward` and update or review `UserGuide.md` for user-visible AL behavior changes.
 
 ## Build Order
 
@@ -73,9 +75,9 @@ For every AL change:
 - Compile in the target BC environment.
 - Pass required analyzers or document approved exceptions.
 - Add or update tests or manual validation steps.
-- Update docs when behavior changes.
+- Update docs and `UserGuide.md` when behavior changes.
 - Preserve posted-data safeguards, audit, rollback, and redaction.
 
 ## Output Standard
 
-Report changed files, requirement IDs, tests run, tests not run, and any residual risk.
+Report changed files, requirement IDs, tests run, tests not run, whether `UserGuide.md` was updated or reviewed, and any residual risk.

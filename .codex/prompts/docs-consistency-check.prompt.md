@@ -22,16 +22,18 @@ Read:
 - docs/risk-register.md
 - docs/code-generation-readiness.md
 - docs/readiness-audit.md
+- UserGuide.md
 
 Verify:
 - No contradictions with higher-order docs.
-- No AL code is allowed while readiness is Not Ready.
+- AL code is allowed only within the exact scope approved by `docs/code-generation-readiness.md`.
 - No BCDA-specific permission sets are planned.
 - Mandatory audit metadata cannot be disabled.
 - Rollback snapshots are configurable and retention-aware.
 - Every requirement has acceptance/test coverage.
 - Open decisions are named.
 - Release/deployment/operations docs reflect user/admin behavior.
+- UserGuide.md reflects the current foundation behavior and readiness boundaries.
 
 Fix documentation drift directly when safe. End with changed files, unresolved questions, and readiness status.
 ```

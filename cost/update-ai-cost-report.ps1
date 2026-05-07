@@ -34,6 +34,12 @@ function Format-Usd {
     return "USD " + $Value.ToString("0.000000", [System.Globalization.CultureInfo]::InvariantCulture)
 }
 
+function Format-UsdBrief {
+    param([decimal]$Value)
+
+    return "USD " + $Value.ToString("0.00", [System.Globalization.CultureInfo]::InvariantCulture)
+}
+
 function Format-Ratio {
     param(
         [decimal]$Part,
@@ -75,17 +81,40 @@ $reasoningOutputTokens = [decimal]0
 $totalTokens = [decimal]0
 $estimatedCost = [decimal]0
 $actualCost = [decimal]0
+$uncachedInputCost = [decimal]0
+$cachedInputCost = [decimal]0
+$outputTokenCost = [decimal]0
+$cacheSavings = [decimal]0
 $hasActualCost = $false
 
 foreach ($row in $rows) {
-    $events += To-DecimalValue $row.events
-    $inputTokens += To-DecimalValue $row.input_tokens
-    $cachedInputTokens += To-DecimalValue $row.cached_input_tokens
-    $uncachedInputTokens += To-DecimalValue $row.uncached_input_tokens
-    $outputTokens += To-DecimalValue $row.output_tokens
-    $reasoningOutputTokens += To-DecimalValue $row.reasoning_output_tokens
-    $totalTokens += To-DecimalValue $row.total_tokens
-    $estimatedCost += To-DecimalValue $row.estimated_cost_usd
+    $rowEvents = To-DecimalValue $row.events
+    $rowInputTokens = To-DecimalValue $row.input_tokens
+    $rowCachedInputTokens = To-DecimalValue $row.cached_input_tokens
+    $rowUncachedInputTokens = To-DecimalValue $row.uncached_input_tokens
+    $rowOutputTokens = To-DecimalValue $row.output_tokens
+    $rowReasoningOutputTokens = To-DecimalValue $row.reasoning_output_tokens
+    $rowTotalTokens = To-DecimalValue $row.total_tokens
+    $rowEstimatedCost = To-DecimalValue $row.estimated_cost_usd
+    $rowInputPrice = To-DecimalValue $row.input_price_per_1m
+    $rowCachedInputPrice = To-DecimalValue $row.cached_input_price_per_1m
+    $rowOutputPrice = To-DecimalValue $row.output_price_per_1m
+
+    $events += $rowEvents
+    $inputTokens += $rowInputTokens
+    $cachedInputTokens += $rowCachedInputTokens
+    $uncachedInputTokens += $rowUncachedInputTokens
+    $outputTokens += $rowOutputTokens
+    $reasoningOutputTokens += $rowReasoningOutputTokens
+    $totalTokens += $rowTotalTokens
+    $estimatedCost += $rowEstimatedCost
+    $uncachedInputCost += ($rowUncachedInputTokens / 1000000) * $rowInputPrice
+    $cachedInputCost += ($rowCachedInputTokens / 1000000) * $rowCachedInputPrice
+    $outputTokenCost += ($rowOutputTokens / 1000000) * $rowOutputPrice
+
+    if ($rowInputPrice -gt $rowCachedInputPrice) {
+        $cacheSavings += ($rowCachedInputTokens / 1000000) * ($rowInputPrice - $rowCachedInputPrice)
+    }
 
     if (-not [string]::IsNullOrWhiteSpace($row.actual_cost_usd)) {
         $hasActualCost = $true
@@ -112,8 +141,21 @@ if ($rows.Count -gt 0) {
     }
 }
 
+$blockedRows = @($rows | Where-Object { $_.precision -eq "blocked" }).Count
+$pricingSources = @($rows | ForEach-Object { $_.pricing_source } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)
+$pricingSourceText = "n/a"
+if ($pricingSources.Count -eq 1) {
+    $pricingSourceText = $pricingSources[0]
+}
+elseif ($pricingSources.Count -gt 1) {
+    $pricingSourceText = "mixed"
+}
+
 $costHealth = "Baseline"
-if ($estimatedCost -gt 50) {
+if (($rows.Count -gt 0) -and ($precision -eq "blocked")) {
+    $costHealth = "Telemetry Missing"
+}
+elseif ($estimatedCost -gt 50) {
     $costHealth = "Review"
 }
 elseif ($estimatedCost -gt 10) {
@@ -130,13 +172,83 @@ $averageCostPerSession = if ($sessionCount -gt 0) { Format-Usd ($estimatedCost /
 $averageCostPerEvent = if ($events -gt 0) { Format-Usd ($estimatedCost / $events) } else { "n/a" }
 $tokensPerUsd = if ($estimatedCost -gt 0) { Format-Number ($totalTokens / $estimatedCost) } else { "n/a" }
 $actualCostText = if ($hasActualCost) { Format-Usd $actualCost } else { "n/a" }
+$inputSideCost = $uncachedInputCost + $cachedInputCost
+$dominantDriver = if ($inputSideCost -ge $outputTokenCost) { "input/context" } else { "model output" }
+
+$costHealthNarrative = switch ($costHealth) {
+    "Baseline" { "No BC Data Agent AI usage has been logged yet." }
+    "Telemetry Missing" { "Some work is logged, but cost is blocked until token telemetry or pricing is available." }
+    "Normal" { "Spend is currently in the normal band for logged project work." }
+    "Watch" { "Spend is in watch range. Review model choice and context size before repeating similar long-running work." }
+    "Review" { "Spend needs review before repeating similar premium-model work." }
+    default { "Cost health is $costHealth." }
+}
+
+$checkpointSignalLine = "| Baseline reset | Complete | n/a | Prior-project rows were removed; no BC Data Agent usage checkpoints are recorded yet when session count is zero. |"
+if ($rows.Count -gt 0) {
+    if ($blockedRows -gt 0) {
+        $checkpointSignalLine = "| Token telemetry coverage | Partial | $blockedRows | Some compact rows still need token telemetry before cost can be calculated. |"
+    }
+    else {
+        $checkpointSignalLine = "| Token telemetry coverage | Complete | $sessionCount | Compact rows have usable token telemetry or invoice precision. |"
+    }
+}
+
+$executiveLines = New-Object System.Collections.Generic.List[string]
+if ($rows.Count -eq 0) {
+    $executiveLines.Add("- No BC Data Agent AI usage has been logged yet, so this report is a clean baseline.")
+    $executiveLines.Add("- Run the telemetry importer after meaningful SDD, implementation, testing, or release work.")
+}
+else {
+    $executiveLines.Add("- Current token-priced cost is about $(Format-UsdBrief $estimatedCost), calculated from $(Format-Number $totalTokens) measured tokens across $(Format-Number $events) telemetry events.")
+    $executiveLines.Add("- Cost health is $costHealth. $costHealthNarrative")
+    $executiveLines.Add("- The main cost driver is ${dominantDriver}: input/context cost is $(Format-UsdBrief $inputSideCost), while model output cost is $(Format-UsdBrief $outputTokenCost).")
+    if ($cacheSavings -gt 0) {
+        $executiveLines.Add("- Cached context is helping materially: it avoided about $(Format-UsdBrief $cacheSavings) compared with billing cached input at the full input rate.")
+    }
+    if ($hasActualCost) {
+        $executiveLines.Add("- Actual billed cost is logged separately at $actualCostText.")
+    }
+    else {
+        $executiveLines.Add("- Actual billed cost remains open until an invoice or billing export is available.")
+    }
+}
+
+$costCompositionLines = New-Object System.Collections.Generic.List[string]
+if ($rows.Count -eq 0) {
+    $costCompositionLines.Add("No cost composition is available yet.")
+}
+else {
+    $costCompositionLines.Add("| Component | Token Volume | Cost | Share | What It Tells Us |")
+    $costCompositionLines.Add("|---|---:|---:|---:|---|")
+    $costCompositionLines.Add("| Uncached input context | $(Format-Number $uncachedInputTokens) | $(Format-Usd $uncachedInputCost) | $(Format-Ratio $uncachedInputCost $estimatedCost) | Fresh context billed at the full input rate. |")
+    $costCompositionLines.Add("| Cached input context | $(Format-Number $cachedInputTokens) | $(Format-Usd $cachedInputCost) | $(Format-Ratio $cachedInputCost $estimatedCost) | Reused project context billed at the cached-input rate. |")
+    $costCompositionLines.Add("| Model output | $(Format-Number $outputTokens) | $(Format-Usd $outputTokenCost) | $(Format-Ratio $outputTokenCost $estimatedCost) | Generated answer volume, including reasoning output where counted by telemetry. |")
+    $costCompositionLines.Add("| Estimated cache savings | $(Format-Number $cachedInputTokens) | $(Format-Usd $cacheSavings) | n/a | Approximate avoided cost from cached-input pricing. |")
+}
+
+$watchLines = New-Object System.Collections.Generic.List[string]
+if ($rows.Count -eq 0) {
+    $watchLines.Add("- Keep the first checkpoint small and attributable to one SDD or implementation milestone.")
+}
+else {
+    if (($costHealth -eq "Watch") -or ($costHealth -eq "Review")) {
+        $watchLines.Add('- This is above the watch threshold in `cost/ai-cost-policy.md`; repeat similar premium-model loops only when the risk justifies it.')
+    }
+    else {
+        $watchLines.Add("- Current cost health does not require special review, but keep logging meaningful milestones.")
+    }
+    $watchLines.Add("- The cache ratio is $cacheRatio; keep prompts tied to existing files and avoid resending broad context unnecessarily.")
+    $watchLines.Add("- Use lower-cost models for mechanical document cleanup and reserve premium models for security, rollback, posted-data, and readiness decisions.")
+    $watchLines.Add("- Reconcile with billing export later if the project needs finance-grade actual billed cost.")
+}
 
 $sessionLines = New-Object System.Collections.Generic.List[string]
 if ($rows.Count -eq 0) {
     $sessionLines.Add("No BC Data Agent usage checkpoints are recorded yet.")
 }
 else {
-    $sessionLines.Add("| Session | Phase | Model | Events | Total Tokens | Estimated Cost USD |")
+    $sessionLines.Add("| Session | Phase | Model | Events | Total Tokens | Token-Priced Cost USD |")
     $sessionLines.Add("|---|---|---|---:|---:|---:|")
     foreach ($row in ($rows | Sort-Object {[decimal](To-DecimalValue $_.estimated_cost_usd)} -Descending)) {
         $sessionLines.Add("| $(Markdown-Escape $row.session_name) | $(Markdown-Escape $row.phase) | $(Markdown-Escape $row.model) | $(Format-Number (To-DecimalValue $row.events)) | $(Format-Number (To-DecimalValue $row.total_tokens)) | $((To-DecimalValue $row.estimated_cost_usd).ToString("0.000000", [System.Globalization.CultureInfo]::InvariantCulture)) |")
@@ -148,7 +260,7 @@ if ($rows.Count -eq 0) {
     $phaseLines.Add("No phase cost has been recorded yet.")
 }
 else {
-    $phaseLines.Add("| Phase | Sessions | Total Tokens | Estimated Cost USD |")
+    $phaseLines.Add("| Phase | Sessions | Total Tokens | Token-Priced Cost USD |")
     $phaseLines.Add("|---|---:|---:|---:|")
     foreach ($group in ($rows | Group-Object phase | Sort-Object Name)) {
         $phaseTokens = [decimal]0
@@ -166,7 +278,7 @@ if ($rows.Count -eq 0) {
     $modelLines.Add("No model cost has been recorded yet.")
 }
 else {
-    $modelLines.Add("| Model | Sessions | Total Tokens | Estimated Cost USD |")
+    $modelLines.Add("| Model | Sessions | Total Tokens | Token-Priced Cost USD |")
     $modelLines.Add("|---|---:|---:|---:|")
     foreach ($group in ($rows | Group-Object model | Sort-Object Name)) {
         $modelTokens = [decimal]0
@@ -184,6 +296,10 @@ $lines = @(
     "",
     "> Compact generated report. It stores measurements and cost rollups only; raw prompts, tool output, Business Central data, and full telemetry stay out of the repository.",
     "",
+    "## Executive Summary",
+    "",
+    $executiveLines,
+    "",
     "## At A Glance",
     "",
     "| Item | Value |",
@@ -192,8 +308,9 @@ $lines = @(
     "| Report period | All logged project checkpoints |",
     "| Last checkpoint | $lastCheckpoint |",
     "| Precision | $precision |",
-    "| Estimated cost | $(Format-Usd $estimatedCost) |",
-    "| Actual invoice cost | $actualCostText |",
+    "| Token-priced cost | $(Format-Usd $estimatedCost) |",
+    "| Actual billed cost | $actualCostText |",
+    "| Pricing source | $(Markdown-Escape $pricingSourceText) |",
     "| Total tokens | $(Format-Number $totalTokens) |",
     "| Sessions/request checkpoints | $sessionCount |",
     "| Telemetry events | $(Format-Number $events) |",
@@ -215,11 +332,15 @@ $lines = @(
     "| Average cost per telemetry event | $averageCostPerEvent | Checkpoint-level budget signal |",
     "| Tokens per estimated USD | $tokensPerUsd | Efficiency view across current pricing |",
     "",
+    "## What Drove The Cost",
+    "",
+    $costCompositionLines,
+    "",
     "## Cost Health Signals",
     "",
     "| Signal | Status | Measurement | Note |",
     "|---|---|---:|---|",
-    "| Baseline reset | Complete | n/a | Prior-project rows were removed; no BC Data Agent usage checkpoints are recorded yet when session count is zero. |",
+    $checkpointSignalLine,
     "| Invoice reconciliation | Open | n/a | Actual billed cost needs provider billing export or invoice. |",
     "| Tool-call fees | Open | n/a | Tool-call and hosted execution costs are excluded unless explicitly logged. |",
     "",
@@ -237,13 +358,11 @@ $lines = @(
     "",
     "## Optimization Notes",
     "",
-    "- Keep cost checkpoints at meaningful SDD, implementation, testing, or release boundaries.",
-    "- Use premium models for high-risk security, posted-data, rollback, and readiness decisions.",
-    "- Use lower-cost models for formatting, extraction, checklist maintenance, and simple documentation updates when available.",
+    $watchLines,
     "",
     "## Known Gaps",
     "",
-    "- Dollar amounts are pricing-based estimates until reconciled with a billing export or invoice.",
+    "- Token-priced dollar amounts are calculated from measured tokens and dated pricing assumptions until reconciled with a billing export or invoice.",
     "- Tool-call fees, hosted shell/container fees, web search call fees, subscription discounts, and enterprise terms are not included unless explicitly logged.",
     '- This report depends on compact rows in `cost/ai-usage-log.csv`; raw telemetry is intentionally not stored here.',
     "",
@@ -252,6 +371,7 @@ $lines = @(
     '- Usage rollup: `cost/ai-usage-log.csv`.',
     '- Pricing assumptions: `cost/model-pricing.md`.',
     '- Cost policy: `cost/ai-cost-policy.md`.',
+    '- Telemetry importer: `cost/update-ai-usage-from-codex.ps1`.',
     '- Automation script: `cost/update-ai-cost-report.ps1`.'
 )
 

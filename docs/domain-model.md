@@ -19,6 +19,7 @@ The bounded domain is controlled Business Central data correction. The app owns 
 | Rollback Operation | A governed reversal that writes previous values back to target records. | BC Data Agent |
 | Retention Policy | User-controlled rule for how long BCDA-owned operation records remain in the database. | BC Data Agent and Business Central |
 | Data Policy | Configuration that allows, blocks, or restricts correction behavior by table, field, risk, and workflow policy. | BC Data Agent |
+| Approval Separation | Setup rule deciding whether approval must be performed by a different `SUPER` user or may be self-approved. | BC Data Agent |
 | Break-Glass Change | High-risk correction allowed only under existing `SUPER` access, reason, approval, and audit requirements. | BC Data Agent |
 
 ## Entities
@@ -27,7 +28,7 @@ The bounded domain is controlled Business Central data correction. The app owns 
 | --- | --- |
 | Setup | Global configuration for correction behavior, retention, and default safety policy. |
 | Data Policy | Allow/block rules for tables and fields. |
-| Correction Request | Request header, status, reason, ticket, requestor, approver, and risk. |
+| Correction Request | Request header, status, reason, ticket, requestor, approval requirement, approval separation, approver, and risk. |
 | Correction Line | Table, key, field, value, validation mode, status, and error information. |
 | Audit Entry | Append-only record of preview, approval, execution, failure, and rollback activity. |
 | Value Snapshot | Protected before-image and after-image data needed for audit or rollback. |
@@ -50,11 +51,11 @@ The bounded domain is controlled Business Central data correction. The app owns 
 
 - A target data change cannot occur without a correction request.
 - A correction request cannot execute unless policy allows it.
-- Posted data changes require existing Business Central `SUPER` access and approval by default.
+- Posted data changes require existing Business Central `SUPER` access and approval by default; approval requirement and approval separation are configurable for standard request workflows.
 - Every executed change writes mandatory audit metadata first.
 - Every executed change captures a before-image when rollback snapshot logging is enabled.
 - Every attempted execution writes audit evidence, including failure.
-- Audit entries are append-only.
+- Audit entries are append-only during operations; governed retention may remove expired operation records.
 - Audit metadata is mandatory even when rollback snapshots are disabled.
 - Rollback snapshots are stored only when setup and policy enable them.
 - Rollback creates new changes and audit entries; it does not erase original activity.
@@ -70,7 +71,7 @@ The bounded domain is controlled Business Central data correction. The app owns 
 | --- | --- |
 | CorrectionRequestCreated | A request is saved. |
 | CorrectionPreviewGenerated | A dry run is completed. |
-| CorrectionApproved | A SUPER approver approves a high-risk request. |
+| CorrectionApproved | A SUPER approver approves a request when approval is required, according to the configured approval separation rule. |
 | CorrectionRejected | A SUPER approver rejects a request. |
 | CorrectionExecutionStarted | Execution begins. |
 | CorrectionLineSucceeded | One change line succeeds. |
@@ -89,5 +90,5 @@ BC Data Agent owns only its setup, policy, request, snapshot, audit, and rollbac
 
 - How to serialize all supported field types safely.
 - Default and minimum retention periods for audit metadata and rollback snapshots.
-- Whether approval is one-person, two-person, or external workflow.
+- External approval workflow integration, if ever needed beyond configurable one-person or separate-approver approval.
 - Which posted tables are blocked by default.

@@ -189,18 +189,22 @@ All meaningful AI-assisted project work should be logged with at least:
 
 If exact token telemetry is unavailable, use the best available estimate and mark it as `manual-estimate` or `blocked`.
 
+Token telemetry cost is the real project usage cost calculated from measured tokens and the dated pricing table. Keep invoice or billing-export values separate as actual billed cost, because subscription credits, enterprise terms, hosted tool fees, taxes, or discounts can change the final amount charged.
+
 ## Reporting Cadence
 
 ### Automation
 
 - use `cost/update-ai-cost-report.ps1` as the standard project report command,
+- use `cost/update-ai-usage-from-codex.ps1` to import local Codex token telemetry before regenerating the report,
 - store compact rollups in `cost/ai-usage-log.csv`,
 - show readable measurements in `cost/ai-cost-report.md`,
 - keep raw prompts, tool output, transcripts, secrets, and BC data out of project cost files.
 
 ### Per Request
 
-- update a compact checkpoint when a meaningful coding, SDD, research, review, or reporting request completes and telemetry is available,
+- update compact token telemetry when a meaningful coding, SDD, research, review, or reporting request completes and telemetry is available,
+- when telemetry is unavailable, record a `blocked` precision checkpoint for major milestones instead of inventing token or dollar values,
 - if final telemetry is only available after the final response, update it at the start of the next meaningful request,
 - do not append raw prompts, tool output, or per-message transcript data to the project repository.
 

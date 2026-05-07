@@ -13,6 +13,7 @@ Read:
 - docs/operations-runbook.md
 - docs/upgrade-release-strategy.md
 - docs/release-notes.md
+- UserGuide.md
 - docs/risk-register.md
 - docs/security-review.md
 - docs/test-plan.md
@@ -24,7 +25,7 @@ Check:
 - Setup, policy, rollback logging, retention, and export configuration.
 - Audit, rollback, retention cleanup, and upgrade validation.
 - Release notes and support escalation package.
+- User guide updates for setup, validation, known limitations, and release status.
 
 Return release status, missing gates, deployment steps, rollback/mitigation notes, and docs to update.
 ```
-

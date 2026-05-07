@@ -17,6 +17,7 @@ Read:
 - `docs/operations-runbook.md`
 - `docs/upgrade-release-strategy.md`
 - `docs/release-notes.md`
+- `UserGuide.md`
 - `docs/risk-register.md`
 - `docs/security-review.md`
 - `docs/test-plan.md`
@@ -29,7 +30,7 @@ Read:
 - Audit and rollback validation before release.
 - Rollback logging and retention validation before release.
 - Extension rollback is not a substitute for data rollback.
-- Release notes must describe security, `SUPER` access, data model, and known risk changes.
+- Release notes and `UserGuide.md` must describe security, `SUPER` access, data model, and known risk changes.
 
 ## Deployment Checklist
 
@@ -71,4 +72,4 @@ Verify:
 
 ## Output Standard
 
-Produce release status, missing gates, deployment steps, rollback or mitigation notes, and release-note updates.
+Produce release status, missing gates, deployment steps, rollback or mitigation notes, and release-note/user-guide updates.

@@ -38,15 +38,16 @@
 | Rollback Service | Restore before-images with conflict detection. |
 | Audit Viewer | Search, filter, and export correction history. |
 
-## Planned Object And Module Map
+## Object And Module Map
 
-The following names are planning contracts only. They are not implemented yet.
+Foundation objects are implemented for setup, policy, request, audit, snapshot, rollback-state, retention-log, SUPER-gated shells, and supporting services. Objects marked future remain gated by readiness.
 
-| Object Area | Planned Names |
+| Object Area | Names |
 | --- | --- |
 | Tables | BCDA Setup, BCDA Data Policy, BCDA Correction Request, BCDA Correction Line, BCDA Audit Entry, BCDA Value Snapshot, BCDA Rollback Operation, BCDA Retention Log |
-| Pages | BCDA Setup, BCDA Data Policies, BCDA Data Policy Card, BCDA Correction Requests, BCDA Correction Request Card, BCDA Correction Lines, BCDA Correction Assistant, BCDA Preview Result, BCDA Audit Entries, BCDA Rollback Wizard, BCDA Retention Status |
-| Codeunits | BCDA Correction Orchestrator, BCDA Metadata Explorer, BCDA Policy Guard, BCDA Validation Runner, BCDA Audit Writer, BCDA Value Serializer, BCDA Rollback Service, BCDA Retention Manager |
+| Pages | BCDA Role Center, BCDA Setup, BCDA Data Policies, BCDA Data Policy Card, BCDA Correction Requests, BCDA Correction Request Card, BCDA Correction Lines, BCDA Audit Entries, BCDA Retention Logs. Future: BCDA Correction Assistant, BCDA Preview Result, BCDA Rollback Wizard, BCDA Retention Status. |
+| Profiles | BC Data Agent profile mapped to BCDA Role Center. |
+| Codeunits | BCDA Access Mgt., BCDA Setup Mgt., BCDA Correction Orchestrator, BCDA Metadata Explorer, BCDA Policy Guard, BCDA Audit Writer, BCDA Value Serializer, BCDA Retention Manager. Future: BCDA Validation Runner, BCDA Rollback Service. |
 | Access Control | Existing Business Central `SUPER` permission set only; no BCDA-specific permission sets |
 
 ## Runtime Flow
@@ -76,6 +77,7 @@ The following names are planning contracts only. They are not implemented yet.
 
 - Users need the existing Business Central `SUPER` permission set.
 - The extension must not create BCDA-specific permission sets.
+- Approval requirement and approval separation are workflow settings, not permission sets. Setup can require a different `SUPER` approver, allow self-approval, or disable approval for standard requests when one-person companies explicitly accept that control model.
 - Posted or hidden data changes require `SUPER` access and break-glass policy approval.
 - Policy defaults should be deny-first until configured.
 - Audit and snapshot tables are available only through `SUPER`-gated features and redacted export/support channels.

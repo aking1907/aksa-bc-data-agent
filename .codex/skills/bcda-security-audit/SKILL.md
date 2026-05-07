@@ -25,7 +25,7 @@ Read:
 
 - No target data change without a correction request.
 - No execution without policy approval.
-- No posted data change without existing Business Central `SUPER` access and approval by default.
+- No posted data change without existing Business Central `SUPER` access and approval by default; approval separation is configurable and self-approval must be explicit.
 - No mutation path that bypasses audit.
 - No configuration may disable mandatory audit metadata.
 - No rollback that deletes or rewrites original audit evidence.

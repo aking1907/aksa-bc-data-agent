@@ -4,7 +4,7 @@
 
 | ID | Given | When | Then |
 | --- | --- | --- | --- |
-| AC-013 | The project is in documentation mode | An AI agent or developer prepares the repo | No AL source files are generated until readiness allows it. |
+| AC-013 | The project is in a gated implementation mode | An AI agent or developer prepares or changes the repo | AL source files are generated only within the scope explicitly allowed by `docs/code-generation-readiness.md`. |
 | AC-017 | A future code object is proposed | The implementation plan is updated | The object has a traceability row linking requirement, acceptance, and test. |
 | AC-018 | Implementation depends on BC platform behavior | Work begins | `symbol-discovery.md` contains evidence for that behavior. |
 
@@ -35,3 +35,4 @@
 | AC-024 | A `SUPER` user configures retention | They set audit, rollback snapshot, or technical log retention | The setting is saved, visible in preview/status pages, and used by cleanup logic. |
 | AC-025 | Retention cleanup runs | Expired app-owned operation records exist | Expired records are removed according to category and cleanup evidence is visible without deleting active requests. |
 | AC-026 | AL code is generated after readiness | Build validation runs | Code analysis with required analyzers is enabled and blocking diagnostics are resolved or documented. |
+| AC-027 | A `SUPER` administrator configures approval requirement and separation | A request is initialized or approval actions are used | Requests without required approval do not enter the approval workflow; requester approval is blocked when separate approval is required and allowed when self-approval is configured; the selected approval model remains visible on the request. |

@@ -2,7 +2,7 @@
 
 ## Current Phase Boundary
 
-Current phase: documentation baseline. Requirements below define expected implementation behavior, but no AL code is approved yet.
+Current phase: Phase 2 Foundation Data implementation. AL code is approved only for setup, policy, request, audit, snapshot, rollback-state, retention-log, SUPER-gated shell pages, and supporting services. Target record mutation remains blocked.
 
 ## Functional Requirements
 
@@ -13,7 +13,7 @@ Current phase: documentation baseline. Requirements below define expected implem
 | REQ-003 | A correction request must include reason, ticket/reference, company, target table, target record key, target field, proposed new value, current value preview, rollback logging mode, retention impact, and risk classification. | AC-003, AC-004 | 2-4 |
 | REQ-004 | The app must support a dry-run preview that reports intended changes, old/new values, validation mode, rollback logging mode, retention period, rollback availability, and warnings. | AC-004 | 4 |
 | REQ-005 | The app must enforce configurable policy before modifying normal, hidden, or posted table data. | AC-005, AC-012 | 3-4 |
-| REQ-006 | Posted table changes must require existing Business Central `SUPER` access and approval unless a documented policy exception exists. | AC-005, AC-007 | 4 |
+| REQ-006 | Posted table changes must require existing Business Central `SUPER` access and approval unless a documented policy exception exists. Approval separation must follow setup so one-person companies can allow self-approval while larger companies can require a different `SUPER` approver. | AC-005, AC-007, AC-027 | 4 |
 | REQ-007 | The app must execute only approved and policy-allowed field-level data changes. | AC-006, AC-007 | 4 |
 | REQ-008 | Every successful or failed attempted change must create append-only audit evidence. | AC-008, AC-015 | 4 |
 | REQ-009 | The app must support rollback from captured before-images when rollback snapshot logging is enabled, snapshots are retained, and conflict checks allow it. | AC-009, AC-010, AC-021, AC-022, AC-023 | 5 |
@@ -36,6 +36,7 @@ Current phase: documentation baseline. Requirements below define expected implem
 | REQ-018 | Errors must be visible enough for support while avoiding sensitive value leakage. | AC-015, AC-016 | 4-6 |
 | REQ-026 | The app must let `SUPER` users control how long operation records are kept in the database, preferably through Business Central native retention policy support for app-owned tables. | AC-024, AC-025 | 2-6 |
 | REQ-027 | Mandatory audit metadata must always be written even when rollback snapshot logging is disabled. | AC-008, AC-021 | 4 |
+| REQ-029 | The app must let `SUPER` administrators configure whether approval is required by default and, when approval is required, whether it requires a different `SUPER` user or allows the requester to self-approve. | AC-027 | 2-4 |
 
 ## SDD And Validation Requirements
 

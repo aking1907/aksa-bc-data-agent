@@ -1,0 +1,11 @@
+{
+  "name": "BC Data Agent analyzer rules",
+  "description": "Analyzer policy for BC Data Agent. PTE0004 is intentionally suppressed because ADR-003 forbids BCDA-specific permission sets and restricts usage to existing Business Central SUPER users.",
+  "rules": [
+    {
+      "id": "PTE0004",
+      "action": "None",
+      "justification": "ADR-003 requires no BCDA-specific permission set objects. Foundation pages and services use runtime SUPER checks, and no permission set objects are generated."
+    }
+  ]
+}

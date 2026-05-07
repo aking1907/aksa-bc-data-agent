@@ -32,6 +32,7 @@ Read:
 - Write append-only audit for attempts, successes, failures, approvals, and rollback.
 - Treat rollback as a new governed operation.
 - Keep mandatory audit metadata separate from configurable rollback snapshots.
+- Keep approval separation configurable while preserving a safer separate-approver default.
 - Use user-controlled retention for app-owned operation records, preferably through Business Central retention policy support.
 - Keep BC Data Agent data separate from Business Central-owned target records.
 - Prefer deny-first policies for posted and hidden data.

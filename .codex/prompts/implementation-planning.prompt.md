@@ -3,7 +3,7 @@
 Use this prompt to plan implementation without writing AL code.
 
 ```text
-Use $bcda-sdd-steward, $bcda-architecture-guardian, $bcda-security-audit, and $bcda-test-validation.
+Use $bcda-sdd-steward, $bcda-architecture-guardian, $bcda-security-audit, $bcda-test-validation, and $bcda-user-guide-steward when user-facing behavior is planned.
 
 Create an implementation plan for:
 <describe the feature or phase>
@@ -19,6 +19,7 @@ Read:
 - docs/al-development-standards.md
 - docs/security-review.md
 - docs/test-plan.md
+- UserGuide.md when user-facing behavior, setup, page actions, validation steps, or release guidance may change
 
 Produce:
 - Build order.
@@ -27,8 +28,8 @@ Produce:
 - Test scenarios.
 - Risks and mitigations.
 - Docs that must change before code.
+- UserGuide.md sections that must change.
 - Readiness blockers.
 
 Do not generate AL source files unless readiness is Ready and I explicitly ask for implementation.
 ```
-

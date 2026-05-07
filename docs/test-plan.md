@@ -35,23 +35,31 @@
 | TST-013 | Future generated objects have traceability coverage | AC-017 |
 | TST-014 | Symbol-dependent behavior is documented before use | AC-018 |
 | TST-015 | Release candidate passes sandbox correction, rollback, `SUPER` access, audit, export, and upgrade validation | AC-019 |
-| TST-016 | Pages and actions match Business Central-native app design expectations | AC-020 |
+| TST-016 | Pages, profile navigation, and actions match Business Central-native app design expectations | AC-020 |
 | TST-017 | Rollback snapshot logging disabled still writes mandatory audit metadata | AC-021 |
 | TST-018 | Rollback snapshot logging enabled stores before-images with expiration dates | AC-022 |
 | TST-019 | Expired or purged rollback snapshots block rollback before mutation | AC-023 |
 | TST-020 | Retention settings are saved and shown in setup, preview, and retention status | AC-024 |
 | TST-021 | Retention cleanup removes expired operation records and preserves active requests | AC-025 |
 | TST-022 | Required AL analyzers run and blocking diagnostics are resolved or documented | AC-026 |
+| TST-027 | Approval configuration skips approval when disabled, blocks requester approval when separate approval is required, and allows self-approval when configured | AC-027 |
 
 ## Local Build Validation
 
-Not available yet because AL source files have not been generated.
+Foundation local build validation is available for the Phase 2 AL source under `src/`.
 
-After implementation begins, local validation should include:
+Current foundation validation evidence as of 2026-05-07:
 
-- Download symbols for the configured target.
-- Build/package the extension.
-- Run automated test codeunits when available.
+- Symbols are downloaded in `.alpackages/` for the configured Business Central 28 target.
+- `alc.exe` package compilation passes against the downloaded symbols.
+- CodeCop, UICop, and PerTenantExtensionCop pass with `ruleset.json`; `PTE0004` is intentionally suppressed because ADR-003 forbids BCDA-specific permission set objects.
+- Automated AL test codeunits have not been added yet.
+
+Ongoing local validation should include:
+
+- Rebuild/package the extension after each AL change.
+- Run CodeCop, UICop, and PerTenantExtensionCop with `ruleset.json`.
+- Add automated test codeunits when the test scope is approved and available.
 - Deploy only to sandbox until release gates pass.
 
 ## Integration Validation
@@ -62,11 +70,12 @@ Phase 1 integration validation must run against a Business Central sandbox using
 
 - `SUPER` access gate passes for `SUPER` and non-`SUPER` users.
 - Policy matrix passes.
+- Configurable approval requirement and separation passes for no-approval, separate-approver, and self-approval modes.
 - One normal table correction passes.
 - One posted table correction passes only when explicitly allow-listed.
 - Rollback success and rollback conflict scenarios pass.
 - Audit export redaction passes.
 - Rollback logging disabled/enabled behavior passes.
 - Retention cleanup and retention status pass.
-- Required analyzer baseline passes after AL code exists.
+- Required analyzer baseline continues to pass.
 - Upgrade from prior package preserves audit data.

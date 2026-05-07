@@ -18,6 +18,7 @@ Read:
 - `docs/requirements.md`
 - `docs/acceptance-criteria.md`
 - `docs/admin-guide.md`
+- `UserGuide.md`
 - `docs/operations-runbook.md`
 - `docs/security-review.md`
 
@@ -28,6 +29,7 @@ Read:
 - Require reason and ticket before execution.
 - Separate preview from execution.
 - Show risk and approval state before dangerous actions.
+- Show whether approval requires a different `SUPER` user or allows self-approval.
 - Make rollback availability visible after execution.
 - Make rollback logging mode and retention period visible before execution.
 - Show snapshot expiration and rollback-unavailable states plainly.
@@ -71,4 +73,4 @@ For each page or action, verify:
 
 ## Output Standard
 
-Provide page/action recommendations, usability risks, required acceptance criteria, and doc updates.
+Provide page/action recommendations, usability risks, required acceptance criteria, and admin/user-guide doc updates.

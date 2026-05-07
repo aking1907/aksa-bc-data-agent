@@ -1,0 +1,4 @@
+interface:
+  display_name: "BCDA User Guide Steward"
+  short_description: "Keep UserGuide aligned with BCDA changes"
+  default_prompt: "Use $bcda-user-guide-steward to update UserGuide.md after BC Data Agent behavior, pages, setup, release, or SDD changes."

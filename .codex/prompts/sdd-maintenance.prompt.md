@@ -25,9 +25,9 @@ Read the SDD source order in docs/sdd-index.md, then update all affected documen
 - docs/traceability-matrix.md
 - docs/risk-register.md
 - docs/deployment.md and docs/operations-runbook.md if admin/user behavior changes
+- UserGuide.md when user-facing behavior, setup, page actions, validation steps, release guidance, or readiness scope changes
 
-Keep the current boundary: no AL code while readiness is Not Ready.
+Keep the current boundary: AL code is allowed only within the exact scope approved by `docs/code-generation-readiness.md`.
 
 End with changed files, readiness status, and remaining blockers.
 ```
-

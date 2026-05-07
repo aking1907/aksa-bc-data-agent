@@ -2,9 +2,9 @@
 
 ## Audit Status
 
-Current result: ready for symbol discovery and decision closure, not ready for AL code generation.
+Current result: ready for Phase 2 Foundation Data AL generation, not ready for target data mutation or rollback execution.
 
-The SDD package is structurally complete and internally traceable. The implementation gate remains closed because platform evidence and business/security decisions still need to be completed.
+The SDD package is structurally complete and internally traceable. The user approved implementation and the open decisions needed for foundation storage/policy defaults are closed. Mutation-related platform evidence and security review still need to be completed before execution code.
 
 ## What Is Ready
 
@@ -22,20 +22,19 @@ The SDD package is structurally complete and internally traceable. The implement
 | Skills and prompts | Project-local guardrails exist under `.codex/skills/` and `.codex/prompts/`. |
 | Manifest target | `app.json` targets Business Central 28.0 / AL runtime 17.0. |
 | Object range | `app.json` and planning docs align to 88100-88149. |
+| Object ID conflict check | Local symbol scan found no Microsoft symbol objects in object range 88100..88149. |
 | App logo | `app.json` references `media/BCDataAgent-logo.png`. |
+| BC 28 symbol packages | `.alpackages/` contains target Business Central 28 package files and package names are recorded in `docs/symbol-discovery.md`. |
+| SUPER API evidence | `docs/symbol-discovery.md` records public `User Permissions`.IsSuper(UserSecurityId()) availability. |
+| Retention API evidence | `docs/symbol-discovery.md` records public `Reten. Pol. Allowed Tables` availability. |
 
 ## What Is Not Ready
 
 | Blocker | Why It Blocks Code |
 | --- | --- |
-| BC 28 symbols not downloaded and recorded | Platform-dependent AL behavior must not be guessed. |
-| SUPER access enforcement not verified | The app must reliably block non-SUPER users without custom permission sets. |
-| Posted/protected table behavior not verified | The core feature depends on what BC allows safely through AL. |
-| Field type support not verified | Value serialization and rollback depend on type behavior. |
-| Retention policy APIs not verified | The design prefers Business Central native retention policy support. |
-| Analyzer baseline not verified locally | CodeCop/UICop and deployment cop expectations must be confirmed. |
-| Blocking open decisions remain | Policy, approval, validation, rollback, retention, redaction, and field support need final choices. |
-| Human security/business review not complete | Posted and hidden data modification is high risk. |
+| Posted/protected table behavior not verified | Execution depends on what BC allows safely through AL. |
+| Field type support not verified | Value serialization and rollback execution depend on type behavior. |
+| Human security/business review not complete | Posted and hidden data modification is high risk and remains blocked. |
 
 ## Consistency Checks Performed
 
@@ -44,7 +43,10 @@ The SDD package is structurally complete and internally traceable. The implement
 | `app.json` parses as valid JSON | Passed. |
 | Previous target/runtime references | None found in docs or config. |
 | Previous object range references | None found in docs or config. |
-| AL source files | None found. |
+| AL source files | Foundation AL source exists under `src/`; local compile and analyzer validation passed. Sandbox deployment validation is still pending. |
+| Symbol packages | BC 28 package files found in `.alpackages/` and recorded in `docs/symbol-discovery.md`. |
+| Foundation AL compile | Passed with AL compiler 17.0.34.45391 against BC 28 symbols. |
+| Foundation analyzer pass | Passed with CodeCop, UICop, and PerTenantExtensionCop using `ruleset.json`. |
 | Requirement-to-traceability coverage | Passed. |
 | Acceptance-to-test/trace coverage | Passed. |
 | Test-to-traceability coverage | Passed. |
@@ -53,15 +55,13 @@ The SDD package is structurally complete and internally traceable. The implement
 
 ## Required Next Actions
 
-1. Download and record BC 28 symbols in `docs/symbol-discovery.md`.
-2. Verify how AL can enforce or detect existing Business Central `SUPER` access.
-3. Verify representative normal, hidden, posted, and protected table behavior in sandbox.
-4. Verify Phase 1 scalar field type support and blocked field types.
-5. Verify Business Central retention policy integration for BCDA-owned tables.
-6. Confirm the remaining open decisions in `docs/open-decisions.md`.
-7. Complete human review of `docs/security-review.md`.
-8. Run a final readiness review before changing `docs/code-generation-readiness.md` to Ready.
+1. Deploy foundation package to sandbox and verify setup/policy/request/audit pages.
+2. Verify SUPER and non-SUPER access behavior in sandbox.
+3. Verify representative normal, hidden, posted, and protected table behavior in sandbox before mutation code.
+4. Verify Phase 1 scalar field type support and blocked field types before serializer/execution code.
+5. Complete human review of `docs/security-review.md` before production or mutation release.
+6. Run a new readiness review before opening execution, rollback execution, export, or production gates.
 
 ## Recommendation
 
-Keep `docs/code-generation-readiness.md` at Not Ready. The project is well prepared for discovery and implementation planning, but AL code generation should wait until the platform and security blockers above are closed.
+Generate only the Phase 2 foundation slice. Keep target data mutation, posted/protected table changes, rollback execution, and export blocked until sandbox behavior and security/business review are complete.

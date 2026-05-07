@@ -18,5 +18,6 @@ Use the prompt that matches the task:
 | `test-validation.prompt.md` | Plan or review tests and release evidence. |
 | `release-ops.prompt.md` | Prepare deployment, operations, upgrade, or release notes. |
 | `docs-consistency-check.prompt.md` | Find and fix documentation drift. |
+| `user-guide-maintenance.prompt.md` | Keep `UserGuide.md` aligned with behavior, setup, release, and SDD changes. |
 
-Default rule: do not generate AL code while `docs/code-generation-readiness.md` is `Not Ready`.
+Default rule: generate AL code only within the exact scope allowed by `docs/code-generation-readiness.md`.
