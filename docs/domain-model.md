@@ -39,7 +39,7 @@ The bounded domain is controlled Business Central data correction. The app owns 
 
 | Value Object | Fields |
 | --- | --- |
-| Record Identity | Company, table id/name, serialized primary key, display key. |
+| Record Identity | Company, table id/name, canonical `RecordId`, formatted record id, and display key. |
 | Field Identity | Field id/name, data type, caption, sensitivity classification. |
 | Correction Value | Serialized value, display value, hash, redaction state. |
 | Approval Decision | Approver, date/time, outcome, comment. |
@@ -64,6 +64,7 @@ The bounded domain is controlled Business Central data correction. The app owns 
 - Retention cleanup must not delete active in-progress requests.
 - Blocked tables and fields cannot be changed.
 - Sensitive values cannot be exposed to users without `SUPER` access or through unauthorized logs, exports, or support channels.
+- Correction lines identify target records by a canonical platform `RecordId` plus company context. In the foundation build the value is read-only app-owned storage populated by the `Select Record` primary-key lookup; hand-entered serialized keys are not part of the workflow.
 
 ## Domain Events
 

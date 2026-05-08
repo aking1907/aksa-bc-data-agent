@@ -53,9 +53,9 @@ table 88104 "BCDA Audit Entry"
         {
             Caption = 'Target Table Name';
         }
-        field(11; "Target Record Key"; Text[2048])
+        field(11; "Target Record ID"; RecordId)
         {
-            Caption = 'Target Record Key';
+            Caption = 'Target Record ID';
         }
         field(12; "Target Field ID"; Integer)
         {

@@ -21,7 +21,7 @@
 | Test ID | Scenario | Acceptance |
 | --- | --- | --- |
 | TST-001 | Non-`SUPER` user cannot open correction pages | AC-002 |
-| TST-002 | Metadata search shows allowed target and blocks restricted target | AC-001, AC-012 |
+| TST-002 | Foundation metadata lookup pages suggest tables and enabled normal fields; later metadata search shows allowed targets and blocks restricted targets | AC-001, AC-012 |
 | TST-003 | Request creation stores required reason and ticket without mutation | AC-003 |
 | TST-004 | Preview shows old/new values and warnings without mutation | AC-004 |
 | TST-005 | Posted table execution is blocked before approval | AC-005 |
@@ -42,13 +42,16 @@
 | TST-020 | Retention settings are saved and shown in setup, preview, and retention status | AC-024 |
 | TST-021 | Retention cleanup removes expired operation records and preserves active requests | AC-025 |
 | TST-022 | Required AL analyzers run and blocking diagnostics are resolved or documented | AC-026 |
-| TST-027 | Approval configuration skips approval when disabled, blocks requester approval when separate approval is required, and allows self-approval when configured | AC-027 |
+| TST-027 | Approval configuration skips approval when disabled, blocks approval before submission, blocks requester approval when separate approval is required, and allows self-approval when configured | AC-027 |
+| TST-028 | After RecordId target selection is available, same-table batch entry creates standard correction lines from canonical target record IDs without target preview or mutation | AC-028 |
+| TST-029 | Foundation RecordId line-action lookup and later matrix entry support simple and composite primary keys without hand-entered key parsing | AC-029 |
+| TST-030 | Selected-line current value preview fills only after `Record ID` and `Field ID` are selected and does not mutate target data | AC-004, AC-016 |
 
 ## Local Build Validation
 
 Foundation local build validation is available for the Phase 2 AL source under `src/`.
 
-Current foundation validation evidence as of 2026-05-07:
+Current foundation validation evidence as of 2026-05-08:
 
 - Symbols are downloaded in `.alpackages/` for the configured Business Central 28 target.
 - `alc.exe` package compilation passes against the downloaded symbols.
@@ -60,6 +63,8 @@ Ongoing local validation should include:
 - Rebuild/package the extension after each AL change.
 - Run CodeCop, UICop, and PerTenantExtensionCop with `ruleset.json`.
 - Add automated test codeunits when the test scope is approved and available.
+- Validate foundation RecordId lookup in sandbox for representative simple and composite primary keys; add richer matrix selector validation when that readiness gate opens.
+- Validate selected-line current value preview in sandbox for representative scalar field types and confirm sensitive values are not exposed outside `SUPER`-gated pages.
 - Deploy only to sandbox until release gates pass.
 
 ## Integration Validation

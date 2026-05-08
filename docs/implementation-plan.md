@@ -18,7 +18,7 @@
 | 2 Foundation Data | Setup, policy, request, line, audit, snapshot, rollback storage | App compiles; table upgrade strategy drafted. |
 | 3 Security And Policy | `SUPER` access checks, policy evaluation, redaction rules | Non-`SUPER` users blocked; policy tests pass. |
 | 4 Setup, Retention, And UX Shell | Setup pages, policy pages, retention settings, request list/card shell | Users can configure rollback logging and retention; pages match `app-design.md`. |
-| 5 Preview Workflow | Metadata discovery and dry-run preview | Preview reads targets without mutation and shows rollback/retention impact. |
+| 5 Target Selection And Preview Workflow | RecordId target selection, matrix line entry, metadata discovery, and dry-run preview | Target record identity supports complex keys; preview reads targets without mutation and shows rollback/retention impact. |
 | 6 Execution Workflow | Approved field-level correction with mandatory audit and optional rollback snapshots | Sandbox correction succeeds and failures are audited. |
 | 7 Rollback Workflow | Rollback from retained before-images with conflict checks | Rollback succeeds, reports conflict, or reports unavailable snapshots safely. |
 | 8 Audit, Retention, And Export | SUPER-gated audit pages, retention status, cleanup, and export | Retention cleanup and export work with redaction policy. |
@@ -45,12 +45,13 @@
 - Object ID allocation is confirmed.
 - Posted table default policy is confirmed.
 - Field type support boundary is confirmed.
+- `RecordId`/`RecordRef` target record selection and complex-key display behavior are confirmed.
 - Approval model among `SUPER` users is configurable: approval with a separate approver by default, no-approval or self-approval allowed when setup permits it.
 - Rollback snapshot logging default is confirmed.
 - Audit/snapshot/technical log retention periods and implementation approach are confirmed.
 - Required analyzer baseline is confirmed.
 
-Foundation data code may start when the requested scope is limited to setup, policy, request, audit, snapshot, rollback-state, retention-log, SUPER-gated shell pages, and supporting services. Execution, rollback execution, export, and arbitrary target record preview require a later readiness review.
+Foundation data code may start when the requested scope is limited to setup, policy, request, audit, snapshot, rollback-state, retention-log, SUPER-gated shell pages, and supporting services. RecordId-driven target record selection, target matrix selection, execution, rollback execution, export, and arbitrary target record preview require a later readiness review.
 
 ## Definition Of Done
 

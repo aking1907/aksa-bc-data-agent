@@ -43,7 +43,12 @@ References:
 | BCDA Data Policy Card | Card | Configure one table/field policy, risk, validation, approval, rollback logging, and retention overrides. |
 | BCDA Correction Requests | List | Work queue with status, risk, target table, requester, approval state, rollback availability, and retention state. |
 | BCDA Correction Request Card | Card with ListPart and FactBoxes | Main request workspace for target, reason, lines, preview, approval, execution, and audit summary. |
-| BCDA Correction Lines | ListPart | Field-level proposed changes for a request. |
+| BCDA Correction Lines | ListPart | Field-level proposed changes for a request, showing target table, read-only formatted target record identity, selected field, and proposed value. |
+| BCDA Batch Line Builder | Worksheet | Paused same-table batch entry page that will collect RecordId-backed target identities, fields, and proposed values, then create standard correction lines after batch RecordId selection or target matrix entry is implemented. |
+| BCDA Target Record Lookup | List | Foundation line-action lookup that displays primary-key values for the selected table and returns the selected canonical `RecordId`. |
+| BCDA Target Record Matrix | Worksheet or StandardDialog | Dimension Matrix-style selector/editor that opens from target record selection, resolves a target `RecordId`, and shows available field correction lines for that selected record. |
+| BCDA Table Lookup | List | Helper lookup for selecting a target Business Central table from metadata. |
+| BCDA Field Lookup | List | Helper lookup for selecting an enabled normal field for the selected table. |
 | BCDA Correction Assistant | NavigatePage | Guided creation path for users who prefer a wizard: target, values, preview, approval state, execute. |
 | BCDA Preview Result | StandardDialog or Card dialog | Read-only dry-run result before execution. |
 | BCDA Execution Confirmation | ConfirmationDialog | Final confirmation for high-risk or rollback-disabled execution. |
@@ -58,6 +63,9 @@ FastTabs:
 - General: status, company, reason, ticket/reference, requested by, approval state.
 - Target: table, record identity, field summary, risk.
 - Lines: proposed field-level changes.
+- Line target fields: table ID lookup should suggest Business Central tables; target record identity is a read-only `RecordId` value populated through the `Select Record` primary-key lookup; future field selection should be managed through a matrix-style selector filtered to enabled normal fields and policy-visible fields for the selected table and record.
+- Batch line builder: paused until batch RecordId selection or target matrix entry can populate canonical target identities for same-table batch entries.
+- Target record matrix: for a selected table and record, show available field lines in a matrix similar to the standard Dimension Matrix pattern, with existing correction lines, proposed values, validation mode, rollback snapshot mode, and policy/risk hints.
 - Preview: old/new display values, warnings, validation mode.
 - Rollback And Retention: rollback logging mode, snapshot retention period, snapshot expiration date, rollback availability.
 - Audit: latest audit entries and operation result.
@@ -73,6 +81,7 @@ FactBoxes:
 Primary actions:
 
 - New Correction.
+- Batch Add Lines, paused until batch RecordId selection or target matrix entry is implemented.
 - Preview.
 - Submit For Approval or Approve only when approval is required; require a different approver only when setup says separate approval is required.
 - Execute.

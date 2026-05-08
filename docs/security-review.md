@@ -38,6 +38,9 @@ Draft. Foundation data implementation is allowed under conservative decisions. H
 | THR-008 | Rollback snapshots are disabled without user awareness | Preview and execution confirmation must show rollback-unavailable state. |
 | THR-009 | Retention deletes data needed for support or compliance | Separate retention categories, conservative defaults, visible expiration, and cleanup evidence. |
 | THR-010 | One-person self-approval or no-approval mode weakens dual control | Approval with a separate approver is the safer default; no-approval and self-approval modes must be explicit setup choices and remain visible on the request/audit trail. |
+| THR-011 | Batch entry makes it easier to stage many risky changes at once | Batch entry creates only standard correction lines; preview, policy, approval, execution, audit, rollback, and readiness gates still apply before any mutation. |
+| THR-012 | A user mistypes or ambiguously serializes a composite record key | Planned target selection uses canonical `RecordId` plus company context and a matrix-style selector instead of hand-entered composite keys. |
+| THR-013 | Current value preview exposes sensitive selected-field values | Preview is available only through `SUPER`-gated pages, is limited to the selected record and field, and remains excluded from export/generic telemetry. Sandbox validation must confirm sensitive-value handling before production use. |
 
 ## Access Model
 
@@ -64,6 +67,7 @@ Workflow responsibilities below are audit and process responsibilities, not cust
 - Confirm rollback conflict behavior.
 - Confirm retention cleanup protects active requests.
 - Confirm unsupported table/field block list.
+- Confirm target record `RecordId` selection and matrix entry do not expose sensitive target values before preview authorization.
 
 ## Prohibited Behavior
 

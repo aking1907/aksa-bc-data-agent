@@ -1,5 +1,7 @@
 namespace AKSA.BCDataAgent;
 
+using System.Reflection;
+
 table 88101 "BCDA Data Policy"
 {
     Caption = 'BCDA Data Policy';
@@ -25,18 +27,41 @@ table 88101 "BCDA Data Policy"
         field(4; "Table ID"; Integer)
         {
             Caption = 'Table ID';
+            NotBlank = true;
+            TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table));
+
+            trigger OnValidate()
+            var
+                MetadataExplorer: Codeunit "BCDA Metadata Explorer";
+            begin
+                MetadataExplorer.ResolveTableCaption("Table ID", "Table Name");
+                if "Table ID" <> xRec."Table ID" then begin
+                    "Field ID" := 0;
+                    Clear("Field Name");
+                end;
+            end;
         }
         field(5; "Table Name"; Text[250])
         {
             Caption = 'Table Name';
+            Editable = false;
         }
         field(6; "Field ID"; Integer)
         {
             Caption = 'Field ID';
+            TableRelation = "Field"."No." where(TableNo = field("Table ID"), Enabled = const(true), Class = const(Normal));
+
+            trigger OnValidate()
+            var
+                MetadataExplorer: Codeunit "BCDA Metadata Explorer";
+            begin
+                MetadataExplorer.ResolveFieldCaption("Table ID", "Field ID", "Table Name", "Field Name");
+            end;
         }
         field(7; "Field Name"; Text[250])
         {
             Caption = 'Field Name';
+            Editable = false;
         }
         field(8; Operation; Code[20])
         {

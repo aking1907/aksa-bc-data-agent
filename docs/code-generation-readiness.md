@@ -6,7 +6,7 @@ Ready for Phase 2 Foundation Data only.
 
 The user explicitly approved implementation. AL generation is allowed only for the foundation objects that store setup, policy, requests, lines, audit metadata, value snapshots, rollback operation state, retention log state, and SUPER-gated shell pages/services.
 
-Mutation behavior remains blocked. Do not implement target record writes, posted/protected table correction, rollback execution, export, or value preview behavior until the relevant platform behavior is verified and this file is updated again.
+Mutation behavior remains blocked. Selected-line current value preview is allowed only in the narrow scope listed below. Do not implement target record writes, posted/protected table correction, rollback execution, export, or full request dry-run preview until the relevant platform behavior is verified and this file is updated again.
 
 ## Required Docs To Read Before Generation
 
@@ -39,13 +39,19 @@ Mutation behavior remains blocked. Do not implement target record writes, posted
 - Phase 2 Foundation Data AL objects in the object range 88100-88149.
 - SUPER runtime gate using the verified public `User Permissions`.IsSuper(UserSecurityId()) API.
 - Business Central retention policy allowed-table registration shell for BCDA-owned operation tables.
+- App-owned `RecordId` storage fields for correction, batch buffer, and audit metadata.
+- Foundation table and field metadata lookup for request entry using verified virtual metadata tables. This may suggest table IDs and enabled normal field IDs.
+- Foundation `RecordId` line-action lookup that reads primary-key fields only through `RecordRef`, lists a limited set of records for the selected table, and stores the selected canonical `RecordId`. It must not mutate target records.
+- Foundation selected-line current value preview that reads only the selected `Record ID` and `Field ID` through `RecordRef`/`FieldRef` and stores a formatted display value on the app-owned correction line. It must not mutate target records or perform full request dry-run validation.
+- Foundation same-table batch scaffolding as app-owned buffer/page/service code. Request-card access to the builder may exist, but builder line creation must remain blocked until batch `RecordId` selection or target matrix entry supplies canonical target identities.
 
 ## Blocked Now
 
 - Creating BCDA-specific permission set AL objects is permanently blocked by ADR-003.
 - Implementing record modification.
 - Implementing rollback.
-- Implementing dry-run target value preview against arbitrary business data.
+- Implementing full dry-run target value preview with warnings, validation mode resolution, rollback impact, and request-level old/new comparison.
+- Implementing the full target record matrix selector, arbitrary target filtering/search, or batch RecordId selection until `RecordId`/`RecordRef` sandbox behavior is recorded.
 - Implementing posted/protected table mutation.
 - Implementing audit export.
 - Adding external API endpoints.
@@ -81,6 +87,7 @@ Mutation behavior remains blocked. Do not implement target record writes, posted
 ## Remaining Blockers For Mutation Code
 
 - Representative normal, hidden, posted, and protected table write behavior must be verified in sandbox.
+- Foundation RecordId lookup, composite key display, and later matrix selector behavior must be verified in sandbox.
 - Field type serialization must be verified against target field classes and unsupported types.
 - Rollback execution must be verified with conflict cases.
 - Human security/business review must approve production policy.
@@ -103,5 +110,9 @@ Generated code is done only when:
 - Foundation AL compile passed with AL compiler 17.0.34.45391 against downloaded BC 28 symbols.
 - Analyzer pass passed with CodeCop, UICop, and PerTenantExtensionCop using `ruleset.json`.
 - Current foundation compile includes the BCDA Role Center page and `BC Data Agent` profile navigation.
+- Current foundation compile includes correction line table/field lookup pages backed by `AllObjWithCaption` and `Field` metadata.
+- Current foundation compile includes a SUPER-gated target record lookup that opens from `Select Record` and uses `RecordRef`, primary-key `KeyRef`/`FieldRef` display, `RecordId`, and `RecordId.TableNo()` validation to populate correction-line `Record ID`.
+- Current foundation compile includes selected-line current value preview using `RecordRef.Get(RecordId)`, `RecordRef.Field(FieldId)`, and `FieldRef.Value()` for the selected record and field.
+- Current foundation compile includes same-table batch storage/page/service scaffolding, with builder line creation paused until batch RecordId selection or target matrix entry is implemented.
 - `PTE0004` is intentionally suppressed because ADR-003 forbids BCDA-specific permission set objects.
 - Local symbol scan found no Microsoft symbol objects in object range 88100..88149.

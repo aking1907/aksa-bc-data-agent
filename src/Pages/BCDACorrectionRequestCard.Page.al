@@ -65,7 +65,7 @@ page 88114 "BCDA Correction Request Card"
                 }
                 field("Require Separate Approver"; Rec."Require Separate Approver")
                 {
-                    Enabled = ApprovalActionsEnabled;
+                    Enabled = SeparateApproverEnabled;
                     ToolTip = 'Specifies whether approval must be performed by a different SUPER user. When this is off, the requester can self-approve if approval is required.';
                 }
                 field("Approved By"; Rec."Approved By")
@@ -126,8 +126,9 @@ page 88114 "BCDA Correction Request Card"
             action(MarkPreviewed)
             {
                 Caption = 'Mark Previewed';
+                Enabled = PreviewEnabled;
                 Image = View;
-                ToolTip = 'Records a foundation preview marker. Target value preview is blocked until the next readiness gate.';
+                ToolTip = 'Records a foundation preview marker. Current line value preview is available only for selected records and fields; target mutation remains blocked.';
 
                 trigger OnAction()
                 var
@@ -137,10 +138,27 @@ page 88114 "BCDA Correction Request Card"
                     CurrPage.Update(false);
                 end;
             }
+            action(BatchAddLines)
+            {
+                Caption = 'Batch Add Lines';
+                Enabled = false;
+                Image = CreateLinesFromJob;
+                ToolTip = 'Blocked until batch RecordId selection or target matrix entry is implemented.';
+
+                trigger OnAction()
+                var
+                    BatchLineBuilder: Page "BCDA Batch Line Builder";
+                begin
+                    CurrPage.SaveRecord();
+                    BatchLineBuilder.SetRequest(Rec);
+                    BatchLineBuilder.RunModal();
+                    CurrPage.Update(false);
+                end;
+            }
             action(SubmitForApproval)
             {
                 Caption = 'Submit For Approval';
-                Enabled = ApprovalActionsEnabled;
+                Enabled = SubmitApprovalEnabled;
                 Image = SendApprovalRequest;
                 ToolTip = 'Submits the request for approval when approval is required.';
 
@@ -155,7 +173,7 @@ page 88114 "BCDA Correction Request Card"
             action(Approve)
             {
                 Caption = 'Approve';
-                Enabled = ApprovalActionsEnabled;
+                Enabled = ApproveEnabled;
                 Image = Approve;
                 ToolTip = 'Approves the request. A different SUPER user is required only when the request requires separate approval.';
 
@@ -206,9 +224,15 @@ page 88114 "BCDA Correction Request Card"
 
     local procedure UpdateApprovalActions()
     begin
-        ApprovalActionsEnabled := Rec."Approval Required";
+        SeparateApproverEnabled := Rec."Approval Required";
+        PreviewEnabled := (Rec.Status = Rec.Status::Open) or (Rec.Status = Rec.Status::Previewed);
+        SubmitApprovalEnabled := Rec."Approval Required" and (Rec.Status <> Rec.Status::"Pending Approval") and (Rec.Status <> Rec.Status::Approved);
+        ApproveEnabled := Rec."Approval Required" and (Rec.Status = Rec.Status::"Pending Approval");
     end;
 
     var
-        ApprovalActionsEnabled: Boolean;
+        ApproveEnabled: Boolean;
+        PreviewEnabled: Boolean;
+        SeparateApproverEnabled: Boolean;
+        SubmitApprovalEnabled: Boolean;
 }

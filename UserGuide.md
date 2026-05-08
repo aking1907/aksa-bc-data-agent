@@ -4,7 +4,7 @@
 
 This guide explains how to use BC Data Agent from a user and administrator point of view.
 
-Current implementation status: Phase 2 foundation. The `BC Data Agent` profile, BCDA Role Center, setup, policy, correction request, correction line, audit entry, retention log, and `SUPER`-gated shell pages exist. Target record preview, target record execution, rollback execution, and audit export are not enabled yet.
+Current implementation status: Phase 2 foundation. The `BC Data Agent` profile and BCDA Role Center provide navigation, and setup, policy, correction request, correction line, audit entry, retention log, and other shell pages are `SUPER`-gated. Selected-line current value preview is available after choosing `Record ID` and `Field ID`. Target record execution, rollback execution, full dry-run preview, and audit export are not enabled yet.
 
 Use this guide in two ways:
 
@@ -49,8 +49,9 @@ The app is not a casual table editor. It is a break-glass workflow for authorize
 | Access control | Yes | Open BCDA pages only as a `SUPER` user. | Non-`SUPER` access must be denied by runtime checks. |
 | Setup | Yes | Configure default policy, preview, rollback, retention, and export flag. | Export generation is not implemented. |
 | Data policies | Yes | Maintain table and field policy records. | Policy evaluation exists as foundation logic only. |
-| Correction requests | Yes | Create request headers, apply setup defaults, manage request state. | Real target data preview and mutation are blocked. |
-| Correction lines | Yes | Enter target table, field, record key, and proposed value text. | Current value preview is not populated by target record reads yet. |
+| Correction requests | Yes | Create request headers, apply setup defaults, manage request state. | Full request preview and mutation are blocked. |
+| Correction lines | Partial | Use lookup suggestions for target table and field, use `Select Record` to select a target record ID, review the selected field's current value, then enter proposed value text. | Current value preview is limited to the selected record and field; target mutation is still blocked. |
+| Batch line builder | Paused | Batch entry is visible as foundation scaffolding. | Batch creation is blocked until batch RecordId selection or target matrix entry is implemented. |
 | Approval | Yes | Submit and approve requests only when approval is required, with configurable separate-approver or self-approval behavior. | Full policy-driven approval workflow is still future hardening. |
 | Execution | Blocked by design | Attempting execution writes blocked audit evidence and stops. | No target Business Central data is changed. |
 | Audit entries | Yes | Review append-only audit evidence for foundation actions. | Audit export is not implemented. |
@@ -181,10 +182,10 @@ The foundation policy guard checks for a matching field-level `MODIFY` policy fi
 | Policy ID | Unique policy identifier. Created automatically when blank. |
 | Description | Plain-language description for reviewers. |
 | Enabled | Whether the policy participates in evaluation. |
-| Table ID | Target Business Central table ID. |
-| Table Name | Human-readable target table name. |
-| Field ID | Target field ID, or `0` for a table-level policy. |
-| Field Name | Human-readable target field name. |
+| Table ID | Target Business Central table ID. Use lookup to select a table from metadata. |
+| Table Name | Human-readable target table name, filled from metadata. |
+| Field ID | Target field ID, or `0` for a table-level policy. Use lookup after selecting `Table ID`. |
+| Field Name | Human-readable target field name, filled from metadata. |
 | Risk Level | Risk classification for the target. |
 | Decision | Block, Allow, or Approval Required. |
 | Rollback Snapshot Mode | Snapshot behavior for this target. |
@@ -201,10 +202,10 @@ General:
 
 Target:
 
-- `Table ID`: Business Central table number.
-- `Table Name`: table caption or name.
-- `Field ID`: Business Central field number, or `0` for table-level policy.
-- `Field Name`: field caption or name.
+- `Table ID`: Business Central table number, selected from metadata.
+- `Table Name`: table caption or name, filled automatically.
+- `Field ID`: Business Central field number selected from enabled normal fields for the table, or `0` for table-level policy.
+- `Field Name`: field caption or name, filled automatically.
 - `Operation`: currently shaped for `MODIFY`.
 
 Policy:
@@ -324,20 +325,38 @@ Rollback And Retention:
 
 Each correction line represents one proposed field-level change.
 
+Current foundation builds expose `Record ID` as read-only app-owned storage. It is not typed manually. After selecting `Table ID`, use either the `Record ID` assist edit button or the line action `Select Record` to open `BCDA Target Record Lookup`, choose a record by its primary-key display values, and populate the canonical `RecordId`.
+
+The foundation lookup reads the selected table's primary-key fields for selection. After both `Record ID` and `Field ID` are selected, the app reads that selected field and fills `Current Value Preview`. It does not change Business Central business data. The richer matrix-style selector, similar to Business Central's Dimension Matrix pattern, is still planned for staging multiple field changes for the selected record.
+
 | Field | Meaning |
 | --- | --- |
 | Line No. | Line identifier, automatically assigned in increments. |
-| Table ID | Target table number. |
-| Table Name | Target table name or caption. |
-| Record Key | Text representation of the target record key. |
-| Field ID | Target field number. |
-| Field Name | Target field name or caption. |
+| Table ID | Target table number. Use lookup to select a Business Central table from metadata. |
+| Table Name | Target table name or caption. Filled from the selected table metadata. |
+| Record ID | Canonical target record identity. Read-only; use the field assist edit button or the `Select Record` line action to select a record from the current table. |
+| Field ID | Target field number. Use lookup after selecting `Table ID`; the list is filtered to enabled normal fields for that table. |
+| Field Name | Target field name or caption. Filled from the selected field metadata. |
 | Proposed New Value | New value text to apply in a future execution phase. |
-| Current Value Preview | Future preview field. Not populated by real target reads in the foundation build. |
+| Current Value Preview | Current value for the selected `Record ID` and `Field ID`. Filled automatically when both are selected. |
 | Rollback Snapshot Mode | Line-level rollback snapshot mode. |
 | Validation Mode | Line-level validation behavior. |
 | Line Status | Current line state. |
 | Sanitized Error | Non-sensitive error details. |
+
+### Batch Add Lines
+
+`Batch Add Lines` is paused in the current foundation build because manual record-key entry has been removed. It will return after batch RecordId selection or target matrix entry can populate target record identities safely.
+
+After batch RecordId selection is implemented, the planned batch builder works like a staging worksheet:
+
+1. Select one `Table ID` for the batch.
+2. Add one row for each target record ID and field/value pair through target record selection.
+3. Use field lookup to choose enabled normal fields for the selected table.
+4. Enter the proposed new value text for each row.
+5. Choose `Create Request Lines`.
+
+The app will then create normal `BCDA Correction Line` records. The batch builder must not read current target values, validate target records, or change Business Central business data before the preview/execution readiness gates open.
 
 ### Required Request Metadata
 
@@ -357,10 +376,11 @@ Reason and ticket/reference are required before this action.
 | Action | Available Now | What It Does |
 | --- | --- | --- |
 | Initialize | Yes | Applies setup defaults, saves the request, and writes request-created audit evidence. |
-| Mark Previewed | Yes | Records a foundation preview marker. It does not read target data yet. |
-| Submit For Approval | Yes | Sets status to `Pending Approval` after required metadata exists. |
-| Approve | Yes when approval is required | Approves the request. The requester can approve only when separate approver is not required. |
-| Execute | Blocked by design | Writes blocked audit evidence and stops with the readiness-gate error. |
+| Batch Add Lines | Paused | Blocked until batch RecordId selection or target matrix entry is implemented. |
+| Mark Previewed | Yes while the request is open | Records a foundation preview marker. It does not read target data yet. |
+| Submit For Approval | Yes when approval is required and the request is not already pending or approved | Sets status to `Pending Approval` after required metadata exists. |
+| Approve | Yes when approval is required and the request is pending approval | Approves the request. The requester can approve only when separate approver is not required. |
+| Execute | Blocked by design | Requires saved request metadata, writes blocked audit evidence, commits that audit entry, and stops with the readiness-gate error. |
 
 ### Request Statuses
 
@@ -402,15 +422,16 @@ Use this workflow to validate the current foundation build in a sandbox.
 8. Create a new request.
 9. Enter `Reason`, `Ticket Reference`, `Company Name`, and `Risk Level`.
 10. Use `Initialize`.
-11. Add one correction line with safe sandbox target metadata.
-12. Use `Mark Previewed`.
-13. Use `Submit For Approval` if approval is required.
-14. If `Require Separate Approver` is enabled, sign in or switch to a different `SUPER` user.
-15. If approval is required, open the request and use `Approve`.
-16. Use `Execute` only to confirm that execution is blocked by design.
-17. Open `BCDA Audit Entries`.
-18. Confirm audit entries exist for request creation, preview, approval, and blocked execution where applicable.
-19. Open `BCDA Retention Logs` if retention registration or cleanup validation produced log entries.
+11. Add one correction line, select the target table, use `Record ID` assist edit or `Select Record` on the line to choose the target record, and use field lookup to select field metadata.
+12. Do not use `Batch Add Lines` in this foundation build; it is paused until batch RecordId selection or target matrix entry is available.
+13. Use `Mark Previewed`.
+14. Use `Submit For Approval` if approval is required.
+15. If `Require Separate Approver` is enabled, sign in or switch to a different `SUPER` user.
+16. If approval is required, open the request and use `Approve`.
+17. Use `Execute` only to confirm that execution is blocked by design.
+18. Open `BCDA Audit Entries`.
+19. Confirm audit entries exist for request creation, preview, approval, and blocked execution where applicable.
+20. Open `BCDA Retention Logs` if retention registration or cleanup validation produced log entries.
 
 Expected execution-blocked message:
 
@@ -425,20 +446,21 @@ If this message appears during foundation validation, the app is behaving correc
 This section describes the intended user experience after future readiness gates enable target preview, execution, rollback, and export. It is not fully available in the current foundation build.
 
 1. A `SUPER` support user creates a correction request.
-2. The user enters reason, ticket/reference, company, target table, record key, field, and proposed new value.
-3. The app evaluates setup and data policy.
-4. The user runs preview.
-5. Preview shows current value, proposed value, validation mode, rollback snapshot mode, retention period, warnings, and rollback availability.
-6. A `SUPER` user approves if policy requires approval. The approver must be a different user only when the request requires separate approval.
-7. The user executes the approved request.
-8. The app re-checks policy and access before mutation.
-9. The app captures before-image snapshots when rollback snapshot logging is enabled or required.
-10. The app writes the target field change only if Business Central platform behavior allows it.
-11. The app writes audit evidence for success, failure, or blocked result.
-12. A reviewer validates audit evidence.
-13. If the correction was wrong, a `SUPER` user starts rollback while snapshots are retained.
-14. The app checks for conflicts before rollback.
-15. Rollback restores the previous value when allowed and writes new audit evidence.
+2. The user enters reason, ticket/reference, company, and target table.
+3. The user selects the target record, then uses the planned matrix selector to stage field changes for the resolved `RecordId`.
+4. The app evaluates setup and data policy.
+5. The user runs preview.
+6. Preview shows current value, proposed value, validation mode, rollback snapshot mode, retention period, warnings, and rollback availability.
+7. A `SUPER` user approves if policy requires approval. The approver must be a different user only when the request requires separate approval.
+8. The user executes the approved request.
+9. The app re-checks policy and access before mutation.
+10. The app captures before-image snapshots when rollback snapshot logging is enabled or required.
+11. The app writes the target field change only if Business Central platform behavior allows it.
+12. The app writes audit evidence for success, failure, or blocked result.
+13. A reviewer validates audit evidence.
+14. If the correction was wrong, a `SUPER` user starts rollback while snapshots are retained.
+15. The app checks for conflicts before rollback.
+16. Rollback restores the previous value when allowed and writes new audit evidence.
 
 ## Rollback And Retention Concepts
 
@@ -548,6 +570,12 @@ If separate approval is required and the requester tries to approve their own re
 A different SUPER user must approve this BC Data Agent request because separate approval is required.
 ```
 
+Approval can be recorded only after `Submit For Approval` has moved the request to `Pending Approval`. If an approval is attempted too early, the app shows:
+
+```text
+Submit the request for approval before approving it.
+```
+
 Recommended approval practice:
 
 - The requester documents the issue and proposed correction.
@@ -595,10 +623,14 @@ Do not use BC Data Agent to:
 | User cannot open BCDA pages | User is not recognized as `SUPER`. | Confirm the standard Business Central `SUPER` permission set is assigned. |
 | Setup page opens but values are blank | Setup was not initialized or page did not refresh. | Reopen `BCDA Setup`; setup should be created automatically. |
 | Preview, approval, or execution action fails for missing metadata | Reason or ticket/reference is blank. | Enter both fields on the request card. |
+| Mark Previewed is blocked | The request is no longer open. | Preview must be marked before approval workflow advances the request. |
 | Requester cannot approve their own request | `Require Separate Approver` is enabled for the request. | Use a different `SUPER` user, or change setup for future requests if the company accepts self-approval. |
-| Approval actions are unavailable | `Approval Required` is off for the request. | Continue with the next allowed workflow step, or change setup/future request defaults if approval should be required. |
+| Approval actions are unavailable | `Approval Required` is off, the request is already pending approval, or the request is already approved. | Continue with the next allowed workflow step, or change setup/future request defaults if approval should be required. |
 | Execute action stops with readiness-gate error | Current foundation build blocks target mutation. | Treat as expected behavior until the next readiness gate. |
-| Current Value Preview is blank | Real target preview is not implemented yet. | Use foundation validation only; do not assume target values were read. |
+| Field ID lookup is empty | No table is selected, or the selected table has no enabled normal fields available through metadata. | Select `Table ID` first and confirm the target field is an enabled normal stored field. |
+| Batch Add Lines is unavailable | Manual record-key batch entry has been removed. | Wait for batch RecordId selection or target matrix entry before using batch line creation. |
+| Record ID is blank | No target record has been selected, or the selected table has no records available in the foundation lookup. | Select `Table ID`, then use `Record ID` assist edit or the `Select Record` line action. |
+| Current Value Preview is blank | `Record ID` or `Field ID` is blank, the selected record no longer exists, or the selected field cannot be formatted for preview. | Use `Record ID` assist edit or `Select Record`, choose `Field ID` again, then review any error shown by the line. |
 | Rollback is unavailable | Snapshot logging is disabled, expired, purged, or not implemented for execution yet. | Review rollback snapshot mode and retention settings. |
 | Policy blocks the request | No matching allow policy exists, policy is disabled, or decision is Block. | Review table-level and field-level policies. |
 | Retention log shows a failure | Retention registration or cleanup had an issue. | Review sanitized error and validate retention policy setup. |
@@ -645,11 +677,17 @@ Use this checklist before opening any later readiness gate.
 | Non-`SUPER` user opens BCDA pages | Access is denied. |
 | Setup opens first time | Setup record exists with defaults. |
 | Retention registration action runs | Success message appears. |
-| Data policy can be created | Review stamps are populated. |
+| Data policy can be created | Table/field lookup fills metadata names and review stamps are populated. |
 | Request can be created and initialized | Request has defaults and audit entry exists. |
+| Correction line table lookup is used | `Table Name` is filled from metadata. |
+| Record ID assist edit or Select Record is used | Target record lookup opens, primary-key display values are shown, selecting a row fills `Record ID`, selecting `Field ID` fills `Current Value Preview`, and no target data is changed. |
+| Planned RecordId matrix selector is evaluated in sandbox | Simple and composite primary keys resolve to a canonical target record identity without hand-entered key parsing, and no target values are exposed before preview readiness. |
+| Correction line field lookup is used after table selection | The field list is filtered by table and `Field Name` is filled from metadata. |
+| Batch Add Lines is checked | The action is paused until batch RecordId selection or target matrix entry is implemented. |
 | Request without reason or ticket is submitted | Action is blocked. |
 | Request is marked previewed | Status changes and warning audit entry exists. |
 | Request is submitted for approval | Status becomes `Pending Approval`. |
+| Approval is attempted before submit | Action is unavailable or blocked with a submit-first message. |
 | Request with approval disabled is submitted or approved | Approval action is unavailable or blocked because approval is not required. |
 | Same user tries to approve while separate approver is required | Approval is blocked. |
 | Same user tries to approve while separate approver is not required | Status becomes `Approved`. |
@@ -668,7 +706,8 @@ Use this checklist before opening any later readiness gate.
 | Add policy | BCDA Data Policies | New policy or policy card |
 | Create request | BCDA Correction Requests | New |
 | Apply request defaults | BCDA Correction Request Card | Initialize |
-| Add target field change | BCDA Correction Request Card | Lines part |
+| Add target field change | BCDA Correction Request Card | Lines part, using Table ID and Field ID lookup suggestions |
+| Add multiple same-table changes | BCDA Correction Request Card | Planned RecordId-based batch or matrix selector |
 | Record foundation preview | BCDA Correction Request Card | Mark Previewed |
 | Submit approval request | BCDA Correction Request Card | Submit For Approval |
 | Approve request | BCDA Correction Request Card | Approve |
@@ -687,7 +726,7 @@ Use this checklist before opening any later readiness gate.
 | Data policy | Rule that blocks, allows, or requires approval for a table or field. |
 | Foundation build | Current implementation stage that supports app-owned records and pages but blocks target mutation. |
 | Posted data | Business Central data related to posted documents or posting outcomes. Treat as high-risk. |
-| Record key | Text representation of the target record identity. |
+| Record ID | Canonical target record identity. In the foundation build it is populated from field assist edit or the `Select Record` lookup; future matrix selection will build richer field staging around it. |
 | Retention | Rules controlling how long app-owned audit, snapshot, and technical records are kept. |
 | Rollback | Future governed action that restores a prior value from retained snapshots. |
 | Rollback snapshot | Stored before-image or value data used for rollback. |

@@ -18,6 +18,7 @@ Production deployment is blocked until sandbox release validation passes and bus
 - Confirm rollback snapshot logging default.
 - Confirm audit metadata, rollback snapshot, and technical log retention.
 - Confirm Business Central retention policy integration approach for BCDA-owned tables.
+- Confirm RecordId/RecordRef target selection behavior before enabling the planned target record matrix.
 - Confirm backup or environment restore strategy outside the extension.
 - Confirm support owner and escalation path.
 
@@ -33,7 +34,7 @@ Foundation implementation has started. Package deployment is allowed only to san
 6. Confirm non-`SUPER` users cannot open BCDA pages.
 7. Configure setup, rollback logging, retention, and data policies.
 8. Create a foundation request and verify audit evidence for foundation actions.
-9. Do not run target data preview, target data execution, rollback execution, or export until the next readiness gate approves them.
+9. Do not run RecordId target selection, target data preview, target data execution, rollback execution, or export until the next readiness gate approves them.
 
 ## Configuration Steps
 

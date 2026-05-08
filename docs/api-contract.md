@@ -13,6 +13,8 @@ The implementation will use internal service contracts between planned AL object
 | Contract | Caller | Responsibility |
 | --- | --- | --- |
 | Metadata Discovery | UI and Correction Orchestrator | Resolve table, field, key, type, caption, and risk metadata. |
+| Record Identity Resolution | UI, Target Record Matrix, Preview, Execution, Rollback | Resolve, format, and validate target `RecordId` plus display key for simple and composite primary keys. |
+| Target Record Matrix | Correction Request UI | Build a temporary matrix of available field correction lines for one selected target record without mutating target data. |
 | Policy Evaluation | Preview, Execution, Rollback | Return allow/block decision, required approval, validation mode, redaction level, and reason. |
 | Preview | SUPER-gated UI and approval workflow | Report old value, proposed new value, warnings, rollback logging mode, retention period, and rollback eligibility without mutation. |
 | Execution | SUPER-gated workflow | Apply approved field-level changes and record audit evidence. |

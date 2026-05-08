@@ -28,10 +28,13 @@ Foundation implementation exists. Setup, policy, request, audit, retention-log, 
 7. Set audit metadata, rollback snapshot, and technical log retention periods.
 8. Configure data policies for safe sandbox targets, including rollback snapshot mode overrides.
 9. Confirm requester, approver, and reviewer responsibilities among `SUPER` users when approval policy requires separation. For one-person companies, document why no-approval or self-approval is accepted.
-10. Create a foundation request and use the preview marker action.
-11. Confirm target execution is blocked by the foundation readiness gate.
-12. Review foundation audit entries and retention logs.
-13. Do not run approved sandbox correction or rollback tests until the next readiness gate opens mutation behavior.
+10. Create a foundation request and use lookup suggestions to select a table and an enabled normal field on the correction line.
+11. Confirm `Record ID` is read-only, the `Select Record` line action opens target record lookup, and selecting a row fills the canonical identity.
+12. Do not use `Batch Add Lines` in the foundation build; it is paused until batch RecordId selection or target matrix entry can populate canonical target identities.
+13. Use the preview marker action.
+14. Confirm target execution is blocked by the foundation readiness gate.
+15. Review foundation audit entries and retention logs.
+16. Do not run RecordId target selection, approved sandbox correction, or rollback tests until the next readiness gate opens those behaviors.
 
 ## Policy Guidance
 

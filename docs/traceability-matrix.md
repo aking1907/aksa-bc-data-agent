@@ -2,9 +2,9 @@
 
 | Requirement | Source | Architecture Component | Code Object Or Module | Acceptance/Test | Status |
 | --- | --- | --- | --- | --- | --- |
-| REQ-001 | `requirements.md` | Metadata Explorer | BCDA Metadata Explorer | AC-001 / TST-002 | Planned |
+| REQ-001 | `requirements.md` | Metadata Explorer | BCDA Metadata Explorer, BCDA Correction Line, BCDA Table Lookup, BCDA Field Lookup | AC-001 / TST-002 | Partial foundation table/field lookup; target record discovery pending |
 | REQ-002 | `requirements.md` | Correction Orchestrator | BCDA Correction Request | AC-003 / TST-003 | Implemented foundation storage |
-| REQ-003 | `requirements.md` | Request and Snapshot Store | BCDA Correction Request, BCDA Correction Line, BCDA Value Snapshot | AC-003, AC-004 / TST-003, TST-004 | Partial foundation; target preview pending |
+| REQ-003 | `requirements.md` | Request and Snapshot Store | BCDA Correction Request, BCDA Correction Line, BCDA Value Snapshot, BCDA Current Value Mgt. | AC-003, AC-004 / TST-003, TST-004, TST-030 | Partial foundation; selected-line current value preview implemented, full request preview pending |
 | REQ-004 | `requirements.md` | Validation Runner | BCDA Validation Runner | AC-004 / TST-004 | Planned |
 | REQ-005 | `requirements.md` | Policy Engine | BCDA Policy Guard, BCDA Data Policy | AC-005, AC-012 / TST-002, TST-005 | Partial foundation; execution enforcement pending |
 | REQ-006 | `requirements.md` | Security and Approval | BCDA Policy Guard, approval workflow objects | AC-005, AC-007, AC-027 / TST-005, TST-007, TST-027 | Partial foundation approval fields/actions |
@@ -31,3 +31,5 @@
 | REQ-027 | `requirements.md` | Audit Writer | BCDA Audit Writer, BCDA Audit Entry | AC-008, AC-021 / TST-008, TST-017 | Partial foundation audit |
 | REQ-028 | `requirements.md` | Development Standards | Code analyzers, ruleset, build validation | AC-026 / TST-022 | Implemented for foundation compile/analyzer pass |
 | REQ-029 | `requirements.md` | Security and Approval | BCDA Setup, BCDA Correction Request, BCDA Correction Orchestrator | AC-027 / TST-027 | Implemented foundation configurable approval requirement and separation |
+| REQ-030 | `requirements.md` | User Experience and Request Store | BCDA Batch Line Buffer, BCDA Batch Line Builder, BCDA Batch Line Mgt., BCDA Correction Line | AC-028 / TST-028 | Paused until batch RecordId selection or target matrix entry is implemented |
+| REQ-031 | `requirements.md` | Metadata Explorer and User Experience | BCDA Target Record Buffer, BCDA Target Record Lookup, BCDA Correction Line; planned BCDA Target Record Matrix and BCDA Record Identity Mgt. | AC-029 / TST-029 | Partial foundation line-action lookup; richer matrix remains blocked until sandbox evidence is recorded |

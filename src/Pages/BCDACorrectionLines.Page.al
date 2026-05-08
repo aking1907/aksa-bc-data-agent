@@ -25,13 +25,26 @@ page 88115 "BCDA Correction Lines"
                 {
                     ToolTip = 'Specifies the target table name.';
                 }
-                field("Record Key"; Rec."Record Key")
+                field("Record ID"; format(Rec."Record ID"))
                 {
-                    ToolTip = 'Specifies the target record key text.';
+                    AssistEdit = true;
+                    Caption = 'Record ID';
+                    Editable = false;
+                    ToolTip = 'Specifies the target record identity selected for this correction line. Use assist edit or Select Record to choose it.';
+
+                    trigger OnAssistEdit()
+                    begin
+                        SelectTargetRecord();
+                    end;
                 }
                 field("Field ID"; Rec."Field ID")
                 {
                     ToolTip = 'Specifies the target field ID.';
+
+                    trigger OnValidate()
+                    begin
+                        CurrPage.Update(false);
+                    end;
                 }
                 field("Field Name"; Rec."Field Name")
                 {
@@ -43,7 +56,7 @@ page 88115 "BCDA Correction Lines"
                 }
                 field("Current Value Preview"; Rec."Current Value Preview")
                 {
-                    ToolTip = 'Specifies the current value preview when preview is implemented.';
+                    ToolTip = 'Specifies the current value for the selected record and field.';
                 }
                 field("Rollback Snapshot Mode"; Rec."Rollback Snapshot Mode")
                 {
@@ -64,4 +77,49 @@ page 88115 "BCDA Correction Lines"
             }
         }
     }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(SelectRecord)
+            {
+                ApplicationArea = All;
+                Caption = 'Select Record';
+                Image = View;
+                ToolTip = 'Opens target record lookup and fills Record ID for the selected correction line.';
+
+                trigger OnAction()
+                begin
+                    SelectTargetRecord();
+                end;
+            }
+        }
+    }
+
+    trigger OnOpenPage()
+    var
+        AccessMgt: Codeunit "BCDA Access Mgt.";
+    begin
+        AccessMgt.EnsureSuperUser();
+    end;
+
+    local procedure SelectTargetRecord()
+    var
+        TargetRecordLookup: Page "BCDA Target Record Lookup";
+    begin
+        if Rec."Table ID" = 0 then
+            Error(TableRequiredBeforeRecordErr);
+
+        TargetRecordLookup.SetTargetTable(Rec."Table ID");
+        TargetRecordLookup.LookupMode(true);
+        if TargetRecordLookup.RunModal() = Action::LookupOK then begin
+            Rec.Validate("Record ID", TargetRecordLookup.GetSelectedRecordId());
+            Rec.Modify(true);
+            CurrPage.Update();
+        end;
+    end;
+
+    var
+        TableRequiredBeforeRecordErr: Label 'Select a table before selecting a record.';
 }

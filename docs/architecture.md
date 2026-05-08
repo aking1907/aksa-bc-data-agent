@@ -29,6 +29,11 @@
 | --- | --- |
 | Setup Management | Global defaults, retention, and environment safety settings. |
 | Metadata Explorer | Discover tables, fields, keys, captions, and risk hints. |
+| Record Identity Manager | Planned service to centralize target `RecordId` identity formatting, validation, and display-key policy after sandbox evidence is recorded. |
+| Target Record Lookup | Foundation line-action lookup that lets SUPER users select a target record by primary-key display values and populate correction-line `Record ID`. |
+| Current Value Manager | Foundation selected-line reader that fills `Current Value Preview` only for the selected `Record ID` and `Field ID`. |
+| Target Record Matrix | Planned richer selector/editor to maintain field correction lines for a selected record without hand-entering composite keys. |
+| Batch Line Builder | Foundation same-table helper shell; line creation is paused until batch `RecordId` selection or target matrix entry can supply canonical identities. |
 | Data Policy Manager | Configure allow/block rules and approval requirements. |
 | Correction Orchestrator | Own request state transitions and execution order. |
 | Validation Runner | Dry-run changes and report warnings before execution. |
@@ -44,24 +49,25 @@ Foundation objects are implemented for setup, policy, request, audit, snapshot, 
 
 | Object Area | Names |
 | --- | --- |
-| Tables | BCDA Setup, BCDA Data Policy, BCDA Correction Request, BCDA Correction Line, BCDA Audit Entry, BCDA Value Snapshot, BCDA Rollback Operation, BCDA Retention Log |
-| Pages | BCDA Role Center, BCDA Setup, BCDA Data Policies, BCDA Data Policy Card, BCDA Correction Requests, BCDA Correction Request Card, BCDA Correction Lines, BCDA Audit Entries, BCDA Retention Logs. Future: BCDA Correction Assistant, BCDA Preview Result, BCDA Rollback Wizard, BCDA Retention Status. |
+| Tables | BCDA Setup, BCDA Data Policy, BCDA Correction Request, BCDA Correction Line, BCDA Batch Line Buffer, BCDA Target Record Buffer, BCDA Audit Entry, BCDA Value Snapshot, BCDA Rollback Operation, BCDA Retention Log |
+| Pages | BCDA Role Center, BCDA Setup, BCDA Data Policies, BCDA Data Policy Card, BCDA Correction Requests, BCDA Correction Request Card, BCDA Correction Lines, BCDA Batch Line Builder, BCDA Audit Entries, BCDA Retention Logs, BCDA Table Lookup, BCDA Field Lookup, BCDA Target Record Lookup. Future: BCDA Target Record Matrix, BCDA Correction Assistant, BCDA Preview Result, BCDA Rollback Wizard, BCDA Retention Status. |
 | Profiles | BC Data Agent profile mapped to BCDA Role Center. |
-| Codeunits | BCDA Access Mgt., BCDA Setup Mgt., BCDA Correction Orchestrator, BCDA Metadata Explorer, BCDA Policy Guard, BCDA Audit Writer, BCDA Value Serializer, BCDA Retention Manager. Future: BCDA Validation Runner, BCDA Rollback Service. |
+| Codeunits | BCDA Access Mgt., BCDA Setup Mgt., BCDA Correction Orchestrator, BCDA Metadata Explorer, BCDA Batch Line Mgt., BCDA Current Value Mgt., BCDA Policy Guard, BCDA Audit Writer, BCDA Value Serializer, BCDA Retention Manager. Future: BCDA Record Identity Mgt., BCDA Target Matrix Mgt., BCDA Validation Runner, BCDA Rollback Service. |
 | Access Control | Existing Business Central `SUPER` permission set only; no BCDA-specific permission sets |
 
 ## Runtime Flow
 
 1. User opens correction request page.
-2. User selects target company, table, record, field, and new value.
-3. Metadata Explorer resolves captions, keys, field type, and risk hints.
-4. Policy Guard evaluates `SUPER` access, table policy, field policy, and approval need.
-5. Validation Runner performs dry-run preview and reports warnings, rollback logging mode, retention period, and rollback availability.
-6. SUPER approver approves when required by policy.
-7. Correction Orchestrator executes line changes.
-8. Audit Writer records mandatory attempt, outcome, target, user, reason, and ticket metadata.
-9. Snapshot Store keeps rollback material only when rollback snapshot logging is enabled by setup and policy.
-10. Rollback Service can later restore before-images if conflict checks pass.
+2. User selects target company and table.
+3. User runs `Select Record`. The foundation lookup resolves the target `RecordId` from primary-key display values; the future matrix-style selector will add available fields and existing correction lines for the selected record.
+4. Metadata Explorer resolves captions, keys, field type, and risk hints. When both `Record ID` and `Field ID` are selected, Current Value Manager reads the selected field value for line preview.
+5. Policy Guard evaluates `SUPER` access, table policy, field policy, and approval need.
+6. Validation Runner performs dry-run preview and reports warnings, rollback logging mode, retention period, and rollback availability.
+7. SUPER approver approves when required by policy.
+8. Correction Orchestrator executes line changes.
+9. Audit Writer records mandatory attempt, outcome, target, user, reason, and ticket metadata.
+10. Snapshot Store keeps rollback material only when rollback snapshot logging is enabled by setup and policy.
+11. Rollback Service can later restore before-images if conflict checks pass.
 
 ## Error Flow
 

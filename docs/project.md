@@ -16,7 +16,7 @@ Phase 2 Foundation Data implementation.
 
 Foundation AL code is allowed for app-owned setup, policy, request, audit, snapshot, rollback-state, retention-log, SUPER-gated shell pages, and supporting services.
 
-Target record preview, target record mutation, rollback execution, audit export, and production enablement remain blocked until the next readiness gate is approved.
+Selected-line current value preview is available after a target record and field are selected. Full request preview, target record mutation, rollback execution, audit export, and production enablement remain blocked until the next readiness gate is approved.
 
 ## Personas
 
@@ -33,7 +33,7 @@ All personas require the existing Business Central `SUPER` permission set. The e
 ## Phase 1 Scope
 
 - Discover accessible BC tables, records, fields, and metadata needed for correction workflows.
-- Create a correction request with reason, ticket/reference, target table, target record, field, old value, and new value.
+- Create a correction request with reason, ticket/reference, target table, canonical target record identity, field, old value, and new value.
 - Support dry-run preview before changing data.
 - Enforce policy before modifying normal, hidden, or posted table data.
 - Require existing `SUPER` access and approval for posted or high-risk data.
@@ -71,7 +71,7 @@ Phase 1 succeeds when an authorized user can correct one allowed field on one ta
 
 - The change required existing Business Central `SUPER` access and policy approval.
 - Old and new values were displayed during preview and retained according to rollback logging policy.
-- The user, company, table, record key, date/time, reason, and ticket were recorded.
+- The user, company, table, target record identity, date/time, reason, and ticket were recorded.
 - Rollback can restore the previous value or safely report unavailable/expired/conflicted rollback state.
 - Audit history remains intact after rollback.
 - Retention settings are visible and can be changed by `SUPER` users.

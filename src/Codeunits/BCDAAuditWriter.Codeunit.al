@@ -28,7 +28,7 @@ codeunit 88123 "BCDA Audit Writer"
         AuditEntry."Company Name" := CorrectionRequest."Company Name";
         AuditEntry."Target Table ID" := CorrectionLine."Table ID";
         AuditEntry."Target Table Name" := CorrectionLine."Table Name";
-        AuditEntry."Target Record Key" := CorrectionLine."Record Key";
+        AuditEntry."Target Record ID" := CorrectionLine."Record ID";
         AuditEntry."Target Field ID" := CorrectionLine."Field ID";
         AuditEntry."Target Field Name" := CorrectionLine."Field Name";
         AuditEntry.Reason := CorrectionRequest.Reason;

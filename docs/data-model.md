@@ -9,9 +9,9 @@ This document describes app-owned data. Phase 2 foundation storage now exists in
 | BCDA Setup | Global configuration and safety defaults. | Environment label, default policy mode, approval required, require separate approver, rollback snapshot default, audit retention period, snapshot retention period, technical log retention period, export enabled. |
 | BCDA Data Policy | Allow/block rules for targets. | Table id, table name, field id, field name, operation, risk level, allow modify, rollback snapshot mode, requires approval, validation mode, retention override. |
 | BCDA Correction Request | Header for a correction workflow. | Request id, status, requested by, requested at, company, reason, ticket/reference, risk, approval required, require separate approver, approved by, approved at. |
-| BCDA Correction Line | One field-level proposed mutation. | Request id, line no., table id, record key, field id, proposed new value, optional old/new value refs, rollback snapshot mode, snapshot expiration date, validation mode, line status, sanitized error. |
+| BCDA Correction Line | One field-level proposed mutation. | Request id, line no., table id, target RecordId, display key, field id, proposed new value, optional old/new value refs, rollback snapshot mode, snapshot expiration date, validation mode, line status, sanitized error. |
 | BCDA Value Snapshot | Protected serialized values. | Snapshot id, value type, serialized value, display value, value hash, redaction level, retention category, expires at, purged. |
-| BCDA Audit Entry | Append-only evidence. | Entry no., operation, request id, line no., user id, timestamp, company, table id, record key, field id, result, rollback availability, optional value refs, error code. |
+| BCDA Audit Entry | Append-only evidence. | Entry no., operation, request id, line no., user id, timestamp, company, table id, target RecordId/display key, field id, result, rollback availability, optional value refs, error code. |
 | BCDA Rollback Operation | Governed rollback record. | Rollback id, source request id, source audit entry, requested by, status, conflict policy, completed at. |
 | BCDA Retention Log | Cleanup and retention evidence. | Entry no., retention category, table id, cutoff date, expired count, deleted count, result, sanitized error. |
 
@@ -20,7 +20,7 @@ This document describes app-owned data. Phase 2 foundation storage now exists in
 | Data | Sensitivity | Handling |
 | --- | --- | --- |
 | User id, approver id, timestamps | End-user identifiable information | Visible to authorized `SUPER` users. |
-| Table, field, record key | Business metadata | Visible to authorized `SUPER` users. |
+| Table, field, target RecordId, display key | Business metadata | Visible to authorized `SUPER` users. |
 | Old/new target values | Potential customer, financial, or personal data | Available only through `SUPER`-gated features; redacted from generic logs and telemetry. |
 | Reason and ticket/reference | Business content | Visible to authorized `SUPER` users. |
 | Error messages | Operational data | Sanitized before storage or display. |
@@ -45,6 +45,7 @@ This document describes app-owned data. Phase 2 foundation storage now exists in
 ## Migration Notes
 
 - Value snapshots need a serialization version before implementation.
+- Correction line, batch buffer, and audit schema now use canonical `RecordId` storage. The foundation lookup uses a temporary display key; persistent display-key storage can be added before target record preview or mutation is released.
 - Retention categories need stable enum values before implementation.
 - Schema changes to audit or snapshot tables need upgrade routines and compatibility tests.
 - Audit history must remain readable after extension upgrades.

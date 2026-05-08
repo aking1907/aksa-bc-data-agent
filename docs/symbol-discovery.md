@@ -12,7 +12,10 @@ This file records Business Central platform facts that implementation may depend
 | BC 28 symbol packages | `.alpackages/` contains `Microsoft_Application_28.0.46665.50128.app`, `Microsoft_Base Application_28.0.46665.50128.app`, `Microsoft_Business Foundation_28.0.46665.50128.app`, `Microsoft_System Application_28.0.46665.50128.app`, and `Microsoft_System_28.0.50078.0.app` as of 2026-05-07. |
 | SUPER detection API | System Application exposes public codeunit `User Permissions` (ID 152) in namespace `System.Security.User`, including method `IsSuper(UserSecurityId: Guid): Boolean`. |
 | Retention allowed-table API | System Application exposes public codeunit `Reten. Pol. Allowed Tables` (ID 3905) in namespace `System.DataAdministration`, including overloads of `AddAllowedTable`, `IsAllowedTable`, and retention metadata helpers. |
-| Reflection metadata tables | System symbols include cloud-scoped virtual tables `AllObj` (2000000038), `AllObjWithCaption` (2000000058), `Field` (2000000041), and `Key` (2000000063), supporting future metadata exploration after behavior is verified. |
+| Reflection metadata tables | System symbols include cloud-scoped virtual tables `AllObj` (2000000038), `AllObjWithCaption` (2000000058), `Field` (2000000041), and `Key` (2000000063). `AllObjWithCaption` exposes `"Object Type"`, `"Object ID"`, `"Object Name"`, and `"Object Caption"`; `Field` exposes `TableNo`, `"No."`, `TableName`, `FieldName`, `Type`, `Class`, `Enabled`, and `"Field Caption"`. Foundation correction-line lookup may use these metadata fields to suggest table IDs and enabled normal field IDs without reading target records. |
+| App-owned RecordId storage | Local AL compiler 17.0.34.45391 accepts `RecordId` fields in BCDA-owned correction, batch buffer, target record buffer, and audit tables against BC 28 symbols. This proves compile-time storage support only; it does not prove target record lookup runtime security behavior. |
+| Foundation RecordRef identity lookup compile evidence | Local AL compiler 17.0.34.45391 accepts foundation selector code using a line action, `RecordRef.Open(TableId)`, `FindSet`, `Next`, `RecordId()`, `KeyIndex(1)`, `KeyRef.FieldCount()`, `KeyRef.FieldIndex()`, `FieldRef.Caption()`, `FieldRef.Value()`, and `RecordId.TableNo()` against BC 28 symbols. This proves compile-time API availability only; sandbox validation is still required for representative tables and non-`SUPER` behavior. |
+| Foundation selected-field current value compile evidence | Local AL compiler 17.0.34.45391 accepts selected-line preview code using `RecordRef.Get(RecordId)`, `RecordRef.Field(FieldId)`, and `FieldRef.Value()` against BC 28 symbols. This proves compile-time API availability only; sandbox validation is still required for representative field types and sensitive-value behavior. |
 | Object ID conflict check | Local symbol scan found no Microsoft symbol objects in object range 88100..88149. |
 | Foundation compile and analyzer baseline | Foundation AL source compiles with AL compiler 17.0.34.45391 against BC 28 symbols, and CodeCop, UICop, and PerTenantExtensionCop pass with `ruleset.json`. |
 
@@ -30,6 +33,7 @@ This file records Business Central platform facts that implementation may depend
 | Record modification behavior through AL runtime | Determines what "any hidden or posted data" can technically support. |
 | Field type behavior for unsupported or complex types | Required for value serialization and rollback. |
 | Runtime proof of non-`SUPER` access blocking | Compile-time API evidence exists, but sandbox validation must prove non-`SUPER` users cannot use BCDA pages/actions. |
+| RecordId and RecordRef sandbox behavior for target record selection | Required before production use and before implementing the richer matrix selector for simple and composite primary keys. |
 | Table behavior for posted and protected tables | Required for execution policy and mutation safety. |
 | Availability of export mechanisms | Required for audit export design. |
 | Upgrade behavior for app-owned audit tables | Required for release strategy. |
@@ -45,6 +49,7 @@ Downloaded symbol packages prove that the target application/system symbols are 
 - Record exact base application/system application package versions. Initial package list is now captured above; inspect symbols before referencing specific APIs or objects.
 - Verify whether planned object names conflict with existing app objects.
 - Verify record read/write behavior for representative normal, hidden, and posted tables in sandbox using `SUPER` and non-`SUPER` users.
+- Verify `RecordId` formatting, storage, round-trip parsing, `RecordRef` lookup, and display-key generation for representative simple and composite primary keys.
 - Verify field type read/write behavior for Text, Code, Decimal, Date, DateTime, Boolean, Option/Enum, GUID, BLOB, Media, and FlowField.
 - Verify how the target BC version exposes or enforces `SUPER` access from AL.
 - Verify Business Central retention policy support for BCDA-owned audit, snapshot, and technical log tables.

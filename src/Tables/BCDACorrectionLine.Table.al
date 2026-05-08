@@ -1,5 +1,7 @@
 namespace AKSA.BCDataAgent;
 
+using System.Reflection;
+
 table 88103 "BCDA Correction Line"
 {
     Caption = 'BCDA Correction Line';
@@ -19,22 +21,68 @@ table 88103 "BCDA Correction Line"
         field(3; "Table ID"; Integer)
         {
             Caption = 'Table ID';
+            NotBlank = true;
+            TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table));
+
+            trigger OnValidate()
+            var
+                MetadataExplorer: Codeunit "BCDA Metadata Explorer";
+            begin
+                MetadataExplorer.ResolveTableCaption("Table ID", "Table Name");
+                if "Table ID" <> xRec."Table ID" then begin
+                    Clear("Record ID");
+                    "Field ID" := 0;
+                    Clear("Field Name");
+                    Clear("Current Value Preview");
+                end;
+            end;
         }
         field(4; "Table Name"; Text[250])
         {
             Caption = 'Table Name';
+            Editable = false;
         }
-        field(5; "Record Key"; Text[2048])
+        field(5; "Record ID"; RecordId)
         {
-            Caption = 'Record Key';
+            Caption = 'Record ID';
+            Editable = false;
+
+            trigger OnValidate()
+            var
+                CurrentValueMgt: Codeunit "BCDA Current Value Mgt.";
+            begin
+                if Format("Record ID") = '' then begin
+                    Clear("Current Value Preview");
+                    exit;
+                end;
+
+                if "Table ID" = 0 then
+                    Error(TableRequiredBeforeRecordErr);
+
+                if "Record ID".TableNo() <> "Table ID" then
+                    Error(RecordIdTableMismatchErr, "Record ID", "Table ID");
+
+                CurrentValueMgt.UpdateCurrentValuePreview(Rec);
+            end;
         }
         field(6; "Field ID"; Integer)
         {
             Caption = 'Field ID';
+            TableRelation = "Field"."No." where(TableNo = field("Table ID"), Enabled = const(true), Class = const(Normal));
+
+            trigger OnValidate()
+            var
+                CurrentValueMgt: Codeunit "BCDA Current Value Mgt.";
+                MetadataExplorer: Codeunit "BCDA Metadata Explorer";
+            begin
+                MetadataExplorer.ResolveFieldCaption("Table ID", "Field ID", "Table Name", "Field Name");
+                CurrentValueMgt.UpdateCurrentValuePreview(Rec);
+            end;
         }
         field(7; "Field Name"; Text[250])
         {
             Caption = 'Field Name';
+            Editable = false;
         }
         field(8; "Proposed New Value"; Text[2048])
         {
@@ -95,6 +143,9 @@ table 88103 "BCDA Correction Line"
 
     trigger OnInsert()
     begin
+        if "Request ID" = '' then
+            Error(RequestRequiredErr);
+
         if "Line No." = 0 then
             "Line No." := GetNextLineNo();
     end;
@@ -109,4 +160,9 @@ table 88103 "BCDA Correction Line"
 
         exit(10000);
     end;
+
+    var
+        RecordIdTableMismatchErr: Label 'Record ID %1 does not belong to table %2.', Comment = '%1 = record ID, %2 = table ID';
+        RequestRequiredErr: Label 'A correction line must belong to a saved correction request.';
+        TableRequiredBeforeRecordErr: Label 'Select a table before selecting a record.';
 }

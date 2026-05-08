@@ -8,9 +8,9 @@ Current phase: Phase 2 Foundation Data implementation. AL code is approved only 
 
 | ID | Requirement | Acceptance | Phase |
 | --- | --- | --- | --- |
-| REQ-001 | The app must let authorized users discover tables, fields, records, and key metadata needed for correction workflows. | AC-001 | 1-3 |
+| REQ-001 | The app must let authorized users discover tables, fields, records, RecordId identities, and key metadata needed for correction workflows. | AC-001, AC-029 | 1-3 |
 | REQ-002 | The app must create a correction request before any data is changed. | AC-003 | 2-4 |
-| REQ-003 | A correction request must include reason, ticket/reference, company, target table, target record key, target field, proposed new value, current value preview, rollback logging mode, retention impact, and risk classification. | AC-003, AC-004 | 2-4 |
+| REQ-003 | A correction request must include reason, ticket/reference, company, target table, target record identity, target field, proposed new value, current value preview, rollback logging mode, retention impact, and risk classification. | AC-003, AC-004, AC-029 | 2-4 |
 | REQ-004 | The app must support a dry-run preview that reports intended changes, old/new values, validation mode, rollback logging mode, retention period, rollback availability, and warnings. | AC-004 | 4 |
 | REQ-005 | The app must enforce configurable policy before modifying normal, hidden, or posted table data. | AC-005, AC-012 | 3-4 |
 | REQ-006 | Posted table changes must require existing Business Central `SUPER` access and approval unless a documented policy exception exists. Approval separation must follow setup so one-person companies can allow self-approval while larger companies can require a different `SUPER` approver. | AC-005, AC-007, AC-027 | 4 |
@@ -23,6 +23,8 @@ Current phase: Phase 2 Foundation Data implementation. AL code is approved only 
 | REQ-023 | The app must provide a Business Central-native, task-focused user experience with setup, policy, request, preview, audit, retention, and rollback pages designed around Microsoft page/action guidance. | AC-020 | 3-6 |
 | REQ-024 | The app must let `SUPER` users configure rollback snapshot logging globally and by data policy. | AC-021, AC-022 | 2-5 |
 | REQ-025 | The app must make rollback-unavailable states visible before execution when rollback snapshots are disabled or expired. | AC-021, AC-023 | 4-5 |
+| REQ-030 | After RecordId target selection is available, the app must let `SUPER` users create multiple same-table correction lines through a batch entry experience that transforms entries into the standard correction line structure without changing target data. | AC-028 | 3-4 |
+| REQ-031 | The app must support complex primary keys by storing a canonical target `RecordId` identity and using a matrix-style selector/editor to create or update field correction lines for the selected target record. | AC-029 | 3-4 |
 
 ## Data And Security Requirements
 

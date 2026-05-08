@@ -55,6 +55,10 @@ page 88116 "BCDA Audit Entries"
                 {
                     ToolTip = 'Specifies the target table ID.';
                 }
+                field("Target Record ID"; Rec."Target Record ID")
+                {
+                    ToolTip = 'Specifies the target record identity.';
+                }
                 field("Target Field ID"; Rec."Target Field ID")
                 {
                     ToolTip = 'Specifies the target field ID.';

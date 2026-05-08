@@ -22,7 +22,12 @@ The project currently has Phase 2 foundation AL objects. Operational steps below
 - Open setup page.
 - Switch to the `BC Data Agent` profile and verify the Role Center links open setup, policies, requests, audit entries, and retention logs for a `SUPER` user.
 - Create a foundation request in sandbox.
-- Confirm the foundation preview marker does not read or mutate target data.
+- Confirm data policy `Table ID` and `Field ID` lookup fills metadata names.
+- Confirm correction line `Table ID` lookup shows Business Central tables and `Field ID` lookup is filtered by the selected table.
+- Confirm `Record ID` is read-only app-owned storage, the `Select Record` line action opens target record lookup, and selecting a row fills the canonical identity.
+- Confirm selecting `Field ID` after `Record ID` fills `Current Value Preview` for that selected field only.
+- Confirm `Batch Add Lines` is paused until batch RecordId selection or target matrix entry can populate canonical target identities.
+- Confirm the foundation preview marker does not mutate target data; selected-line current value preview is the only target value read in the foundation build.
 - Confirm setup defaults show rollback logging mode, retention period, and rollback availability text.
 - Confirm audit entry is written for preview or blocked attempt when expected.
 - Confirm rollback-disabled preview clearly states rollback will be unavailable.
@@ -32,7 +37,7 @@ The project currently has Phase 2 foundation AL objects. Operational steps below
 
 1. SUPER user creates correction request.
 2. SUPER user enters reason and ticket/reference.
-3. SUPER user selects target table, record, field, and new value.
+3. SUPER user selects target table, target record identity, and field metadata, reviews the selected field's current value, then stages the proposed value. Mutation remains blocked until later readiness gates open.
 4. SUPER user runs preview.
 5. SUPER user approves if approval is required. Use a different SUPER user only when approval policy requires separation; skip approval only when setup or policy explicitly says approval is not required.
 6. SUPER user executes.
@@ -56,6 +61,7 @@ The project currently has Phase 2 foundation AL objects. Operational steps below
 ## Safe Logging Guidance
 
 - Share request id, line id, table id, field id, timestamp, and sanitized error.
+- For future RecordId-backed target selection, share formatted target record identity and display key, not sensitive target values.
 - Do not share full sensitive values in chat, tickets, logs, or screenshots unless approved by policy.
 - Use hashes or redacted display values where possible.
 

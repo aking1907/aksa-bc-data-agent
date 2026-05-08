@@ -117,7 +117,7 @@ Higher-order documents define intent. Lower-order documents may refine details, 
 | Gate | Required Evidence | Current Status |
 | --- | --- | --- |
 | Discovery | Product intent, scope, risks, open decisions documented | Complete |
-| Platform verification | BC symbols and foundation APIs verified locally; mutation behavior verified in sandbox | Partially complete |
+| Platform verification | BC symbols and foundation APIs verified locally; RecordId/RecordRef selection and mutation behavior verified in sandbox | Partially complete |
 | Security review | `SUPER`-only access model, audit model, rollback rules reviewed | Drafted, needs human review |
 | Implementation readiness | `code-generation-readiness.md` says Ready for the requested scope | Foundation only |
 | Build validation | AL package compiles in sandbox | Local foundation compile/analyzers passed; sandbox deployment validation not started |
