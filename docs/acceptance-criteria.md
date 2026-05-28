@@ -5,8 +5,9 @@
 | ID | Given | When | Then |
 | --- | --- | --- | --- |
 | AC-013 | The project is in a gated implementation mode | An AI agent or developer prepares or changes the repo | AL source files are generated only within the scope explicitly allowed by `docs/code-generation-readiness.md`. |
-| AC-017 | A future code object is proposed | The implementation plan is updated | The object has a traceability row linking requirement, acceptance, and test. |
-| AC-018 | Implementation depends on BC platform behavior | Work begins | `symbol-discovery.md` contains evidence for that behavior. |
+| AC-017 | A future code object is proposed | The implementation plan is updated | The requested behavior is aligned with requirements, acceptance criteria, and validation evidence; traceability rows remain optional reference material. |
+| AC-018 | Implementation depends on BC platform behavior | Work begins | The relevant readiness, security, or test documents identify the required sandbox/manual validation for that behavior. |
+| AC-030 | A `SUPER` user stages correction lines in the foundation request UI | They choose `Update`, `Rename`, `Delete`, or `Insert` as the line type | The selected type is stored on the app-owned line; `Insert` keeps `Record ID` empty and blocks target record selection; non-insert value staging still requires a canonical target identity before current-value lookup or existing-record validation. |
 
 ## Future Phase 1 Behavior
 
@@ -17,7 +18,7 @@
 | AC-003 | A `SUPER` user creates a request | They provide target, value, reason, and ticket | The request is saved without changing target data. |
 | AC-004 | A request is ready for preview | A `SUPER` user runs dry-run | The app shows old value, new value, warnings, validation mode, rollback logging mode, retention period, and rollback eligibility. |
 | AC-005 | A posted or high-risk change needs approval | A `SUPER` user tries to execute it before approval | Execution is blocked and audit evidence is written. |
-| AC-006 | A normal allowed field change is approved by policy | A `SUPER` user executes it | The target field changes, mandatory audit metadata is written, and retained value refs are linked when rollback snapshots are enabled. |
+| AC-006 | A normal field change is allowed by policy | A `SUPER` user executes it | The target field changes, mandatory audit metadata is written, and retained value refs are linked when rollback snapshots are enabled. |
 | AC-007 | A posted table field is allow-listed and approved | A `SUPER` user executes it | The target field changes only if platform access and validation pass. |
 | AC-008 | Any execution attempt occurs | The operation succeeds or fails | Append-only audit evidence records user, time, company, target, result, reason, and ticket. |
 | AC-009 | A rollback is allowed and no conflict exists | A `SUPER` user runs rollback | The previous value is restored and a new audit entry records rollback. |
@@ -38,3 +39,4 @@
 | AC-027 | A `SUPER` administrator configures approval requirement and separation | A request is initialized or approval actions are used | Requests without required approval do not enter the approval workflow; approval can be recorded only after submission; requester approval is blocked when separate approval is required and allowed when self-approval is configured; the selected approval model remains visible on the request. |
 | AC-028 | A `SUPER` user opens a saved correction request | They use same-table batch entry after RecordId target selection is available | The app creates standard correction request lines from canonical target record IDs and does not preview or change target Business Central data. |
 | AC-029 | A `SUPER` user selects a target table with a simple or complex primary key | They use target record selection and the future matrix-style selector | The app stores the canonical target `RecordId` with a display key, shows the formatted record identity as read-only request metadata, and creates or updates correction lines for selected fields without requiring users to hand-type a serialized primary key. |
+| AC-031 | A `SUPER` administrator disables `Allow Data Policies` | A supported execution attempt is made | Non-BCDA target data may proceed only when all other execution controls pass; BCDA app-owned tables, system-managed fields, unsupported fields, unaudited mutation, missing request metadata, and non-`SUPER` access remain blocked. |

@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted. App-owned `RecordId` storage, foundation primary-key line-action lookup, and selected-line current value preview are allowed for foundation records; the full matrix implementation and production use remain gated until `RecordId`/`RecordRef` sandbox evidence is recorded.
+Accepted. App-owned `RecordId` storage, foundation primary-key line-action lookup, and selected-line current value preview are allowed for foundation records; the full matrix implementation and production use remain gated until `RecordId`/`RecordRef` sandbox validation passes.
 
 ## Context
 
@@ -29,13 +29,13 @@ The planned target record matrix will:
 - show existing correction lines for the same request and record,
 - let the user create or update proposed field changes,
 - write only BCDA-owned correction line records before execution readiness,
-- avoid target mutation and keep current-value display limited to the approved selected-line preview until full request preview readiness is approved.
+- avoid target mutation and keep current-value display limited to the allowed non-mutating selected-line and staged-line preview scope until the execution readiness gate opens.
 
 ## Consequences
 
 Free-text record key entry is removed from the foundation UI and storage path. App-owned `RecordId` fields remain read-only and are populated only through governed selector actions.
 
-Before full matrix AL implementation or production use, symbol discovery must verify the target BC version's `RecordId`, `RecordRef`, key formatting, record lookup, and `SUPER`/non-`SUPER` behavior for representative normal, hidden, and posted tables. Sandbox validation must also prove that the matrix does not expose sensitive values outside approved preview behavior.
+Before full matrix AL implementation or production use, sandbox validation must verify the target BC version's `RecordId`, `RecordRef`, key formatting, record lookup, and `SUPER`/non-`SUPER` behavior for representative normal, hidden, and posted tables. Sandbox validation must also prove that the matrix does not expose sensitive values outside approved preview behavior.
 
 This decision adds planned objects and tests:
 

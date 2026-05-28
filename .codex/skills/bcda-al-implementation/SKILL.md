@@ -1,13 +1,13 @@
 ---
 name: bcda-al-implementation
-description: Business Central AL implementation guardrails for BC Data Agent. Use when Codex is explicitly asked to generate, modify, or review AL source after SDD readiness is approved; implement tables, pages, codeunits, reports, tests, setup, SUPER-only access checks, policy, audit, rollback, metadata discovery, or data-correction workflows.
+description: Business Central AL implementation guardrails for BC Data Agent. Use when Codex is explicitly asked to generate, modify, or review AL source after the SDD readiness gate allows it; implement tables, pages, codeunits, reports, tests, setup, SUPER-only access checks, policy, audit, rollback, metadata discovery, or data-correction workflows.
 ---
 
 # BCDA AL Implementation
 
 ## Purpose
 
-Implement AL changes only after the SDD gate allows code generation. Build traceable, testable Business Central objects that preserve policy, audit, rollback, and redaction invariants.
+Implement AL changes only after the SDD gate allows code generation. Build testable Business Central objects that align with requirements and preserve policy, audit, rollback, and redaction invariants.
 
 ## Gate
 
@@ -17,7 +17,7 @@ Before writing AL files:
 2. Confirm status is Ready.
 3. Confirm the user explicitly requested implementation.
 4. Confirm blocking open decisions are closed or accepted.
-5. Confirm `docs/symbol-discovery.md` contains evidence for platform behavior being used.
+5. Confirm sandbox validation, security review, and test evidence cover the platform behavior being used.
 
 If any item fails, do not create AL code. Update docs or ask for the missing decision.
 
@@ -30,11 +30,10 @@ Read:
 - `docs/al-development-standards.md`
 - `docs/requirements.md`
 - `docs/acceptance-criteria.md`
-- `docs/traceability-matrix.md`
+- `docs/traceability-matrix.md` when reference coverage is useful
 - `docs/architecture.md`
 - `docs/security-review.md`
 - `docs/test-plan.md`
-- `docs/symbol-discovery.md`
 - `UserGuide.md` when the change affects setup, pages, actions, validation, release guidance, or user-visible behavior
 
 ## Implementation Rules
@@ -50,7 +49,7 @@ Read:
 - Never log full sensitive values to generic telemetry or test output.
 - Always write mandatory audit metadata, even when rollback snapshots are disabled.
 - Make rollback-disabled and snapshot-expired states visible and safe.
-- Prefer Business Central native retention policies for BCDA-owned operation tables when symbol discovery confirms support.
+- Prefer Business Central native retention policies for BCDA-owned operation tables when sandbox validation confirms support.
 - Prefer small, focused objects that match `docs/implementation-contracts.md`.
 - Use `bcda-user-guide-steward` and update or review `UserGuide.md` for user-visible AL behavior changes.
 
@@ -71,7 +70,7 @@ Read:
 
 For every AL change:
 
-- Trace to requirement, acceptance criterion, and test.
+- Align with requirements, acceptance criteria, and validation evidence.
 - Compile in the target BC environment.
 - Pass required analyzers or document approved exceptions.
 - Add or update tests or manual validation steps.

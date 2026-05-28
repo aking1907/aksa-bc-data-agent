@@ -12,11 +12,11 @@ Enable trusted support users to make targeted corrections to Business Central da
 
 ## Current Implementation Mode
 
-Phase 2 Foundation Data implementation.
+Phase 9 local hardening is complete for the current Phase 8 build. Phase 8 Audit, Retention, And Export local implementation is complete for grouped `Update` corrections, supported update rollback, filtered audit metadata export, and governed retention cleanup. Sandbox validation was skipped by request for Phase 8 implementation and remains required before production use.
 
-Foundation AL code is allowed for app-owned setup, policy, request, audit, snapshot, rollback-state, retention-log, SUPER-gated shell pages, and supporting services.
+AL code is allowed for app-owned foundation objects, security/policy hardening, setup/retention/UX shell work, target selection and preview workflow, supported grouped update execution, supported update rollback, filtered audit metadata export, and retention cleanup. This includes limited RecordId lookup, selected-field current value refresh, staged-line request preview, policy preview, read-only preview matrix behavior, `Allow Data Policies` setup behavior, grouped update mutation, rollback from successful update execution audit entries, setup-enabled filtered audit CSV export, and cleanup of expired eligible BCDA-owned operation records.
 
-Selected-line current value preview is available after a target record and field are selected. Full request preview, target record mutation, rollback execution, audit export, and production enablement remain blocked until the next readiness gate is approved.
+Selected-line current value preview is available after a target record and field are selected. Request-level staged-line preview is available without mutation. Supported grouped update execution is available after request metadata, preview, approval/policy, and `SUPER` checks pass. Supported rollback is available from successful `Update` execution audit entries when retained snapshots exist and conflict checks pass. Filtered audit export and retention cleanup are implemented locally. `Rename`, `Delete`, `Insert`, non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, external APIs, and production enablement remain blocked until their respective readiness gates are opened.
 
 ## Personas
 
@@ -84,7 +84,7 @@ Phase 1 succeeds when an authorized user can correct one allowed field on one ta
 - Posted accounting data has legal, audit, and operational risk.
 - Sensitive values may be present in target records and rollback snapshots.
 - Rollback snapshot retention and audit retention can affect rollback availability and operation history visibility.
-- Foundation symbol verification has been performed for `SUPER` detection and retention allowed-table registration. Target mutation behavior still requires sandbox proof.
+- Foundation compile verification has been performed for `SUPER` detection, retention allowed-table registration, grouped update execution, supported rollback, filtered audit export, and retention cleanup. Target mutation, rollback, export, and cleanup behavior still require sandbox validation before production use.
 - Current `app.json` targets Business Central 2026 release wave 1 / version 28 with application/platform `28.0.0.0` and runtime `17.0`.
 
 ## Phases
@@ -92,9 +92,12 @@ Phase 1 succeeds when an authorized user can correct one allowed field on one ta
 | Phase | Name | Outcome |
 | --- | --- | --- |
 | 0 | Documentation baseline | SDD package prepared. |
-| 1 | Symbol discovery | Verify BC symbols, `SUPER` access behavior, and record access behavior. |
-| 2 | App-owned data model | Implement setup, policy, request, audit, and rollback storage. Current phase. |
-| 3 | Metadata and policy UI | Let administrators inspect targets and configure rules. |
-| 4 | Correction workflow | Preview, approval, execution, and audit. |
-| 5 | Rollback workflow | Restore before-images with conflict detection. |
-| 6 | Hardening | Security, performance, upgrade, and release validation. |
+| 1 | Platform validation | Verify foundation APIs and runtime assumptions. |
+| 2 | Foundation Data | Implement setup, policy, request, line, audit, snapshot, rollback-state, and retention storage. Complete for the current foundation slice. |
+| 3 | Security And Policy | Enforce `SUPER` access, policy evaluation, redaction rules, and permanent table blocks. Complete for the current non-mutating slice. |
+| 4 | Setup, Retention, And UX Shell | Provide setup pages, policy pages, retention settings, and request shell pages. Complete for the current non-mutating slice. |
+| 5 | Target Selection And Preview Workflow | Support RecordId target selection, matrix line entry, metadata discovery, and dry-run preview without mutation. Local implementation complete; sandbox validation pending. |
+| 6 | Execution Workflow | Execute approved grouped `Update` field corrections with mandatory audit and rollback snapshot controls. Local implementation complete; sandbox validation still required before production use. |
+| 7 | Rollback Workflow | Restore before-images for successful `Update` execution audit entries with conflict detection. Local implementation complete; sandbox validation still required before production use. |
+| 8 | Audit, Retention, And Export | Provide setup-enabled filtered audit metadata export and governed cleanup of expired eligible BCDA-owned operation records. Local implementation complete; sandbox validation still required before production use. |
+| 9 | Hardening | Local compile, analyzer, config, object-range, access-model, and documentation hardening complete. Sandbox release validation still required before production use. |

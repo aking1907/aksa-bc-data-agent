@@ -91,7 +91,7 @@ page 88114 "BCDA Correction Request Card"
                 }
                 field("Last Preview At"; Rec."Last Preview At")
                 {
-                    ToolTip = 'Specifies when the foundation preview marker was last recorded.';
+                    ToolTip = 'Specifies when non-mutating request preview was last completed.';
                 }
                 field("Rollback Availability"; Rec."Rollback Availability")
                 {
@@ -125,16 +125,17 @@ page 88114 "BCDA Correction Request Card"
             }
             action(MarkPreviewed)
             {
-                Caption = 'Mark Previewed';
+                Caption = 'Preview Request';
                 Enabled = PreviewEnabled;
                 Image = View;
-                ToolTip = 'Records a foundation preview marker. Current line value preview is available only for selected records and fields; target mutation remains blocked.';
+                ToolTip = 'Runs non-mutating request preview, refreshes line preview status, and records preview audit evidence. Target mutation remains blocked.';
 
                 trigger OnAction()
                 var
                     Orchestrator: Codeunit "BCDA Correction Orchestrator";
                 begin
                     Orchestrator.MarkPreviewed(Rec);
+                    Message(PreviewCompletedMsg);
                     CurrPage.Update(false);
                 end;
             }
@@ -188,14 +189,17 @@ page 88114 "BCDA Correction Request Card"
             action(Execute)
             {
                 Caption = 'Execute';
+                Enabled = ExecuteEnabled;
                 Image = ExecuteBatch;
-                ToolTip = 'Attempts execution. Foundation code blocks target data execution until mutation readiness is approved.';
+                ToolTip = 'Executes supported update correction groups after metadata, preview, approval, policy, audit, and rollback snapshot checks pass.';
 
                 trigger OnAction()
                 var
                     Orchestrator: Codeunit "BCDA Correction Orchestrator";
                 begin
                     Orchestrator.ExecuteRequest(Rec);
+                    Message(ExecutionCompletedMsg);
+                    CurrPage.Update(false);
                 end;
             }
         }
@@ -226,13 +230,20 @@ page 88114 "BCDA Correction Request Card"
     begin
         SeparateApproverEnabled := Rec."Approval Required";
         PreviewEnabled := (Rec.Status = Rec.Status::Open) or (Rec.Status = Rec.Status::Previewed);
-        SubmitApprovalEnabled := Rec."Approval Required" and (Rec.Status <> Rec.Status::"Pending Approval") and (Rec.Status <> Rec.Status::Approved);
+        SubmitApprovalEnabled := Rec."Approval Required" and
+            ((Rec.Status = Rec.Status::Open) or (Rec.Status = Rec.Status::Previewed));
         ApproveEnabled := Rec."Approval Required" and (Rec.Status = Rec.Status::"Pending Approval");
+        ExecuteEnabled := (Rec.Status = Rec.Status::Approved) or
+            ((not Rec."Approval Required") and
+             ((Rec.Status = Rec.Status::Previewed) or ((not Rec."Preview Required") and (Rec.Status = Rec.Status::Open))));
     end;
 
     var
         ApproveEnabled: Boolean;
+        ExecuteEnabled: Boolean;
+        ExecutionCompletedMsg: Label 'Execution finished. Review correction line statuses and audit entries for the final result.';
         PreviewEnabled: Boolean;
+        PreviewCompletedMsg: Label 'Preview completed. Review correction line statuses and sanitized messages before approval.';
         SeparateApproverEnabled: Boolean;
         SubmitApprovalEnabled: Boolean;
 }

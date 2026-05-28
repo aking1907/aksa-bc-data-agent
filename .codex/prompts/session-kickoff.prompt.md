@@ -12,7 +12,7 @@ Read:
 - docs/open-decisions.md
 - docs/requirements.md
 - docs/acceptance-criteria.md
-- docs/traceability-matrix.md
+- docs/traceability-matrix.md when reference coverage is useful
 
 Then give me a compact status brief:
 - Current implementation mode.
@@ -23,4 +23,3 @@ Then give me a compact status brief:
 
 Do not generate AL code unless docs/code-generation-readiness.md says Ready and I explicitly ask for implementation.
 ```
-

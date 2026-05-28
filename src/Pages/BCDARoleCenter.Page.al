@@ -45,6 +45,13 @@ page 88118 "BCDA Role Center"
                 RunObject = page "BCDA Retention Logs";
                 ToolTip = 'Opens BC Data Agent retention and cleanup evidence.';
             }
+            action(BCDARollbackOperations)
+            {
+                ApplicationArea = All;
+                Caption = 'Rollback Operations';
+                RunObject = page "BCDA Rollback Operations";
+                ToolTip = 'Opens BC Data Agent rollback operation evidence.';
+            }
         }
         area(Sections)
         {
@@ -87,6 +94,13 @@ page 88118 "BCDA Role Center"
                     RunObject = page "BCDA Retention Logs";
                     ToolTip = 'Opens retention registration and cleanup evidence.';
                 }
+                action(BCDARollbackSection)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Rollback Operations';
+                    RunObject = page "BCDA Rollback Operations";
+                    ToolTip = 'Opens governed rollback operation evidence.';
+                }
             }
         }
         area(Creation)
@@ -97,7 +111,7 @@ page 88118 "BCDA Role Center"
                 Caption = 'New Correction Request';
                 RunObject = page "BCDA Correction Request Card";
                 RunPageMode = Create;
-                ToolTip = 'Creates a new BC Data Agent correction request. Target execution remains blocked in the foundation build.';
+                ToolTip = 'Creates a new BC Data Agent correction request.';
             }
         }
         area(Processing)

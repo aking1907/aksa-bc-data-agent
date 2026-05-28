@@ -15,6 +15,17 @@ table 88108 "BCDA Batch Line Buffer"
             Caption = 'Entry No.';
             Editable = false;
         }
+        field(10; Type; Enum "BCDA Correction Type")
+        {
+            Caption = 'Type';
+            InitValue = Update;
+
+            trigger OnValidate()
+            begin
+                if Type = Type::Insert then
+                    Clear("Record ID");
+            end;
+        }
         field(2; "Table ID"; Integer)
         {
             Caption = 'Table ID';
@@ -45,6 +56,13 @@ table 88108 "BCDA Batch Line Buffer"
 
             trigger OnValidate()
             begin
+                if Type = Type::Insert then begin
+                    if Format("Record ID") <> '' then
+                        Error(RecordIdMustBeEmptyForInsertErr);
+
+                    exit;
+                end;
+
                 if Format("Record ID") = '' then
                     exit;
 
@@ -97,6 +115,7 @@ table 88108 "BCDA Batch Line Buffer"
     }
 
     var
+        RecordIdMustBeEmptyForInsertErr: Label 'Record ID must be empty for Insert correction lines.';
         RecordIdTableMismatchErr: Label 'Record ID %1 does not belong to table %2.', Comment = '%1 = record ID, %2 = table ID';
         TableRequiredBeforeRecordErr: Label 'Select a table before selecting a record.';
 }

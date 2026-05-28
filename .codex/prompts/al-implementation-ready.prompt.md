@@ -13,8 +13,8 @@ Before editing:
 - Confirm I explicitly asked for implementation.
 - Read docs/implementation-contracts.md.
 - Read docs/app-design.md and docs/al-development-standards.md.
-- Read docs/requirements.md, docs/acceptance-criteria.md, and docs/traceability-matrix.md.
-- Read docs/security-review.md and docs/symbol-discovery.md.
+- Read docs/requirements.md and docs/acceptance-criteria.md; read docs/traceability-matrix.md only when reference coverage is useful.
+- Read docs/security-review.md and docs/readiness-audit.md.
 - Read UserGuide.md when setup, pages, actions, validation, release guidance, or user-visible behavior may change.
 
 Implementation rules:

@@ -23,11 +23,11 @@ This policy applies to AI-assisted:
 
 - SDD document creation and maintenance,
 - architecture and ADR review,
-- Business Central symbol discovery support,
+- Business Central platform validation support,
 - security and permissions review,
 - UX and usability design,
 - AL implementation planning,
-- code generation after readiness approval,
+- code generation after the readiness gate allows it,
 - test design and verification,
 - release and operations documentation.
 
@@ -141,7 +141,7 @@ These thresholds are starting governance values for BC Data Agent. Adjust them a
 | Phase | Soft Target | Notes |
 |---|---:|---|
 | Documentation / SDD | USD 75.00 | Includes skills, prompts, readiness documents, and consistency checks. |
-| Symbol discovery | USD 25.00 | Should be focused and evidence-driven. |
+| Platform validation | USD 25.00 | Should be focused and evidence-driven. |
 | Architecture / security | USD 75.00 | Premium use is acceptable for high-risk decisions. |
 | Implementation planning | USD 40.00 | Should be bounded by readiness contracts. |
 | Implementation | USD 100.00 per milestone | Track by milestone once AL generation begins. |
@@ -236,14 +236,14 @@ Teams are expected to:
 - pause expensive loops and improve the specification before retrying,
 - keep implementation prompts tied to acceptance criteria and object contracts.
 
-## Human Approval Checkpoints
+## Cost Review Checkpoints
 
-Human review is recommended before:
+Review cost and scope before:
 
 - running long premium-model loops,
 - processing very large contexts repeatedly,
 - re-running architecture/security synthesis multiple times,
-- entering a high-cost implementation cycle without approved readiness,
+- entering a high-cost implementation cycle before the readiness gate allows implementation,
 - using AI to reason over sensitive customer or posted-data examples.
 
 ## Non-Compliance Examples
@@ -257,7 +257,7 @@ Examples of poor cost control:
 - mixing actual and estimated cost without labeling,
 - storing sensitive prompts, credentials, or BC data in cost files,
 - using AI broadly without budget awareness,
-- generating AL code before SDD readiness is approved.
+- generating AL code before the SDD readiness gate allows it.
 
 ## Roles And Responsibilities
 

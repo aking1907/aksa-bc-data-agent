@@ -26,7 +26,7 @@ Read:
 
 - Sandbox first.
 - Dry-run before production correction.
-- Human approval for posted data policy.
+- Posted data policy must be explicit and validated before production use.
 - Audit and rollback validation before release.
 - Rollback logging and retention validation before release.
 - Extension rollback is not a substitute for data rollback.
@@ -46,7 +46,7 @@ Verify:
 - Audit and snapshot retention.
 - External backup or environment restore plan.
 - Sandbox test evidence.
-- Business owner approval for production.
+- Production readiness evidence.
 
 ## Operations Checklist
 

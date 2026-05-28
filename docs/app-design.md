@@ -43,7 +43,8 @@ References:
 | BCDA Data Policy Card | Card | Configure one table/field policy, risk, validation, approval, rollback logging, and retention overrides. |
 | BCDA Correction Requests | List | Work queue with status, risk, target table, requester, approval state, rollback availability, and retention state. |
 | BCDA Correction Request Card | Card with ListPart and FactBoxes | Main request workspace for target, reason, lines, preview, approval, execution, and audit summary. |
-| BCDA Correction Lines | ListPart | Field-level proposed changes for a request, showing target table, read-only formatted target record identity, selected field, and proposed value. |
+| BCDA Correction Lines | ListPart | Staged correction lines for a request, showing operation type, target table, read-only formatted target record identity when applicable, selected field when applicable, and proposed value when applicable. |
+| BCDA Preview Data Matrix | List | Read-only temporary matrix opened from correction lines to review staged correction-line data as correction-type/table sections with unique field columns and `Current`/`New` rows per target record. It uses stored BCDA line data only and does not run full dry-run validation. |
 | BCDA Batch Line Builder | Worksheet | Paused same-table batch entry page that will collect RecordId-backed target identities, fields, and proposed values, then create standard correction lines after batch RecordId selection or target matrix entry is implemented. |
 | BCDA Target Record Lookup | List | Foundation line-action lookup that displays primary-key values for the selected table and returns the selected canonical `RecordId`. |
 | BCDA Target Record Matrix | Worksheet or StandardDialog | Dimension Matrix-style selector/editor that opens from target record selection, resolves a target `RecordId`, and shows available field correction lines for that selected record. |
@@ -52,7 +53,7 @@ References:
 | BCDA Correction Assistant | NavigatePage | Guided creation path for users who prefer a wizard: target, values, preview, approval state, execute. |
 | BCDA Preview Result | StandardDialog or Card dialog | Read-only dry-run result before execution. |
 | BCDA Execution Confirmation | ConfirmationDialog | Final confirmation for high-risk or rollback-disabled execution. |
-| BCDA Audit Entries | List | Searchable read-only operation history. |
+| BCDA Audit Entries | List | Searchable read-only operation history with filtered metadata export. |
 | BCDA Rollback Wizard | NavigatePage | Select operation, preview conflicts, confirm restore, show result. |
 | BCDA Retention Status | List or CardPart | Shows configured retention, expired snapshots, and cleanup status. |
 
@@ -62,10 +63,11 @@ FastTabs:
 
 - General: status, company, reason, ticket/reference, requested by, approval state.
 - Target: table, record identity, field summary, risk.
-- Lines: proposed field-level changes.
+- Lines: proposed operation-typed changes.
 - Line target fields: table ID lookup should suggest Business Central tables; target record identity is a read-only `RecordId` value populated through the `Select Record` primary-key lookup; future field selection should be managed through a matrix-style selector filtered to enabled normal fields and policy-visible fields for the selected table and record.
 - Batch line builder: paused until batch RecordId selection or target matrix entry can populate canonical target identities for same-table batch entries.
 - Target record matrix: for a selected table and record, show available field lines in a matrix similar to the standard Dimension Matrix pattern, with existing correction lines, proposed values, validation mode, rollback snapshot mode, and policy/risk hints.
+- Preview data matrix: from the lines part, show a temporary read-only matrix grouped into correction type and table sections, field columns, and `Current`/`New` rows per target record without changing target records.
 - Preview: old/new display values, warnings, validation mode.
 - Rollback And Retention: rollback logging mode, snapshot retention period, snapshot expiration date, rollback availability.
 - Audit: latest audit entries and operation result.
@@ -82,15 +84,18 @@ Primary actions:
 
 - New Correction.
 - Batch Add Lines, paused until batch RecordId selection or target matrix entry is implemented.
+- Preview Data Matrix.
 - Preview.
 - Submit For Approval or Approve only when approval is required; require a different approver only when setup says separate approval is required.
 - Execute.
 - Rollback.
+- Export Filtered Metadata.
+- Run Retention Cleanup.
 
 Secondary actions:
 
 - Copy Request.
-- Export Audit.
+- Export Audit, limited to filtered metadata.
 - Open Retention Status.
 - Show Technical Details.
 
@@ -138,7 +143,8 @@ Design rules:
 - Snapshot expiration immediately makes rollback unavailable for the affected operation.
 - The UI must show retention period and expiration date before execution.
 - Cleanup must be auditable through retention status/log entries.
-- Retention defaults should be conservative until business owners choose otherwise.
+- Cleanup must protect active requests and retained rollback dependencies.
+- Retention defaults should be conservative until setup policy chooses otherwise.
 
 ## Empty, Warning, And Failure States
 

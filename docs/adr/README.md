@@ -10,7 +10,7 @@ Architecture Decision Records capture choices that shape implementation. Add a n
 | ADR-002 | Documentation-First Code Generation Gate | Accepted | AL code generation is blocked until the SDD readiness gate allows it. |
 | ADR-003 | SUPER-Only Access Without BCDA Permission Sets | Accepted | The extension must not create custom permission sets; functionality is available only to existing Business Central SUPER users. |
 | ADR-004 | Configurable Rollback Logging And Retention | Accepted | Audit metadata is mandatory, rollback snapshots are configurable, and operation retention is user-controlled. |
-| ADR-005 | RecordId-Based Target Selection With Matrix Editing | Accepted | Correction lines use canonical target record identity instead of user-entered composite keys, with a matrix-style selector/editor planned after platform evidence is recorded. |
+| ADR-005 | RecordId-Based Target Selection With Matrix Editing | Accepted | Correction lines use canonical target record identity instead of user-entered composite keys, with a matrix-style selector/editor planned after sandbox validation. |
 
 ## Rules
 

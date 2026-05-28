@@ -19,8 +19,9 @@ The implementation will use internal service contracts between planned AL object
 | Preview | SUPER-gated UI and approval workflow | Report old value, proposed new value, warnings, rollback logging mode, retention period, and rollback eligibility without mutation. |
 | Execution | SUPER-gated workflow | Apply approved field-level changes and record audit evidence. |
 | Audit Write | All material workflows | Write append-only audit entries with sanitized values. |
+| Audit Export | Audit review workflow | Export filtered audit metadata only when `SUPER`, setup enablement, and required filters are present; omit target values and snapshot payloads. |
 | Rollback | Rollback workflow | Restore before-images when policy and conflict checks allow. |
-| Retention | Setup and retention workflow | Register app-owned tables, show retention state, and apply or delegate cleanup policy. |
+| Retention | Setup and retention workflow | Register app-owned tables, show retention state, and clean up expired eligible BCDA-owned operation records. |
 
 ## Authentication And Authorization
 

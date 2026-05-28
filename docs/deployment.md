@@ -4,7 +4,9 @@
 
 Initial target: Business Central 2026 release wave 1 / version 28 sandbox matching `app.json` platform/application `28.0.0.0` and runtime `17.0`.
 
-Production deployment is blocked until sandbox release validation passes and business approval is recorded.
+Production deployment is blocked until sandbox release validation passes and the readiness gate is updated.
+
+Phase 8 filtered audit metadata export and governed retention cleanup are implemented locally. Sandbox validation was skipped by request for implementation and remains required before production use.
 
 ## Pre-Deployment Checklist
 
@@ -17,7 +19,10 @@ Production deployment is blocked until sandbox release validation passes and bus
 - Confirm default posted table policy.
 - Confirm rollback snapshot logging default.
 - Confirm audit metadata, rollback snapshot, and technical log retention.
+- Confirm `Allow Data Policies` is enabled by default, or explicitly accepted before policy records are bypassed.
 - Confirm Business Central retention policy integration approach for BCDA-owned tables.
+- Confirm filtered audit export handling and storage rules.
+- Confirm retention cleanup settings and support owner acceptance.
 - Confirm RecordId/RecordRef target selection behavior before enabling the planned target record matrix.
 - Confirm backup or environment restore strategy outside the extension.
 - Confirm support owner and escalation path.
@@ -29,21 +34,24 @@ Foundation implementation has started. Package deployment is allowed only to san
 1. Build AL package.
 2. Publish to sandbox.
 3. Run installation and setup checks.
-4. Confirm approved users already have the Business Central `SUPER` permission set.
-5. Optionally assign or select the `BC Data Agent` profile for approved `SUPER` users who should use the BCDA Role Center.
+4. Confirm authorized users already have the Business Central `SUPER` permission set.
+5. Optionally assign or select the `BC Data Agent` profile for authorized `SUPER` users who should use the BCDA Role Center.
 6. Confirm non-`SUPER` users cannot open BCDA pages.
 7. Configure setup, rollback logging, retention, and data policies.
 8. Create a foundation request and verify audit evidence for foundation actions.
-9. Do not run RecordId target selection, target data preview, target data execution, rollback execution, or export until the next readiness gate approves them.
+9. Use RecordId target selection for sandbox request-line staging, proposed-value validation, preview, supported grouped update execution, and supported update rollback.
+10. For Phase 8 sandbox readiness, use only artificial BCDA operation records to validate audit redaction, export filters, cleanup behavior, active-record protection, and upgrade readability. Do not generate production exports or delete production operation records until release validation is complete.
 
 ## Configuration Steps
 
 - Set environment label.
 - Configure default policy mode.
 - Configure posted table allow/block rules.
+- Keep `Allow Data Policies` enabled unless policy-record bypass is explicitly accepted for sandbox validation. Permanent blocks must still be verified.
 - Configure approval policy among `SUPER` users.
 - Configure whether approval is required and whether required approval needs a different `SUPER` user or allows self-approval for one-person companies.
 - Configure redaction and export policy.
+- Keep audit export disabled until the company is ready to test filtered, redacted export with artificial sandbox data.
 - Configure rollback snapshot logging mode.
 - Configure audit metadata, rollback snapshot, and technical log retention.
 - Configure or verify Business Central retention policies for BCDA-owned operation tables using the foundation retention registration action.
@@ -55,13 +63,14 @@ Foundation implementation has started. Package deployment is allowed only to san
 - Confirm historical audit entries remain readable.
 - Confirm rollback behavior for pre-upgrade snapshots.
 - Confirm retention cleanup still respects configured retention categories.
+- Confirm audit export redaction and cleanup records remain compatible after upgrade.
 - Promote only after release gates pass.
 
 ## Production Notes
 
 - Production use should start with dry-run only.
 - First production correction should be supervised by a `SUPER` administrator, a `SUPER` approver when approval policy requires separation, and the support owner.
-- Posted data correction requires business owner approval.
+- Posted data correction must follow the validated posted-data policy and company control procedure.
 - Keep external environment backup or restore plan available.
 
 ## Rollback Or Mitigation

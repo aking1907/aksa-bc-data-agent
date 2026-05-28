@@ -18,7 +18,7 @@ The app will support:
 - Per-policy rollback snapshot mode: required, allowed, or disabled.
 - Request preview that resolves and displays rollback availability before execution.
 - Separate retention settings for audit metadata, rollback snapshots, and technical logs.
-- Preference for Business Central native retention policy support for app-owned operation tables after symbol discovery confirms the required APIs.
+- Preference for Business Central native retention policy support for app-owned operation tables after sandbox validation confirms the required APIs.
 
 ## Consequences
 
@@ -42,4 +42,3 @@ The app will support:
 - Decide default and minimum retention periods.
 - Add setup and policy fields for rollback snapshot mode and retention.
 - Add tests for rollback-disabled and snapshot-expired behavior.
-

@@ -3,7 +3,7 @@
 ## Architecture Goals
 
 - Make exceptional data correction possible without making it casual.
-- Keep all mutation paths governed by `SUPER` access, policy, preview, audit, and rollback.
+- Keep all mutation paths governed by `SUPER` access, policy or a reviewed policy-enforcement exception, preview, audit, and rollback.
 - Separate app-owned governance data from Business Central-owned business data.
 - Prefer explicit allow rules for posted or high-risk data.
 - Preserve enough context for support, audit, and rollback.
@@ -29,9 +29,10 @@
 | --- | --- |
 | Setup Management | Global defaults, retention, and environment safety settings. |
 | Metadata Explorer | Discover tables, fields, keys, captions, and risk hints. |
-| Record Identity Manager | Planned service to centralize target `RecordId` identity formatting, validation, and display-key policy after sandbox evidence is recorded. |
+| Record Identity Manager | Planned service to centralize target `RecordId` identity formatting, validation, and display-key policy after sandbox validation passes. |
 | Target Record Lookup | Foundation line-action lookup that lets SUPER users select a target record by primary-key display values and populate correction-line `Record ID`. |
 | Current Value Manager | Foundation selected-line reader that fills `Current Value Preview` only for the selected `Record ID` and `Field ID`. |
+| Preview Data Matrix | Foundation read-only matrix page that displays stored correction-line data for one request grouped by request, correction type, table, record, and field without target mutation or full dry-run validation. |
 | Target Record Matrix | Planned richer selector/editor to maintain field correction lines for a selected record without hand-entering composite keys. |
 | Batch Line Builder | Foundation same-table helper shell; line creation is paused until batch `RecordId` selection or target matrix entry can supply canonical identities. |
 | Data Policy Manager | Configure allow/block rules and approval requirements. |
@@ -41,18 +42,18 @@
 | Snapshot Store | Store before/after values needed for audit and rollback. |
 | Retention Manager | Manage operation retention settings and integrate with Business Central retention policies where feasible. |
 | Rollback Service | Restore before-images with conflict detection. |
-| Audit Viewer | Search, filter, and export correction history. |
+| Audit Viewer | Search, filter, and export redacted correction metadata. |
 
 ## Object And Module Map
 
-Foundation objects are implemented for setup, policy, request, audit, snapshot, rollback-state, retention-log, SUPER-gated shells, and supporting services. Objects marked future remain gated by readiness.
+Foundation objects are implemented for setup, policy, request, audit, snapshot, rollback-state, retention-log, SUPER-gated shells, supporting services, grouped update execution, supported update rollback, filtered audit metadata export, and retention cleanup. Objects marked future remain gated by readiness.
 
 | Object Area | Names |
 | --- | --- |
-| Tables | BCDA Setup, BCDA Data Policy, BCDA Correction Request, BCDA Correction Line, BCDA Batch Line Buffer, BCDA Target Record Buffer, BCDA Audit Entry, BCDA Value Snapshot, BCDA Rollback Operation, BCDA Retention Log |
-| Pages | BCDA Role Center, BCDA Setup, BCDA Data Policies, BCDA Data Policy Card, BCDA Correction Requests, BCDA Correction Request Card, BCDA Correction Lines, BCDA Batch Line Builder, BCDA Audit Entries, BCDA Retention Logs, BCDA Table Lookup, BCDA Field Lookup, BCDA Target Record Lookup. Future: BCDA Target Record Matrix, BCDA Correction Assistant, BCDA Preview Result, BCDA Rollback Wizard, BCDA Retention Status. |
+| Tables | BCDA Setup, BCDA Data Policy, BCDA Correction Request, BCDA Correction Line, BCDA Batch Line Buffer, BCDA Target Record Buffer, BCDA Preview Data Matrix, BCDA Audit Entry, BCDA Value Snapshot, BCDA Rollback Operation, BCDA Retention Log |
+| Pages | BCDA Role Center, BCDA Setup, BCDA Data Policies, BCDA Data Policy Card, BCDA Correction Requests, BCDA Correction Request Card, BCDA Correction Lines, BCDA Preview Data Matrix, BCDA Batch Line Builder, BCDA Audit Entries, BCDA Rollback Operations, BCDA Retention Logs, BCDA Table Lookup, BCDA Field Lookup, BCDA Target Record Lookup. Future: BCDA Target Record Matrix, BCDA Correction Assistant, BCDA Preview Result, BCDA Rollback Wizard, BCDA Retention Status. |
 | Profiles | BC Data Agent profile mapped to BCDA Role Center. |
-| Codeunits | BCDA Access Mgt., BCDA Setup Mgt., BCDA Correction Orchestrator, BCDA Metadata Explorer, BCDA Batch Line Mgt., BCDA Current Value Mgt., BCDA Policy Guard, BCDA Audit Writer, BCDA Value Serializer, BCDA Retention Manager. Future: BCDA Record Identity Mgt., BCDA Target Matrix Mgt., BCDA Validation Runner, BCDA Rollback Service. |
+| Codeunits | BCDA Access Mgt., BCDA Setup Mgt., BCDA Correction Orchestrator, BCDA Metadata Explorer, BCDA Batch Line Mgt., BCDA Current Value Mgt., BCDA Policy Guard, BCDA Audit Writer, BCDA Value Serializer, BCDA Retention Manager, BCDA Rollback Service, BCDA Audit Export Mgt. Future: BCDA Record Identity Mgt., BCDA Target Matrix Mgt., BCDA Validation Runner. |
 | Access Control | Existing Business Central `SUPER` permission set only; no BCDA-specific permission sets |
 
 ## Runtime Flow
@@ -61,13 +62,15 @@ Foundation objects are implemented for setup, policy, request, audit, snapshot, 
 2. User selects target company and table.
 3. User runs `Select Record`. The foundation lookup resolves the target `RecordId` from primary-key display values; the future matrix-style selector will add available fields and existing correction lines for the selected record.
 4. Metadata Explorer resolves captions, keys, field type, and risk hints. When both `Record ID` and `Field ID` are selected, Current Value Manager reads the selected field value for line preview.
-5. Policy Guard evaluates `SUPER` access, table policy, field policy, and approval need.
-6. Validation Runner performs dry-run preview and reports warnings, rollback logging mode, retention period, and rollback availability.
+5. Policy Guard evaluates `SUPER` access, table policy, field policy, approval need, and any future reviewed policy-enforcement exception.
+6. Correction Orchestrator performs the current non-mutating staged-line preview and reports warnings, rollback logging mode, retention period, and rollback availability. Full validate-trigger dry-run remains gated.
 7. SUPER approver approves when required by policy.
-8. Correction Orchestrator executes line changes.
+8. Correction Orchestrator executes line changes by grouping staged lines by correction type and canonical target identity when applicable. `Insert` execution must not use an input `RecordId`.
 9. Audit Writer records mandatory attempt, outcome, target, user, reason, and ticket metadata.
 10. Snapshot Store keeps rollback material only when rollback snapshot logging is enabled by setup and policy.
-11. Rollback Service can later restore before-images if conflict checks pass.
+11. Rollback Service can restore retained before-images for supported `Update` execution audit entries if conflict checks pass.
+12. Audit Export Manager exports filtered audit metadata only when `SUPER` access, setup export enablement, and required filters are present.
+13. Retention Manager purges expired rollback snapshot payloads and deletes expired eligible BCDA-owned operation records while preserving active requests and retained rollback dependencies.
 
 ## Error Flow
 
@@ -75,9 +78,9 @@ Foundation objects are implemented for setup, policy, request, audit, snapshot, 
 - Validation failures stop execution unless policy explicitly allows override.
 - Runtime write failures mark the line failed and record sanitized error details.
 - Partial request failures leave successful lines auditable and failed lines visible.
-- Rollback conflicts stop rollback for the affected line unless override policy allows it.
+- Rollback conflicts stop rollback for the affected operation type and target identity unless override policy allows it.
 - Rollback-disabled and rollback-expired states stop rollback before mutation and explain the reason.
-- Retention cleanup failures are visible in retention status and do not affect active correction execution.
+- Retention cleanup failures are visible in retention logs and do not affect active correction execution.
 
 ## Security Model
 
@@ -86,8 +89,9 @@ Foundation objects are implemented for setup, policy, request, audit, snapshot, 
 - Approval requirement and approval separation are workflow settings, not permission sets. Setup can require a different `SUPER` approver, allow self-approval, or disable approval for standard requests when one-person companies explicitly accept that control model.
 - Posted or hidden data changes require `SUPER` access and break-glass policy approval.
 - Policy defaults should be deny-first until configured.
+- `Allow Data Policies` can bypass policy records when disabled. It must not bypass `SUPER`, request metadata, audit, rollback snapshot controls, sandbox validation, or permanent blocks for BCDA app-owned, system-managed, and unsupported targets.
 - Audit and snapshot tables are available only through `SUPER`-gated features and redacted export/support channels.
-- Sensitive values are redacted outside privileged pages and exports.
+- Sensitive values are redacted outside privileged pages; Phase 8 export omits target value and snapshot payload content.
 - The app never stores environment credentials in repository files.
 - Direct SQL is out of scope.
 
@@ -96,14 +100,14 @@ Foundation objects are implemented for setup, policy, request, audit, snapshot, 
 - App-owned audit entries are the primary observability record.
 - Support logs and telemetry must not include full sensitive values.
 - Every execution includes request id, operation id, company, table, key, field, user, timestamp, result, and sanitized error.
-- Retention cleanup status includes table/category, cutoff date, expired record count when available, result, and sanitized error.
+- Retention cleanup status includes table/category, cutoff date, expired record count, deleted or purged count, result, and sanitized error.
 
 ## Upgrade And Extension Points
 
 - App-owned tables require upgrade code when schema changes.
 - Policy rules should be data-driven to avoid code changes for every table.
 - Value serialization must be versioned so old snapshots can be read after upgrades.
-- Retention integration should use Business Central retention policy APIs for app-owned tables when symbol discovery confirms availability.
+- Retention integration should use Business Central retention policy APIs for app-owned tables when sandbox validation confirms availability.
 - Future external API access should be added only after API contracts and security review are updated.
 
 ## UI Design Model

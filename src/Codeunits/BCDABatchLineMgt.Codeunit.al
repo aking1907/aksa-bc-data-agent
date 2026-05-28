@@ -27,8 +27,10 @@ codeunit 88128 "BCDA Batch Line Mgt."
 
             CorrectionLine.Init();
             CorrectionLine.Validate("Request ID", CorrectionRequest."Request ID");
+            CorrectionLine.Validate(Type, TempBatchLine.Type);
             CorrectionLine.Validate("Table ID", TableId);
-            CorrectionLine.Validate("Record ID", TempBatchLine."Record ID");
+            if TempBatchLine.Type <> TempBatchLine.Type::Insert then
+                CorrectionLine.Validate("Record ID", TempBatchLine."Record ID");
             CorrectionLine.Validate("Field ID", TempBatchLine."Field ID");
             CorrectionLine.Validate("Proposed New Value", TempBatchLine."Proposed New Value");
             CorrectionLine.Validate("Rollback Snapshot Mode", TempBatchLine."Rollback Snapshot Mode");
@@ -45,8 +47,11 @@ codeunit 88128 "BCDA Batch Line Mgt."
         if TempBatchLine."Table ID" <> TableId then
             Error(MixedTableErr, TempBatchLine."Entry No.");
 
-        if Format(TempBatchLine."Record ID") = '' then
+        if (TempBatchLine.Type <> TempBatchLine.Type::Insert) and (Format(TempBatchLine."Record ID") = '') then
             Error(RecordIdRequiredErr, TempBatchLine."Entry No.");
+
+        if (TempBatchLine.Type = TempBatchLine.Type::Insert) and (Format(TempBatchLine."Record ID") <> '') then
+            Error(RecordIdMustBeEmptyForInsertErr, TempBatchLine."Entry No.");
 
         if TempBatchLine."Field ID" = 0 then
             Error(FieldRequiredErr, TempBatchLine."Entry No.");
@@ -56,6 +61,7 @@ codeunit 88128 "BCDA Batch Line Mgt."
         FieldRequiredErr: Label 'Batch entry %1 must have a field ID before request lines can be created.', Comment = '%1 = batch entry number';
         MixedTableErr: Label 'Batch entry %1 does not match the selected batch table.', Comment = '%1 = batch entry number';
         NoBatchLinesErr: Label 'Enter at least one batch line before creating request lines.';
+        RecordIdMustBeEmptyForInsertErr: Label 'Batch entry %1 must not have a record ID for Insert correction lines.', Comment = '%1 = batch entry number';
         RecordIdRequiredErr: Label 'Batch entry %1 must have a record ID before request lines can be created.', Comment = '%1 = batch entry number';
         RequestRequiredErr: Label 'Create or save the correction request before adding batch lines.';
         TableRequiredErr: Label 'Select a table before creating request lines from the batch.';

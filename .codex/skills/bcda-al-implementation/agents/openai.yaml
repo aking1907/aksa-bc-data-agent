@@ -1,4 +1,4 @@
 interface:
   display_name: "BCDA AL Implementation"
   short_description: "Implement AL only through SDD gates"
-  default_prompt: "Use $bcda-al-implementation to build a traceable Business Central AL change after readiness is approved."
+  default_prompt: "Use $bcda-al-implementation to build a traceable Business Central AL change after the readiness gate allows it."

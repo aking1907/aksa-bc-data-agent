@@ -8,7 +8,6 @@ Use the prompt that matches the task:
 | --- | --- |
 | `session-kickoff.prompt.md` | Start a new session with project status and blockers. |
 | `sdd-maintenance.prompt.md` | Update SDD docs for behavior or scope changes. |
-| `symbol-discovery.prompt.md` | Verify Business Central platform behavior before code. |
 | `readiness-review.prompt.md` | Decide whether implementation can start. |
 | `architecture-review.prompt.md` | Review architecture or workflow design. |
 | `ux-design-review.prompt.md` | Design Business Central pages/actions/workflows. |

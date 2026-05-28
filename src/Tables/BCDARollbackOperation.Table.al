@@ -4,6 +4,8 @@ table 88106 "BCDA Rollback Operation"
 {
     Caption = 'BCDA Rollback Operation';
     DataClassification = CustomerContent;
+    LookupPageId = "BCDA Rollback Operations";
+    DrillDownPageId = "BCDA Rollback Operations";
 
     fields
     {

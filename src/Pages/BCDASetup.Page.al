@@ -24,6 +24,10 @@ page 88110 "BCDA Setup"
                 {
                     ToolTip = 'Specifies the default decision when no table or field policy exists.';
                 }
+                field("Allow Data Policies"; Rec."Allow Data Policies")
+                {
+                    ToolTip = 'Specifies whether BCDA data policy records are enforced. When this is off, policies are bypassed, but BCDA app-owned tables, unsupported fields, SUPER access, request metadata, and audit controls still apply.';
+                }
                 field("Approval Required Default"; Rec."Approval Required Default")
                 {
                     ToolTip = 'Specifies whether requests require approval by default. Turn this off only when the company accepts no separate approval step for standard requests.';
@@ -71,7 +75,7 @@ page 88110 "BCDA Setup"
                 }
                 field("Export Enabled"; Rec."Export Enabled")
                 {
-                    ToolTip = 'Specifies whether audit export is enabled. Export generation is not part of the foundation slice.';
+                    ToolTip = 'Specifies whether filtered audit metadata export is enabled.';
                 }
             }
             group(System)
@@ -108,6 +112,23 @@ page 88110 "BCDA Setup"
                     Message(RetentionTablesRegisteredMsg);
                 end;
             }
+            action(RunRetentionCleanup)
+            {
+                Caption = 'Run Retention Cleanup';
+                Image = Delete;
+                ToolTip = 'Purges expired rollback snapshot payloads and deletes expired eligible BC Data Agent operation records while protecting active requests and retained rollback dependencies.';
+
+                trigger OnAction()
+                var
+                    RetentionManager: Codeunit "BCDA Retention Manager";
+                begin
+                    if not Confirm(RetentionCleanupConfirmQst, false) then
+                        exit;
+
+                    RetentionManager.RunRetentionCleanup();
+                    Message(RetentionCleanupFinishedMsg);
+                end;
+            }
         }
     }
 
@@ -135,4 +156,6 @@ page 88110 "BCDA Setup"
     var
         SeparateApproverEnabled: Boolean;
         RetentionTablesRegisteredMsg: Label 'BC Data Agent retention tables were registered.';
+        RetentionCleanupConfirmQst: Label 'Run BC Data Agent retention cleanup now? Expired rollback snapshot payloads can be purged and expired eligible operation records can be deleted.';
+        RetentionCleanupFinishedMsg: Label 'Retention cleanup finished. Review BCDA Retention Logs for results.';
 }

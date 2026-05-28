@@ -73,12 +73,12 @@ Cost reporting supports SDD by making AI effort visible by phase. Use these phas
 | Phase | Use For |
 |---|---|
 | Documentation | SDD documents, README, guides, prompts, and skills. |
-| SymbolDiscovery | Business Central 28 symbol discovery and capability verification. |
+| PlatformValidation | Business Central 28 platform capability verification. |
 | Architecture | architecture, ADRs, domain/data model, risk decisions. |
 | UX | usability, page design, confirmations, rollback workflows. |
 | Security | SUPER-only checks, audit integrity, sensitive data handling. |
 | ImplementationPlanning | readiness, sequencing, object contracts, work breakdown. |
-| Implementation | AL implementation after code readiness approval. |
+| Implementation | AL implementation after the code readiness gate allows it. |
 | Testing | acceptance evidence, automated/manual tests, regression review. |
 | Release | deployment, upgrade, release notes, operations handoff. |
 

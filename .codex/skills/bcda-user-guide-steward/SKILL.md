@@ -77,4 +77,4 @@ Report:
 - `UserGuide.md` sections updated or reviewed.
 - Related docs updated.
 - Readiness status.
-- Any user-guide gaps that still need sandbox evidence.
+- Any user-guide gaps that still need sandbox validation.

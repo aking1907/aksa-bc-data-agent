@@ -1,0 +1,230 @@
+namespace AKSA.BCDataAgent;
+
+table 88130 "BCDA Preview Data Matrix"
+{
+    Caption = 'BCDA Preview Data Matrix';
+    DataClassification = CustomerContent;
+    TableType = Temporary;
+
+    fields
+    {
+        field(1; Type; Enum "BCDA Preview Matrix Rec. Type") { }
+        field(2; "Request ID"; Code[20]) { Editable = false; }
+
+        field(3; "Table ID"; Integer) { Editable = false; }
+        field(4; "Record ID"; RecordId) { Editable = false; }
+        field(5; "Correction Type"; Enum "BCDA Correction Type") { Editable = false; }
+
+        field(101010; "Field 1 Id"; Integer) { Caption = 'Field 1'; }
+        field(101011; "Field 1 Value"; Text[2048]) { Caption = 'Field 1'; }
+        field(101020; "Field 2 Id"; Integer) { Caption = 'Field 2'; }
+        field(101021; "Field 2 Value"; Text[2048]) { Caption = 'Field 2'; }
+        field(101030; "Field 3 Id"; Integer) { Caption = 'Field 3'; }
+        field(101031; "Field 3 Value"; Text[2048]) { Caption = 'Field 3'; }
+        field(101040; "Field 4 Id"; Integer) { Caption = 'Field 4'; }
+        field(101041; "Field 4 Value"; Text[2048]) { Caption = 'Field 4'; }
+        field(101050; "Field 5 Id"; Integer) { Caption = 'Field 5'; }
+        field(101051; "Field 5 Value"; Text[2048]) { Caption = 'Field 5'; }
+        field(101060; "Field 6 Id"; Integer) { Caption = 'Field 6'; }
+        field(101061; "Field 6 Value"; Text[2048]) { Caption = 'Field 6'; }
+        field(101070; "Field 7 Id"; Integer) { Caption = 'Field 7'; }
+        field(101071; "Field 7 Value"; Text[2048]) { Caption = 'Field 7'; }
+        field(101080; "Field 8 Id"; Integer) { Caption = 'Field 8'; }
+        field(101081; "Field 8 Value"; Text[2048]) { Caption = 'Field 8'; }
+        field(101090; "Field 9 Id"; Integer) { Caption = 'Field 9'; }
+        field(101091; "Field 9 Value"; Text[2048]) { Caption = 'Field 9'; }
+        field(101100; "Field 10 Id"; Integer) { Caption = 'Field 10'; }
+        field(101101; "Field 10 Value"; Text[2048]) { Caption = 'Field 10'; }
+        field(101110; "Field 11 Id"; Integer) { Caption = 'Field 11'; }
+        field(101111; "Field 11 Value"; Text[2048]) { Caption = 'Field 11'; }
+        field(101120; "Field 12 Id"; Integer) { Caption = 'Field 12'; }
+        field(101121; "Field 12 Value"; Text[2048]) { Caption = 'Field 12'; }
+        field(101130; "Field 13 Id"; Integer) { Caption = 'Field 13'; }
+        field(101131; "Field 13 Value"; Text[2048]) { Caption = 'Field 13'; }
+        field(101140; "Field 14 Id"; Integer) { Caption = 'Field 14'; }
+        field(101141; "Field 14 Value"; Text[2048]) { Caption = 'Field 14'; }
+        field(101150; "Field 15 Id"; Integer) { Caption = 'Field 15'; }
+        field(101151; "Field 15 Value"; Text[2048]) { Caption = 'Field 15'; }
+        field(101160; "Field 16 Id"; Integer) { Caption = 'Field 16'; }
+        field(101161; "Field 16 Value"; Text[2048]) { Caption = 'Field 16'; }
+        field(101170; "Field 17 Id"; Integer) { Caption = 'Field 17'; }
+        field(101171; "Field 17 Value"; Text[2048]) { Caption = 'Field 17'; }
+        field(101180; "Field 18 Id"; Integer) { Caption = 'Field 18'; }
+        field(101181; "Field 18 Value"; Text[2048]) { Caption = 'Field 18'; }
+        field(101190; "Field 19 Id"; Integer) { Caption = 'Field 19'; }
+        field(101191; "Field 19 Value"; Text[2048]) { Caption = 'Field 19'; }
+        field(101200; "Field 20 Id"; Integer) { Caption = 'Field 20'; }
+        field(101201; "Field 20 Value"; Text[2048]) { Caption = 'Field 20'; }
+        field(101210; "Field 21 Id"; Integer) { Caption = 'Field 21'; }
+        field(101211; "Field 21 Value"; Text[2048]) { Caption = 'Field 21'; }
+        field(101220; "Field 22 Id"; Integer) { Caption = 'Field 22'; }
+        field(101221; "Field 22 Value"; Text[2048]) { Caption = 'Field 22'; }
+        field(101230; "Field 23 Id"; Integer) { Caption = 'Field 23'; }
+        field(101231; "Field 23 Value"; Text[2048]) { Caption = 'Field 23'; }
+        field(101240; "Field 24 Id"; Integer) { Caption = 'Field 24'; }
+        field(101241; "Field 24 Value"; Text[2048]) { Caption = 'Field 24'; }
+        field(101250; "Field 25 Id"; Integer) { Caption = 'Field 25'; }
+        field(101251; "Field 25 Value"; Text[2048]) { Caption = 'Field 25'; }
+        field(101260; "Field 26 Id"; Integer) { Caption = 'Field 26'; }
+        field(101261; "Field 26 Value"; Text[2048]) { Caption = 'Field 26'; }
+        field(101270; "Field 27 Id"; Integer) { Caption = 'Field 27'; }
+        field(101271; "Field 27 Value"; Text[2048]) { Caption = 'Field 27'; }
+        field(101280; "Field 28 Id"; Integer) { Caption = 'Field 28'; }
+        field(101281; "Field 28 Value"; Text[2048]) { Caption = 'Field 28'; }
+        field(101290; "Field 29 Id"; Integer) { Caption = 'Field 29'; }
+        field(101291; "Field 29 Value"; Text[2048]) { Caption = 'Field 29'; }
+        field(101300; "Field 30 Id"; Integer) { Caption = 'Field 30'; }
+        field(101301; "Field 30 Value"; Text[2048]) { Caption = 'Field 30'; }
+        field(101310; "Field 31 Id"; Integer) { Caption = 'Field 31'; }
+        field(101311; "Field 31 Value"; Text[2048]) { Caption = 'Field 31'; }
+        field(101320; "Field 32 Id"; Integer) { Caption = 'Field 32'; }
+        field(101321; "Field 32 Value"; Text[2048]) { Caption = 'Field 32'; }
+        field(101330; "Field 33 Id"; Integer) { Caption = 'Field 33'; }
+        field(101331; "Field 33 Value"; Text[2048]) { Caption = 'Field 33'; }
+        field(101340; "Field 34 Id"; Integer) { Caption = 'Field 34'; }
+        field(101341; "Field 34 Value"; Text[2048]) { Caption = 'Field 34'; }
+        field(101350; "Field 35 Id"; Integer) { Caption = 'Field 35'; }
+        field(101351; "Field 35 Value"; Text[2048]) { Caption = 'Field 35'; }
+        field(101360; "Field 36 Id"; Integer) { Caption = 'Field 36'; }
+        field(101361; "Field 36 Value"; Text[2048]) { Caption = 'Field 36'; }
+        field(101370; "Field 37 Id"; Integer) { Caption = 'Field 37'; }
+        field(101371; "Field 37 Value"; Text[2048]) { Caption = 'Field 37'; }
+        field(101380; "Field 38 Id"; Integer) { Caption = 'Field 38'; }
+        field(101381; "Field 38 Value"; Text[2048]) { Caption = 'Field 38'; }
+        field(101390; "Field 39 Id"; Integer) { Caption = 'Field 39'; }
+        field(101391; "Field 39 Value"; Text[2048]) { Caption = 'Field 39'; }
+        field(101400; "Field 40 Id"; Integer) { Caption = 'Field 40'; }
+        field(101401; "Field 40 Value"; Text[2048]) { Caption = 'Field 40'; }
+        field(101410; "Field 41 Id"; Integer) { Caption = 'Field 41'; }
+        field(101411; "Field 41 Value"; Text[2048]) { Caption = 'Field 41'; }
+        field(101420; "Field 42 Id"; Integer) { Caption = 'Field 42'; }
+        field(101421; "Field 42 Value"; Text[2048]) { Caption = 'Field 42'; }
+        field(101430; "Field 43 Id"; Integer) { Caption = 'Field 43'; }
+        field(101431; "Field 43 Value"; Text[2048]) { Caption = 'Field 43'; }
+        field(101440; "Field 44 Id"; Integer) { Caption = 'Field 44'; }
+        field(101441; "Field 44 Value"; Text[2048]) { Caption = 'Field 44'; }
+        field(101450; "Field 45 Id"; Integer) { Caption = 'Field 45'; }
+        field(101451; "Field 45 Value"; Text[2048]) { Caption = 'Field 45'; }
+        field(101460; "Field 46 Id"; Integer) { Caption = 'Field 46'; }
+        field(101461; "Field 46 Value"; Text[2048]) { Caption = 'Field 46'; }
+        field(101470; "Field 47 Id"; Integer) { Caption = 'Field 47'; }
+        field(101471; "Field 47 Value"; Text[2048]) { Caption = 'Field 47'; }
+        field(101480; "Field 48 Id"; Integer) { Caption = 'Field 48'; }
+        field(101481; "Field 48 Value"; Text[2048]) { Caption = 'Field 48'; }
+        field(101490; "Field 49 Id"; Integer) { Caption = 'Field 49'; }
+        field(101491; "Field 49 Value"; Text[2048]) { Caption = 'Field 49'; }
+        field(101500; "Field 50 Id"; Integer) { Caption = 'Field 50'; }
+        field(101501; "Field 50 Value"; Text[2048]) { Caption = 'Field 50'; }
+        field(101510; "Field 51 Id"; Integer) { Caption = 'Field 51'; }
+        field(101511; "Field 51 Value"; Text[2048]) { Caption = 'Field 51'; }
+        field(101520; "Field 52 Id"; Integer) { Caption = 'Field 52'; }
+        field(101521; "Field 52 Value"; Text[2048]) { Caption = 'Field 52'; }
+        field(101530; "Field 53 Id"; Integer) { Caption = 'Field 53'; }
+        field(101531; "Field 53 Value"; Text[2048]) { Caption = 'Field 53'; }
+        field(101540; "Field 54 Id"; Integer) { Caption = 'Field 54'; }
+        field(101541; "Field 54 Value"; Text[2048]) { Caption = 'Field 54'; }
+        field(101550; "Field 55 Id"; Integer) { Caption = 'Field 55'; }
+        field(101551; "Field 55 Value"; Text[2048]) { Caption = 'Field 55'; }
+        field(101560; "Field 56 Id"; Integer) { Caption = 'Field 56'; }
+        field(101561; "Field 56 Value"; Text[2048]) { Caption = 'Field 56'; }
+        field(101570; "Field 57 Id"; Integer) { Caption = 'Field 57'; }
+        field(101571; "Field 57 Value"; Text[2048]) { Caption = 'Field 57'; }
+        field(101580; "Field 58 Id"; Integer) { Caption = 'Field 58'; }
+        field(101581; "Field 58 Value"; Text[2048]) { Caption = 'Field 58'; }
+        field(101590; "Field 59 Id"; Integer) { Caption = 'Field 59'; }
+        field(101591; "Field 59 Value"; Text[2048]) { Caption = 'Field 59'; }
+        field(101600; "Field 60 Id"; Integer) { Caption = 'Field 60'; }
+        field(101601; "Field 60 Value"; Text[2048]) { Caption = 'Field 60'; }
+        field(101610; "Field 61 Id"; Integer) { Caption = 'Field 61'; }
+        field(101611; "Field 61 Value"; Text[2048]) { Caption = 'Field 61'; }
+        field(101620; "Field 62 Id"; Integer) { Caption = 'Field 62'; }
+        field(101621; "Field 62 Value"; Text[2048]) { Caption = 'Field 62'; }
+        field(101630; "Field 63 Id"; Integer) { Caption = 'Field 63'; }
+        field(101631; "Field 63 Value"; Text[2048]) { Caption = 'Field 63'; }
+        field(101640; "Field 64 Id"; Integer) { Caption = 'Field 64'; }
+        field(101641; "Field 64 Value"; Text[2048]) { Caption = 'Field 64'; }
+        field(101650; "Field 65 Id"; Integer) { Caption = 'Field 65'; }
+        field(101651; "Field 65 Value"; Text[2048]) { Caption = 'Field 65'; }
+        field(101660; "Field 66 Id"; Integer) { Caption = 'Field 66'; }
+        field(101661; "Field 66 Value"; Text[2048]) { Caption = 'Field 66'; }
+        field(101670; "Field 67 Id"; Integer) { Caption = 'Field 67'; }
+        field(101671; "Field 67 Value"; Text[2048]) { Caption = 'Field 67'; }
+        field(101680; "Field 68 Id"; Integer) { Caption = 'Field 68'; }
+        field(101681; "Field 68 Value"; Text[2048]) { Caption = 'Field 68'; }
+        field(101690; "Field 69 Id"; Integer) { Caption = 'Field 69'; }
+        field(101691; "Field 69 Value"; Text[2048]) { Caption = 'Field 69'; }
+        field(101700; "Field 70 Id"; Integer) { Caption = 'Field 70'; }
+        field(101701; "Field 70 Value"; Text[2048]) { Caption = 'Field 70'; }
+        field(101710; "Field 71 Id"; Integer) { Caption = 'Field 71'; }
+        field(101711; "Field 71 Value"; Text[2048]) { Caption = 'Field 71'; }
+        field(101720; "Field 72 Id"; Integer) { Caption = 'Field 72'; }
+        field(101721; "Field 72 Value"; Text[2048]) { Caption = 'Field 72'; }
+        field(101730; "Field 73 Id"; Integer) { Caption = 'Field 73'; }
+        field(101731; "Field 73 Value"; Text[2048]) { Caption = 'Field 73'; }
+        field(101740; "Field 74 Id"; Integer) { Caption = 'Field 74'; }
+        field(101741; "Field 74 Value"; Text[2048]) { Caption = 'Field 74'; }
+        field(101750; "Field 75 Id"; Integer) { Caption = 'Field 75'; }
+        field(101751; "Field 75 Value"; Text[2048]) { Caption = 'Field 75'; }
+        field(101760; "Field 76 Id"; Integer) { Caption = 'Field 76'; }
+        field(101761; "Field 76 Value"; Text[2048]) { Caption = 'Field 76'; }
+        field(101770; "Field 77 Id"; Integer) { Caption = 'Field 77'; }
+        field(101771; "Field 77 Value"; Text[2048]) { Caption = 'Field 77'; }
+        field(101780; "Field 78 Id"; Integer) { Caption = 'Field 78'; }
+        field(101781; "Field 78 Value"; Text[2048]) { Caption = 'Field 78'; }
+        field(101790; "Field 79 Id"; Integer) { Caption = 'Field 79'; }
+        field(101791; "Field 79 Value"; Text[2048]) { Caption = 'Field 79'; }
+        field(101800; "Field 80 Id"; Integer) { Caption = 'Field 80'; }
+        field(101801; "Field 80 Value"; Text[2048]) { Caption = 'Field 80'; }
+        field(101810; "Field 81 Id"; Integer) { Caption = 'Field 81'; }
+        field(101811; "Field 81 Value"; Text[2048]) { Caption = 'Field 81'; }
+        field(101820; "Field 82 Id"; Integer) { Caption = 'Field 82'; }
+        field(101821; "Field 82 Value"; Text[2048]) { Caption = 'Field 82'; }
+        field(101830; "Field 83 Id"; Integer) { Caption = 'Field 83'; }
+        field(101831; "Field 83 Value"; Text[2048]) { Caption = 'Field 83'; }
+        field(101840; "Field 84 Id"; Integer) { Caption = 'Field 84'; }
+        field(101841; "Field 84 Value"; Text[2048]) { Caption = 'Field 84'; }
+        field(101850; "Field 85 Id"; Integer) { Caption = 'Field 85'; }
+        field(101851; "Field 85 Value"; Text[2048]) { Caption = 'Field 85'; }
+        field(101860; "Field 86 Id"; Integer) { Caption = 'Field 86'; }
+        field(101861; "Field 86 Value"; Text[2048]) { Caption = 'Field 86'; }
+        field(101870; "Field 87 Id"; Integer) { Caption = 'Field 87'; }
+        field(101871; "Field 87 Value"; Text[2048]) { Caption = 'Field 87'; }
+        field(101880; "Field 88 Id"; Integer) { Caption = 'Field 88'; }
+        field(101881; "Field 88 Value"; Text[2048]) { Caption = 'Field 88'; }
+        field(101890; "Field 89 Id"; Integer) { Caption = 'Field 89'; }
+        field(101891; "Field 89 Value"; Text[2048]) { Caption = 'Field 89'; }
+        field(101900; "Field 90 Id"; Integer) { Caption = 'Field 90'; }
+        field(101901; "Field 90 Value"; Text[2048]) { Caption = 'Field 90'; }
+        field(101910; "Field 91 Id"; Integer) { Caption = 'Field 91'; }
+        field(101911; "Field 91 Value"; Text[2048]) { Caption = 'Field 91'; }
+        field(101920; "Field 92 Id"; Integer) { Caption = 'Field 92'; }
+        field(101921; "Field 92 Value"; Text[2048]) { Caption = 'Field 92'; }
+        field(101930; "Field 93 Id"; Integer) { Caption = 'Field 93'; }
+        field(101931; "Field 93 Value"; Text[2048]) { Caption = 'Field 93'; }
+        field(101940; "Field 94 Id"; Integer) { Caption = 'Field 94'; }
+        field(101941; "Field 94 Value"; Text[2048]) { Caption = 'Field 94'; }
+        field(101950; "Field 95 Id"; Integer) { Caption = 'Field 95'; }
+        field(101951; "Field 95 Value"; Text[2048]) { Caption = 'Field 95'; }
+        field(101960; "Field 96 Id"; Integer) { Caption = 'Field 96'; }
+        field(101961; "Field 96 Value"; Text[2048]) { Caption = 'Field 96'; }
+        field(101970; "Field 97 Id"; Integer) { Caption = 'Field 97'; }
+        field(101971; "Field 97 Value"; Text[2048]) { Caption = 'Field 97'; }
+        field(101980; "Field 98 Id"; Integer) { Caption = 'Field 98'; }
+        field(101981; "Field 98 Value"; Text[2048]) { Caption = 'Field 98'; }
+        field(101990; "Field 99 Id"; Integer) { Caption = 'Field 99'; }
+        field(101991; "Field 99 Value"; Text[2048]) { Caption = 'Field 99'; }
+        field(102000; "Field 100 Id"; Integer) { Caption = 'Field 100'; }
+        field(102001; "Field 100 Value"; Text[2048]) { Caption = 'Field 100'; }
+    }
+
+    keys
+    {
+        key(PK; "Type", "Request ID", "Correction Type", "Table ID", "Record ID")
+        {
+            Clustered = true;
+        }
+        key(Grouping; "Correction Type", "Table ID", "Record ID")
+        {
+        }
+    }
+}

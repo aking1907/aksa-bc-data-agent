@@ -1,6 +1,6 @@
 # AL Development Standards
 
-Phase 2 foundation AL code exists. Continue using this as the development quality bar for every new implementation slice.
+Phase 2-7 foundation, preview, grouped update execution, and supported update rollback AL code exists. Continue using this as the development quality bar for every new implementation slice.
 
 ## Microsoft Guidance Alignment
 
@@ -13,7 +13,7 @@ Use current Business Central AL tooling and guidance:
 - Use ALTool or the AL extension build command for validation once implementation starts.
 - Apply robust coding practices: model likely failures, provide self-explanatory errors, and fail early when needed.
 - Design data access and locking for performance; keep transactions small and lock as late as practical.
-- Use Business Central retention policy APIs for app-owned log/operation tables when symbol discovery confirms support.
+- Use Business Central retention policy APIs for app-owned log/operation tables when sandbox validation confirms support.
 
 References:
 
@@ -28,7 +28,7 @@ References:
 
 ## Code Standards
 
-- Use namespaces after symbol discovery confirms project target support.
+- Use namespaces only when the project target supports them.
 - Keep service codeunits small and cohesive.
 - Keep page triggers thin; call service codeunits.
 - Use labels for user-facing messages.

@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-The project touches high-risk Business Central data. Implementation details must be traceable before code exists so future agents and humans can continue without rediscovering scope, risk, and safety requirements.
+The project touches high-risk Business Central data. Implementation details must stay aligned with scope, risk, and safety requirements so future agents and humans can continue without rediscovering intent.
 
 ## Decision
 
@@ -22,7 +22,7 @@ The readiness gate must confirm:
 ## Consequences
 
 - The initial repository contains documentation and config only.
-- Code generation can be reviewed against stable requirements.
+- Code generation can be reviewed against stable requirements and validation evidence.
 - Future AI-assisted work has an explicit rule to avoid premature implementation.
 
 ## Alternatives Considered
@@ -34,5 +34,5 @@ The readiness gate must confirm:
 
 ## Follow-Up
 
-- Update readiness status after symbol discovery and security review.
-- Require traceability updates with every code change.
+- Update readiness status after sandbox validation and security review.
+- Keep requirements, acceptance criteria, and validation evidence aligned with every behavior change.

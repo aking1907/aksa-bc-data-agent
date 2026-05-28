@@ -2,7 +2,7 @@
 
 ## Review Status
 
-Draft. Foundation data implementation is allowed under conservative decisions. Human security and business owner review is still required before target data mutation, rollback execution, export, or production enablement.
+Draft. Phase 8 filtered audit metadata export, governed retention cleanup, Phase 7 supported update rollback, Phase 6 grouped update execution, and `Allow Data Policies` are implemented locally. Non-update operation execution, non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, external APIs, and production enablement remain gated by sandbox validation and readiness updates.
 
 ## Security Objectives
 
@@ -34,13 +34,16 @@ Draft. Foundation data implementation is allowed under conservative decisions. H
 | THR-004 | Sensitive values leak through logs or exports | Redaction rules and sanitized errors. |
 | THR-005 | Rollback overwrites a legitimate later change | Conflict detection before rollback. |
 | THR-006 | Broad policy enables accidental mass damage | Deny-first policy and field-level scope. |
-| THR-007 | AI-generated code bypasses safeguards | Code-generation readiness gate and traceability review. |
+| THR-007 | AI-generated code bypasses safeguards | Code-generation readiness gate and sandbox validation evidence. |
 | THR-008 | Rollback snapshots are disabled without user awareness | Preview and execution confirmation must show rollback-unavailable state. |
-| THR-009 | Retention deletes data needed for support or compliance | Separate retention categories, conservative defaults, visible expiration, and cleanup evidence. |
+| THR-009 | Retention deletes data needed for support or compliance | Separate retention categories, conservative defaults, visible expiration, active request protection, retained rollback dependency protection, and cleanup evidence. |
 | THR-010 | One-person self-approval or no-approval mode weakens dual control | Approval with a separate approver is the safer default; no-approval and self-approval modes must be explicit setup choices and remain visible on the request/audit trail. |
 | THR-011 | Batch entry makes it easier to stage many risky changes at once | Batch entry creates only standard correction lines; preview, policy, approval, execution, audit, rollback, and readiness gates still apply before any mutation. |
 | THR-012 | A user mistypes or ambiguously serializes a composite record key | Planned target selection uses canonical `RecordId` plus company context and a matrix-style selector instead of hand-entered composite keys. |
 | THR-013 | Current value preview exposes sensitive selected-field values | Preview is available only through `SUPER`-gated pages, is limited to the selected record and field, and remains excluded from export/generic telemetry. Sandbox validation must confirm sensitive-value handling before production use. |
+| THR-014 | Operation type labels imply rename, delete, or insert is ready before operation-specific contracts exist | Phase 6 audits `Rename`, `Delete`, and `Insert` execution as blocked; Phase 7 rollback supports only successful `Update` execution audit entries until operation-specific mutation validation, audit, and rollback controls exist. |
+| THR-015 | A setup switch that disables data policy enforcement turns BCDA into a broad table editor | `Allow Data Policies` is enabled by default. When disabled, execution still blocks BCDA app-owned tables, unsupported fields, and any operation lacking `SUPER`, request metadata, audit, rollback snapshot controls, and sandbox validation. |
+| THR-016 | BCDA app-owned operation tables are selected as correction targets | Foundation metadata validation, table lookup, and policy evaluation permanently block BCDA app-owned tables in the object range 88100..88149 from correction and policy targets. |
 
 ## Access Model
 
@@ -55,7 +58,7 @@ Workflow responsibilities below are audit and process responsibilities, not cust
 | SUPER Approver | Approve or reject high-risk requests when approval policy requires approval. This may require a different user or allow self-approval depending on setup. |
 | SUPER Reviewer | Review and export audit according to redaction policy. |
 
-## Required Controls Before Code
+## Required Controls Before Production Use
 
 - Confirm `SUPER` access detection/enforcement design.
 - Confirm no BCDA-specific permission sets will be generated.
@@ -66,30 +69,36 @@ Workflow responsibilities below are audit and process responsibilities, not cust
 - Confirm rollback snapshot logging defaults and retention periods.
 - Confirm rollback conflict behavior.
 - Confirm retention cleanup protects active requests.
+- Confirm filtered audit export omits target values, target record identity text, and rollback snapshot payloads.
 - Confirm unsupported table/field block list.
 - Confirm target record `RecordId` selection and matrix entry do not expose sensitive target values before preview authorization.
+- Confirm `Allow Data Policies` behavior and which table and field classes remain permanently blocked.
 
 ## Prohibited Behavior
 
 - Silent modification.
 - Direct SQL modification.
 - Editing without a request id.
-- Deleting audit entries.
+- Deleting audit entries outside governed retention cleanup.
 - Rollback that removes original evidence.
 - Disabling rollback snapshots without visible preview and confirmation.
 - Retention cleanup of active in-progress requests.
 - Logging full sensitive values in generic telemetry.
+- Exporting target values, target record identity text, or rollback snapshot payloads through the Phase 8 CSV export.
 - Production enablement before sandbox validation.
+- Executing staged `Rename`, `Delete`, or `Insert` operation types before operation-specific execution contracts and sandbox validation explicitly allow those operations.
+- Disabling data policies in a way that permits unguarded target writes, BCDA app-owned table edits, system/protected table edits, unsupported field writes, or unaudited mutation.
+- Creating policies or correction lines that target BC Data Agent app-owned tables.
 
 ## Go/No-Go Checklist
 
 | Check | Status |
 | --- | --- |
-| `SUPER`-only access model reviewed | Open |
-| Posted data policy reviewed | Open |
-| Redaction model reviewed | Open |
-| Rollback behavior reviewed | Open |
-| Rollback logging and retention reviewed | Open |
-| Symbol discovery complete | Open |
+| `SUPER`-only access model defined and validated | Open |
+| Posted data policy defined and validated | Open |
+| Redaction model defined and validated | Open |
+| Rollback behavior defined and validated | Open |
+| Rollback logging and retention defined and validated | Open |
+| Platform validation complete | Open |
 | Sandbox validation complete | Open |
-| Business owner approval for production | Open |
+| Production readiness validated | Open |

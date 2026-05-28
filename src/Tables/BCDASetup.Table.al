@@ -86,6 +86,11 @@ table 88100 "BCDA Setup"
                     Error(SeparateApproverRequiresApprovalErr);
             end;
         }
+        field(14; "Allow Data Policies"; Boolean)
+        {
+            Caption = 'Allow Data Policies';
+            InitValue = true;
+        }
     }
 
     keys
@@ -102,7 +107,7 @@ table 88100 "BCDA Setup"
             "Primary Key" := GetPrimaryKey();
 
         if "Foundation Version" = '' then
-            "Foundation Version" := '1.1';
+            "Foundation Version" := '1.2';
 
         if "Last Initialized At" = 0DT then
             "Last Initialized At" := CurrentDateTime();

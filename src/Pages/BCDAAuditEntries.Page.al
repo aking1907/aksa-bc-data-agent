@@ -75,10 +75,95 @@ page 88116 "BCDA Audit Entries"
         }
     }
 
+    actions
+    {
+        area(Processing)
+        {
+            action(ExportFilteredAuditMetadata)
+            {
+                Caption = 'Export Filtered Metadata';
+                Image = Export;
+                ToolTip = 'Exports the filtered audit metadata to CSV. Target values and rollback snapshot payloads are omitted.';
+
+                trigger OnAction()
+                var
+                    AuditExportMgt: Codeunit "BCDA Audit Export Mgt.";
+                begin
+                    AuditExportMgt.ExportFilteredAuditMetadata(Rec);
+                end;
+            }
+            action(Rollback)
+            {
+                Caption = 'Rollback';
+                Enabled = RollbackEnabled;
+                Image = Undo;
+                ToolTip = 'Rolls back the selected successful execution audit entry when retained rollback snapshots are available and conflict checks pass.';
+
+                trigger OnAction()
+                var
+                    RollbackService: Codeunit "BCDA Rollback Service";
+                begin
+                    if not Confirm(RollbackConfirmQst, false, Rec."Entry No.") then
+                        exit;
+
+                    RollbackService.RollbackAuditEntry(Rec);
+                    Message(RollbackFinishedMsg);
+                    CurrPage.Update(false);
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            actionref(ExportFilteredAuditMetadata_Promoted; ExportFilteredAuditMetadata)
+            {
+            }
+            actionref(Rollback_Promoted; Rollback)
+            {
+            }
+        }
+    }
+
     trigger OnOpenPage()
     var
         AccessMgt: Codeunit "BCDA Access Mgt.";
     begin
         AccessMgt.EnsureSuperUser();
+        UpdateRollbackAction();
     end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        UpdateRollbackAction();
+    end;
+
+    local procedure UpdateRollbackAction()
+    var
+        CorrectionLine: Record "BCDA Correction Line";
+        RollbackOperation: Record "BCDA Rollback Operation";
+    begin
+        RollbackEnabled := (Rec.Operation = Rec.Operation::Execution) and
+            (Rec.Result = Rec.Result::Success) and Rec."Rollback Available";
+
+        if not RollbackEnabled then
+            exit;
+
+        if not CorrectionLine.Get(Rec."Request ID", Rec."Line No.") then begin
+            RollbackEnabled := false;
+            exit;
+        end;
+
+        RollbackEnabled := CorrectionLine."Line Status" = CorrectionLine."Line Status"::Executed;
+        if not RollbackEnabled then
+            exit;
+
+        RollbackOperation.SetRange("Source Request ID", Rec."Request ID");
+        RollbackOperation.SetRange("Source Audit Entry No.", Rec."Entry No.");
+        RollbackOperation.SetRange(Status, RollbackOperation.Status::Completed);
+        RollbackEnabled := RollbackOperation.IsEmpty();
+    end;
+
+    var
+        RollbackEnabled: Boolean;
+        RollbackConfirmQst: Label 'Roll back execution audit entry %1? The current target value must still match the executed value, and a rollback audit entry will be written.', Comment = '%1 = audit entry number';
+        RollbackFinishedMsg: Label 'Rollback finished. Review audit entries and rollback operations for the final result.';
 }

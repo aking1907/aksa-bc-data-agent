@@ -14,7 +14,7 @@ Read:
 - docs/implementation-contracts.md
 - docs/requirements.md
 - docs/acceptance-criteria.md
-- docs/traceability-matrix.md
+- docs/traceability-matrix.md when reference coverage is useful
 - docs/app-design.md
 - docs/al-development-standards.md
 - docs/security-review.md

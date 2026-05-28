@@ -1,6 +1,6 @@
 # Implementation Contracts
 
-This file records implementation-level commitments. Phase 2 foundation objects now exist in AL; later mutation, rollback execution, export, and cleanup behavior remains gated.
+This file records implementation-level commitments. Phase 2-8 foundation, preview, grouped update execution, supported update rollback, filtered audit metadata export, and governed retention cleanup objects now exist in AL; non-update operation execution, non-update rollback, conflict override, unredacted export, snapshot payload export, and external APIs remain gated.
 
 ## Object Naming Contracts
 
@@ -14,9 +14,9 @@ Use the `BCDA` prefix for app-owned objects and captions unless the user chooses
 | Batch Entry | BCDA Batch Line Buffer, BCDA Batch Line Builder, BCDA Batch Line Mgt. | Hold same-table batch scaffolding; transformation into standard correction lines remains paused until batch RecordId selection or target matrix entry supplies canonical identities. |
 | Target Record Selection | BCDA Target Record Buffer, BCDA Target Record Lookup; planned BCDA Target Record Matrix, planned BCDA Record Identity Mgt., planned BCDA Target Matrix Mgt. | Resolve a canonical target `RecordId`, display a read-only formatted identity, and later create/update correction lines for selected fields without hand-entered composite keys. |
 | Audit | BCDA Audit Entry, BCDA Value Snapshot | Store append-only evidence and protected values. |
-| Rollback | BCDA Rollback Operation | Store rollback state and outcome. |
-| Services | BCDA Correction Orchestrator, BCDA Policy Guard, BCDA Audit Writer, BCDA Current Value Mgt., BCDA Rollback Service, BCDA Value Serializer, BCDA Metadata Explorer, BCDA Validation Runner | Coordinate behavior without putting business logic in pages. |
-| Retention | BCDA Retention Manager, BCDA Retention Log | Register app-owned retention tables, expose retention status, and protect active records. |
+| Rollback | BCDA Rollback Operation, BCDA Rollback Operations, BCDA Rollback Service | Store rollback state and outcome; execute supported update rollback from successful execution audit entries. |
+| Services | BCDA Correction Orchestrator, BCDA Policy Guard, BCDA Audit Writer, BCDA Current Value Mgt., BCDA Rollback Service, BCDA Audit Export Mgt., BCDA Value Serializer, BCDA Metadata Explorer, BCDA Validation Runner | Coordinate behavior without putting business logic in pages. |
+| Retention | BCDA Retention Manager, BCDA Retention Log | Register app-owned retention tables, clean up expired eligible operation records, expose retention status, and protect active records. |
 | Profile Navigation | BCDA Role Center, BC Data Agent profile | Provide a Business Central-native entry point to available foundation tools without granting permissions. |
 | Access Control | Existing Business Central `SUPER` permission set only | Do not create BCDA-specific permission set objects; enforce `SUPER`-only access. |
 
@@ -27,20 +27,20 @@ OD-001 is decided for Phase 1. Current planning range follows `app.json`:
 | Range | Intended Use |
 | --- | --- |
 | 88100-88109 | Tables |
-| 88110-88119 | Pages |
-| 88120-88129 | Codeunits |
-| 88130-88134 | Reports or exports if needed |
+| 88110-88120 | Pages |
+| 88120-88132 | Codeunits |
+| 88130-88134 | Supporting temporary matrix/buffer tables, reports, or exports if needed |
 | 88140-88149 | Supporting objects such as metadata lookup pages if needed; no permission set AL objects are planned |
 
 ## Implemented Foundation Objects
 
 | Range | Implemented Objects |
 | --- | --- |
-| Tables | `BCDA Setup`, `BCDA Data Policy`, `BCDA Correction Request`, `BCDA Correction Line`, `BCDA Batch Line Buffer`, `BCDA Target Record Buffer`, `BCDA Audit Entry`, `BCDA Value Snapshot`, `BCDA Rollback Operation`, `BCDA Retention Log` |
-| Pages | `BCDA Role Center`, `BCDA Setup`, `BCDA Data Policies`, `BCDA Data Policy Card`, `BCDA Correction Requests`, `BCDA Correction Request Card`, `BCDA Correction Lines`, `BCDA Batch Line Builder`, `BCDA Audit Entries`, `BCDA Retention Logs`, `BCDA Table Lookup`, `BCDA Field Lookup`, `BCDA Target Record Lookup` |
+| Tables | `BCDA Setup`, `BCDA Data Policy`, `BCDA Correction Request`, `BCDA Correction Line`, `BCDA Batch Line Buffer`, `BCDA Target Record Buffer`, `BCDA Preview Data Matrix`, `BCDA Audit Entry`, `BCDA Value Snapshot`, `BCDA Rollback Operation`, `BCDA Retention Log` |
+| Pages | `BCDA Role Center`, `BCDA Setup`, `BCDA Data Policies`, `BCDA Data Policy Card`, `BCDA Correction Requests`, `BCDA Correction Request Card`, `BCDA Correction Lines`, `BCDA Preview Data Matrix`, `BCDA Batch Line Builder`, `BCDA Audit Entries`, `BCDA Rollback Operations`, `BCDA Retention Logs`, `BCDA Table Lookup`, `BCDA Field Lookup`, `BCDA Target Record Lookup` |
 | Profiles | `BC Data Agent` |
-| Codeunits | `BCDA Access Mgt.`, `BCDA Setup Mgt.`, `BCDA Policy Guard`, `BCDA Audit Writer`, `BCDA Current Value Mgt.`, `BCDA Value Serializer`, `BCDA Correction Orchestrator`, `BCDA Batch Line Mgt.`, `BCDA Retention Manager`, `BCDA Metadata Explorer` |
-| Enums | `BCDA Request Status`, `BCDA Line Status`, `BCDA Risk Level`, `BCDA Validation Mode`, `BCDA Rollback Snapshot Mode`, `BCDA Retention Category`, `BCDA Audit Operation`, `BCDA Audit Result`, `BCDA Conflict Policy`, `BCDA Policy Decision` |
+| Codeunits | `BCDA Access Mgt.`, `BCDA Setup Mgt.`, `BCDA Policy Guard`, `BCDA Audit Writer`, `BCDA Current Value Mgt.`, `BCDA Value Serializer`, `BCDA Correction Orchestrator`, `BCDA Batch Line Mgt.`, `BCDA Retention Manager`, `BCDA Metadata Explorer`, `BCDA Rollback Service`, `BCDA Audit Export Mgt.` |
+| Enums | `BCDA Request Status`, `BCDA Line Status`, `BCDA Risk Level`, `BCDA Validation Mode`, `BCDA Rollback Snapshot Mode`, `BCDA Retention Category`, `BCDA Correction Type`, `BCDA Audit Operation`, `BCDA Audit Result`, `BCDA Conflict Policy`, `BCDA Policy Decision` |
 
 ## Planned Gated Objects
 
@@ -52,30 +52,35 @@ OD-001 is decided for Phase 1. Current planning range follows `app.json`:
 
 | Contract | Required Behavior |
 | --- | --- |
-| EvaluatePolicy | Return allow/block, reason, approval requirement, validation mode, and redaction level. |
+| EvaluatePolicy | Return allow/block, reason, approval requirement, validation mode, and redaction level. If `Allow Data Policies` is off, policy records are bypassed while permanent blocks for BCDA app-owned, unsupported, unaudited, metadata-incomplete, rollback-controlled, and non-`SUPER` mutation paths remain enforced. |
 | ResolveTableCaption / ResolveFieldCaption | Resolve table and field captions from verified Business Central metadata for request entry without reading target records. |
-| ResolveRecordIdentity | Foundation lookup resolves and validates target `RecordId` identity from primary-key display values only; richer filtering, display-key policy, and matrix behavior still require sandbox evidence. |
+| ResolveRecordIdentity | Foundation lookup resolves and validates target `RecordId` identity from primary-key display values only; richer filtering, display-key policy, and matrix behavior still require sandbox validation. |
 | UpdateCurrentValuePreview | Read only the selected `Record ID` and `Field ID`, format the current field value onto the correction line, and avoid target mutation or request-level dry-run behavior. |
+| ValidateDataValue | Validate correction-line proposed value staging by correction type. `Update` requires a selected `Record ID`, field, and existing target record; `Rename` may stage primary-key field values but still requires the existing target `Record ID`; `Insert` validates table/field metadata and scalar compatibility without requiring or reading a target `Record ID`; `Delete` is record-level and does not use proposed field values. All modes avoid target mutation and avoid full validate-trigger dry-run behavior. |
+| SetData | Populate the temporary preview matrix page for one request from stored correction-line data grouped by request, correction type, table, record, and field; avoid target mutation and avoid full request dry-run behavior. |
 | BuildTargetRecordMatrix | Populate a temporary matrix buffer for one selected target record, showing available field correction lines and existing staged lines without mutating target data. |
 | CreateCorrectionLinesFromBatch | Convert same-table RecordId-backed batch entries into standard correction line records after batch RecordId selection or target matrix entry is implemented. |
-| BuildPreview | Read target record and create preview output without mutation. |
-| ExecuteRequest | Re-check policy, capture before-image, write change, and audit outcome. |
+| BuildPreview | Run request-level staged-line preview without mutation: validate staged line shape, refresh selected current values, evaluate policy, update app-owned line statuses/sanitized messages, and write preview audit evidence. Do not invoke target validate triggers, create rollback snapshots, or write target records. |
+| ExecuteRequest | Re-check policy, group staged lines by correction type and canonical target `RecordId` when applicable, capture before-images, write changes as one governed record operation per group, and audit outcome. `Insert` must not use `RecordId` as an input identity. |
 | WriteAudit | Append a new audit entry; never update prior entries except platform-managed fields. |
 | SerializeValue | Preserve typed value, display value, hash, and serialization version. |
 | ResolveRollbackLoggingPolicy | Resolve global setup, data policy, request state, and risk into enabled/disabled/required rollback snapshot behavior. |
-| RequestRollback | Build rollback operation from original before-image. |
-| ExecuteRollback | Re-check policy, detect conflicts, write rollback value, and audit outcome. |
-| RegisterRetentionTables | Register BCDA-owned operation tables with Business Central retention policy support when symbol discovery confirms APIs. |
+| RequestRollback | Build rollback operation from a successful execution audit entry that has retained before/new snapshots. |
+| ExecuteRollback | Re-check `SUPER`, policy, retained snapshots, source line status, and conflict state immediately before rollback. Phase 7 supports `Update` rollback only: it restores scalar non-primary-key field before-images, marks the source line `Rolled Back`, stores rollback operation outcome, and appends rollback audit evidence. `Rename`, `Delete`, `Insert`, conflict override, and missing-snapshot rollback remain blocked. |
+| RegisterRetentionTables | Register BCDA-owned operation tables with Business Central retention policy support when sandbox validation confirms APIs. |
 | PreviewRetentionStatus | Report retention periods, expiration dates, expired counts when available, and rollback impact. |
+| ExportFilteredAuditMetadata | Require `SUPER`, require setup `Export Enabled`, require at least one audit filter, export CSV audit metadata only, omit target record identity text and snapshot payloads, and never write target records. |
+| RunRetentionCleanup | Require `SUPER`, purge expired rollback snapshot payloads, delete expired eligible audit metadata, rollback operations, and retention logs, preserve active requests and retained rollback dependencies, and write retention log evidence. |
 
 ## Field And Configuration Contracts
 
 - Every request requires reason and ticket/reference before execution.
-- Every change line requires target table, canonical target `RecordId`, field, proposed new value, rollback logging mode, and value references only when retained.
+- Every change line requires a correction type, target table, rollback logging mode, validation mode, and value references only when retained. `Update` and `Rename` lines require a canonical target `RecordId`; `Insert` lines must keep `RecordId` empty; `Delete` is record-level and must not require proposed field values. Foundation proposed-value staging validates field eligibility and scalar type compatibility, but full Business Central validate-trigger behavior remains gated.
 - The foundation schema stores `RecordId` as read-only app-owned identity metadata. The foundation `Select Record` action can populate it through primary-key lookup; users must not hand-type serialized record keys.
 - Batch line entry must create the same correction line records a user could enter manually; it must not introduce a separate execution path.
 - Every audit entry requires operation, user, timestamp, target, result, and request reference when applicable.
 - Posted data policy defaults to blocked until configured otherwise.
+- Setup-controlled data policy enforcement bypass is implemented as `Allow Data Policies`, enabled by default. Disabling it bypasses policy records only; permanent runtime controls still apply.
 - Approval defaults to required with separate approval, but setup can disable approval for standard requests or allow self-approval for one-person companies that accept that control model.
 - Rollback defaults to conflict-stop behavior.
 - Rollback snapshot logging defaults to enabled for posted/high-risk changes unless setup/policy explicitly changes it.
@@ -107,7 +112,9 @@ OD-001 is decided for Phase 1. Current planning range follows `app.json`:
 - No external mutation API in Phase 1.
 - No AL code generation outside the scope currently allowed by readiness.
 - No optional rollback snapshot setting may disable mandatory audit metadata.
+- No setup-controlled data policy enforcement bypass may permit BCDA app-owned table edits, system/protected table edits, unsupported field writes, unaudited mutation, or non-`SUPER` execution.
 - No retention cleanup may delete active in-progress requests.
+- No export may include rollback snapshot payloads or target values by default.
 
 ## Validation Boundaries
 

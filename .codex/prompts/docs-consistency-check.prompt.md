@@ -18,7 +18,7 @@ Read:
 - docs/data-model.md
 - docs/implementation-contracts.md
 - docs/test-plan.md
-- docs/traceability-matrix.md
+- docs/traceability-matrix.md when reference coverage is useful
 - docs/risk-register.md
 - docs/code-generation-readiness.md
 - docs/readiness-audit.md
@@ -26,7 +26,7 @@ Read:
 
 Verify:
 - No contradictions with higher-order docs.
-- AL code is allowed only within the exact scope approved by `docs/code-generation-readiness.md`.
+- AL code is allowed only within the exact scope allowed by `docs/code-generation-readiness.md`.
 - No BCDA-specific permission sets are planned.
 - Mandatory audit metadata cannot be disabled.
 - Rollback snapshots are configurable and retention-aware.

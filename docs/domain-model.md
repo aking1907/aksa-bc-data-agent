@@ -19,6 +19,7 @@ The bounded domain is controlled Business Central data correction. The app owns 
 | Rollback Operation | A governed reversal that writes previous values back to target records. | BC Data Agent |
 | Retention Policy | User-controlled rule for how long BCDA-owned operation records remain in the database. | BC Data Agent and Business Central |
 | Data Policy | Configuration that allows, blocks, or restricts correction behavior by table, field, risk, and workflow policy. | BC Data Agent |
+| Policy Enforcement Bypass | Setup-controlled behavior through `Allow Data Policies`. When disabled, non-BCDA target data can proceed without matching policy records only if permanent safety blocks still pass. | BC Data Agent |
 | Approval Separation | Setup rule deciding whether approval must be performed by a different `SUPER` user or may be self-approved. | BC Data Agent |
 | Break-Glass Change | High-risk correction allowed only under existing `SUPER` access, reason, approval, and audit requirements. | BC Data Agent |
 
@@ -50,7 +51,7 @@ The bounded domain is controlled Business Central data correction. The app owns 
 ## Invariants And Business Rules
 
 - A target data change cannot occur without a correction request.
-- A correction request cannot execute unless policy allows it.
+- A correction request cannot execute unless policy allows it or `Allow Data Policies` is disabled while permanent safety blocks still pass.
 - Posted data changes require existing Business Central `SUPER` access and approval by default; approval requirement and approval separation are configurable for standard request workflows.
 - Every executed change writes mandatory audit metadata first.
 - Every executed change captures a before-image when rollback snapshot logging is enabled.
@@ -63,6 +64,7 @@ The bounded domain is controlled Business Central data correction. The app owns 
 - Rollback is unavailable when snapshots were disabled, purged, or expired.
 - Retention cleanup must not delete active in-progress requests.
 - Blocked tables and fields cannot be changed.
+- BCDA app-owned, system, protected, unsupported, unaudited, rollback-unready, and non-`SUPER` mutation paths remain blocked even if a future setup setting disables data policy record enforcement.
 - Sensitive values cannot be exposed to users without `SUPER` access or through unauthorized logs, exports, or support channels.
 - Correction lines identify target records by a canonical platform `RecordId` plus company context. In the foundation build the value is read-only app-owned storage populated by the `Select Record` primary-key lookup; hand-entered serialized keys are not part of the workflow.
 
@@ -93,3 +95,4 @@ BC Data Agent owns only its setup, policy, request, snapshot, audit, and rollbac
 - Default and minimum retention periods for audit metadata and rollback snapshots.
 - External approval workflow integration, if ever needed beyond configurable one-person or separate-approver approval.
 - Which posted tables are blocked by default.
+- Operation-aware execution and rollback behavior for `Rename`, `Delete`, and `Insert`.

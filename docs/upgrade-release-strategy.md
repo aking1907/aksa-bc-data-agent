@@ -5,6 +5,7 @@
 - Safety beats feature speed.
 - Sandbox proof is required before production.
 - Audit compatibility is a release blocker.
+- Export redaction compatibility is a release blocker.
 - Posted data behavior requires explicit release notes.
 - Rollback behavior must be validated for every release.
 - Rollback snapshot logging and retention behavior must be validated for every release.
@@ -27,13 +28,14 @@ Suggested pattern:
 
 ## Release Gates
 
-- Requirements, acceptance criteria, traceability, and test plan updated.
+- Requirements, acceptance criteria, and test or validation evidence updated.
 - AL package compiles.
 - `SUPER` access gate tests pass.
 - Audit append-only behavior verified.
 - Rollback success and conflict behavior verified.
 - Rollback-disabled and snapshot-expired behavior verified.
 - Retention cleanup behavior verified.
+- Audit export redaction and cleanup preview behavior verified with artificial sandbox records.
 - Upgrade test passes.
 - Security review updated for changed behavior.
 - Release notes describe risks and operational steps.
@@ -51,6 +53,7 @@ Suggested pattern:
 - Preserve app-owned audit history.
 - Version serialized values.
 - Preserve or migrate retention categories and expiration dates.
+- Preserve export-safe metadata readability and verify redaction rules still omit protected values.
 - Add upgrade routines for changed tables.
 - Never drop audit or snapshot data without documented migration and approval.
 

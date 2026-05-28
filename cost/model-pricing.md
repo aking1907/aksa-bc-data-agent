@@ -63,12 +63,12 @@ Use these phase names in cost rows so cost can be compared with SDD progress:
 | Phase | Use For |
 |---|---|
 | Documentation | SDD documents, README, guides, prompts, and skills. |
-| SymbolDiscovery | BC 28 symbol analysis and capability confirmation. |
+| PlatformValidation | BC 28 platform capability confirmation. |
 | Architecture | architecture, ADRs, risk analysis, domain/data model decisions. |
 | UX | page flow, confirmations, rollback usability, admin experience. |
 | Security | SUPER-only access, sensitive data handling, audit integrity. |
 | ImplementationPlanning | implementation sequence, object planning, readiness review. |
-| Implementation | AL code generation and changes after code readiness is approved. |
+| Implementation | AL code generation and changes after the code readiness gate allows them. |
 | Testing | test plans, test code, manual verification, acceptance evidence. |
 | Release | deployment, upgrade, release notes, support handoff. |
 

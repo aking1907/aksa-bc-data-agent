@@ -2,12 +2,12 @@
 
 ## Current Support Boundary
 
-The project currently has Phase 2 foundation AL objects. Operational steps below distinguish available foundation checks from future preview, execution, rollback, and export behavior.
+The project currently has Phase 2-8 AL objects, including grouped update execution, supported update rollback, filtered audit metadata export, and governed retention cleanup. Phase 8 sandbox validation was skipped by request for implementation and remains required before production use.
 
 ## Setup Checks
 
 - Confirm extension is installed in sandbox.
-- Confirm only approved users with the Business Central `SUPER` permission set can access the extension.
+- Confirm only authorized users with the Business Central `SUPER` permission set can access the extension.
 - Confirm no BCDA-specific permission sets are created or assigned.
 - Confirm setup record exists.
 - Confirm the `BC Data Agent` profile opens the BCDA Role Center for convenient navigation.
@@ -15,34 +15,46 @@ The project currently has Phase 2 foundation AL objects. Operational steps below
 - Confirm approval requirement and separate-approver settings match the company control model.
 - Confirm rollback snapshot logging default is configured.
 - Confirm audit metadata, rollback snapshot, and technical log retention are configured.
-- Confirm audit export remains unavailable until a later readiness gate approves it.
+- Confirm `Allow Data Policies` is enabled by default, or explicitly accepted before policy records are bypassed.
+- Confirm `Export Enabled` is intentionally configured before using filtered audit metadata export.
+- Confirm retention cleanup settings are intentionally configured before running cleanup.
 
 ## Health Checks
 
 - Open setup page.
-- Switch to the `BC Data Agent` profile and verify the Role Center links open setup, policies, requests, audit entries, and retention logs for a `SUPER` user.
+- Switch to the `BC Data Agent` profile and verify the Role Center links open setup, policies, requests, audit entries, rollback operations, and retention logs for a `SUPER` user.
 - Create a foundation request in sandbox.
 - Confirm data policy `Table ID` and `Field ID` lookup fills metadata names.
+- Confirm BCDA app-owned table IDs are blocked in table lookup, correction line table validation, data policy table validation, and policy evaluation.
 - Confirm correction line `Table ID` lookup shows Business Central tables and `Field ID` lookup is filtered by the selected table.
+- Confirm correction line `Type` supports `Update`, `Rename`, `Delete`, and `Insert`, and that `Insert` keeps `Record ID` empty.
 - Confirm `Record ID` is read-only app-owned storage, the `Select Record` line action opens target record lookup, and selecting a row fills the canonical identity.
 - Confirm selecting `Field ID` after `Record ID` fills `Current Value Preview` for that selected field only.
+- Confirm entering `Proposed New Value` accepts supported scalar field values, blocks disabled, non-normal, primary-key, system-managed, removed, unsupported-type, length-invalid, and scalar type-incompatible values, and does not echo sensitive proposed values in errors.
+- Confirm `Preview Data Matrix` opens from the correction lines part, shows staged correction-line data for the current request, and remains read-only.
 - Confirm `Batch Add Lines` is paused until batch RecordId selection or target matrix entry can populate canonical target identities.
-- Confirm the foundation preview marker does not mutate target data; selected-line current value preview is the only target value read in the foundation build.
+- Confirm `Preview Request` does not mutate target data; target value reads stay limited to the selected staged lines and update app-owned line status, rollback/retention text, and audit evidence only.
 - Confirm setup defaults show rollback logging mode, retention period, and rollback availability text.
 - Confirm audit entry is written for preview or blocked attempt when expected.
 - Confirm rollback-disabled preview clearly states rollback will be unavailable.
-- Confirm unauthorized test user cannot access correction pages.
+- Confirm supported rollback from a successful update execution audit entry restores the retained before-image only when no conflict exists.
+- Confirm rollback conflict, expired/purged snapshot, policy-blocked rollback, and non-`SUPER` rollback attempts are blocked with sanitized audit evidence.
+- Confirm filtered audit metadata export is blocked until `Export Enabled` is on and at least one required audit filter is applied.
+- Confirm retention cleanup purges/deletes only expired eligible BCDA-owned operation records and protects active requests and retained rollback dependencies.
+- Confirm unauthorized test user cannot access correction or rollback pages.
 
 ## Main Workflow
 
 1. SUPER user creates correction request.
 2. SUPER user enters reason and ticket/reference.
-3. SUPER user selects target table, target record identity, and field metadata, reviews the selected field's current value, then stages the proposed value. Mutation remains blocked until later readiness gates open.
+3. SUPER user selects correction type, target table, target record identity when applicable, and field metadata when applicable, reviews the selected field's current value for existing-record lines, then stages the proposed value. Mutation remains limited to supported grouped `Update` execution after all controls pass.
 4. SUPER user runs preview.
 5. SUPER user approves if approval is required. Use a different SUPER user only when approval policy requires separation; skip approval only when setup or policy explicitly says approval is not required.
-6. SUPER user executes.
+6. SUPER user executes supported grouped `Update` corrections after metadata, preview, approval/policy, and rollback snapshot checks pass.
 7. SUPER reviewer reviews evidence.
-8. SUPER user requests rollback if needed.
+8. SUPER user requests supported rollback from the successful execution audit entry if needed and while snapshots are retained.
+9. SUPER reviewer exports filtered audit metadata only when export is enabled and required filters are applied.
+10. SUPER administrator runs retention cleanup only after reviewing retention settings.
 
 ## Troubleshooting
 
@@ -50,19 +62,37 @@ The project currently has Phase 2 foundation AL objects. Operational steps below
 | --- | --- |
 | Access denied | Confirm the user has the Business Central `SUPER` permission set and the extension's runtime access check passes. |
 | Policy blocked | Review table and field policy, risk classification, and approval state. |
+| Need to modify without policy records | Use `Allow Data Policies` off only when the business accepts bypassing policy records. BCDA app-owned tables, unsupported fields, non-`SUPER` users, missing request metadata, unaudited mutation, and rollback controls still apply. |
 | Preview failed | Confirm target record exists and field type is supported. |
-| Execution blocked | Foundation code intentionally blocks target data execution until mutation readiness is approved. |
-| Rollback conflict | Rollback execution is not implemented in the foundation slice. |
-| Rollback unavailable | Confirm rollback snapshot logging was enabled and snapshots have not expired or been purged. |
+| Preview Data Matrix is empty or blocked | Confirm the request is saved, has correction lines, and the user has `SUPER` access. |
+| Proposed value rejected | Confirm the line type rules: `Update` needs an existing target record and non-primary-key field, `Rename` may stage primary-key fields for future execution, `Insert` must keep Record ID empty, and all value-staging fields must be enabled, normal, not system-managed, not removed, supported for foundation staging, and type/length compatible. |
+| Execution unavailable | The request is not in an executable state, metadata is missing, required preview is not complete, approval is missing, policy blocks the line, or the line type is not supported for Phase 6 execution. |
+| Rollback conflict | The current target value no longer matches the executed new value. Review the rollback operation sanitized error and decide whether a separate manual correction is required. |
+| Rollback unavailable | Confirm the source audit entry is a successful `Update` execution, rollback snapshot logging was enabled, snapshots have not expired or been purged, and the line has not already been rolled back. |
 | Retention cleanup issue | Review retention status, retention policy setup, and sanitized retention log entries. |
-| Export missing values | Confirm `SUPER` access and export redaction policy. |
+| Export blocked | Confirm `SUPER` access, `Export Enabled`, and a filter on request, company, occurred-at date/time, operation, or result. |
+| Export missing target values | This is expected. Phase 8 export omits target values, target record identity text, and rollback snapshot payloads by design. |
 | Upgrade issue | Check extension version, upgrade notes, and audit table compatibility. |
+
+## Phase 8 Safe Export And Cleanup Handling
+
+Use these rules when validating Phase 8 in sandbox:
+
+- Use only artificial BCDA operation records.
+- Require request, company, date range, operation, or result filters before export.
+- Start export with app-owned audit metadata only.
+- Omit or redact target values, hidden values, posted values, snapshot payloads, and full platform errors.
+- Do not share export files through chat, tickets, email, or screenshots unless the destination is allowed by the export-handling policy.
+- Store export files only in the approved support location and delete temporary copies after the support window.
+- Review retention cleanup impact before running cleanup.
+- Treat active requests, pending approvals, incomplete executions, retained rollback dependencies, and cleanup evidence from the same run as protected.
+- Retention cleanup must touch only BCDA-owned operation tables, never target Business Central business data.
 
 ## Safe Logging Guidance
 
 - Share request id, line id, table id, field id, timestamp, and sanitized error.
 - For future RecordId-backed target selection, share formatted target record identity and display key, not sensitive target values.
-- Do not share full sensitive values in chat, tickets, logs, or screenshots unless approved by policy.
+- Do not share full sensitive values in chat, tickets, logs, or screenshots unless allowed by policy.
 - Use hashes or redacted display values where possible.
 
 ## Escalation Package
@@ -79,3 +109,5 @@ Provide:
 - Rollback logging mode and snapshot expiration date.
 - Whether rollback was attempted.
 - Retention category and cleanup status when relevant.
+- Export filters used and whether values were redacted or omitted.
+- Cleanup preview id or run timestamp when relevant.

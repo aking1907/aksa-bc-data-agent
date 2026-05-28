@@ -47,7 +47,7 @@ For each proposed component, verify:
 - Whether policy, approval, audit, and rollback are enforced.
 - Whether rollback snapshot logging and retention state are visible before execution.
 - Whether it exposes sensitive values.
-- Whether it needs symbol evidence before implementation.
+- Whether it needs sandbox validation before implementation.
 - Whether an ADR is needed or must be updated.
 
 ## Object Boundary Guidance

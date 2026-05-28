@@ -1,6 +1,6 @@
 ---
 name: bcda-sdd-steward
-description: SDD governance for the BC Data Agent project. Use when Codex is asked to plan, refine, review, or prepare implementation work; update requirements, acceptance criteria, traceability, readiness, ADRs, risks, or any project documentation; decide whether AL code generation is allowed; or keep Business Central data-correction work aligned with the documentation-first process.
+description: SDD governance for the BC Data Agent project. Use when Codex is asked to plan, refine, review, or prepare implementation work; update requirements, acceptance criteria, readiness, ADRs, risks, or any project documentation; decide whether AL code generation is allowed; or keep Business Central data-correction work aligned with the documentation-first process.
 ---
 
 # BCDA SDD Steward
@@ -18,7 +18,7 @@ Read these first for any implementation-adjacent task:
 3. `docs/requirements.md`
 4. `docs/acceptance-criteria.md`
 5. `docs/code-generation-readiness.md`
-6. `docs/traceability-matrix.md`
+6. `docs/traceability-matrix.md` when reference coverage is useful
 
 Read these when the task touches architecture, security, tests, release, or operations:
 
@@ -36,8 +36,8 @@ Read these when the task touches architecture, security, tests, release, or oper
 1. Classify the request as documentation, discovery, implementation, review, or release.
 2. Check `docs/code-generation-readiness.md`.
 3. If the request would create AL code outside the current readiness scope, stop implementation and update readiness/open-decision docs instead.
-4. Map every requested behavior to a requirement ID and acceptance criterion.
-5. Add or update traceability rows before or alongside implementation planning.
+4. Align every requested behavior with requirements, acceptance criteria, and validation evidence.
+5. Treat traceability rows as optional reference material, not required for readiness.
 6. Update related docs together when behavior changes.
 
 ## Maintenance Set
@@ -49,7 +49,7 @@ When project behavior changes, update these together:
 - `docs/architecture.md` or `docs/adr/`
 - `docs/implementation-contracts.md`
 - `docs/test-plan.md`
-- `docs/traceability-matrix.md`
+- `docs/traceability-matrix.md` when reference coverage is useful
 - `docs/risk-register.md`
 - `docs/deployment.md` and `docs/operations-runbook.md` when admin/user behavior changes
 - `UserGuide.md` when user-facing behavior, setup, page actions, validation steps, release guidance, or readiness scope changes
@@ -57,10 +57,10 @@ When project behavior changes, update these together:
 ## Readiness Rules
 
 - Never treat a user request for speed as permission to skip SDD.
-- Never generate AL code outside the exact scope approved by `docs/code-generation-readiness.md`.
+- Never generate AL code outside the exact scope allowed by `docs/code-generation-readiness.md`.
 - Mark assumptions explicitly in `docs/open-decisions.md`.
 - Close or accept blocking decisions before moving readiness to Ready.
-- Record Business Central symbol evidence in `docs/symbol-discovery.md` before relying on platform internals.
+- Record sandbox validation, security review, and test evidence in the relevant readiness documents before relying on platform-dependent Business Central behavior.
 
 ## Output Standard
 

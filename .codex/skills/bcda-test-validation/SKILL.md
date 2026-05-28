@@ -1,6 +1,6 @@
 ---
 name: bcda-test-validation
-description: Test planning and validation for BC Data Agent. Use when creating or reviewing tests, manual validation scripts, acceptance coverage, traceability, sandbox proof, SUPER access checks, policy checks, correction scenarios, rollback scenarios, audit behavior, export redaction, upgrade validation, or release evidence.
+description: Test planning and validation for BC Data Agent. Use when creating or reviewing tests, manual validation scripts, acceptance coverage, sandbox validation, SUPER access checks, policy checks, correction scenarios, rollback scenarios, audit behavior, export redaction, upgrade validation, or release evidence.
 ---
 
 # BCDA Test Validation
@@ -16,7 +16,7 @@ Read:
 - `docs/test-plan.md`
 - `docs/acceptance-criteria.md`
 - `docs/requirements.md`
-- `docs/traceability-matrix.md`
+- `docs/traceability-matrix.md` when reference coverage is useful
 - `docs/security-review.md`
 - `docs/deployment.md`
 

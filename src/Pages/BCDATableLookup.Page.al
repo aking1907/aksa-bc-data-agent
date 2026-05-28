@@ -46,5 +46,6 @@ page 88140 "BCDA Table Lookup"
         AccessMgt: Codeunit "BCDA Access Mgt.";
     begin
         AccessMgt.EnsureSuperUser();
+        Rec.SetFilter("Object ID", '<%1|>%2', 88100, 88149);
     end;
 }

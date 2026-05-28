@@ -2,9 +2,19 @@
 
 ## Audit Status
 
-Current result: ready for Phase 2 Foundation Data AL generation, with local compile evidence for foundation RecordId lookup and selected-line current value preview. Not ready for production use of target selection/current value preview, target data mutation, or rollback execution.
+Current result: Phase 9 local hardening is complete for the current Phase 8 build. Local compile/analyzer/config/security/docs evidence exists for foundation RecordId lookup, selected-line current value preview, request-level staged-line preview, correction operation type staging, preview-required approval gating, BCDA app-owned target blocking, `Allow Data Policies` setup behavior, grouped update mutation, audit evidence, rollback snapshot capture, rollback conflict checks, rollback policy re-checks, rollback operation records, append-only rollback audit evidence, filtered audit metadata export, audit export evidence, governed retention cleanup, object-range alignment, and the no-BCDA-permission-set rule.
 
-The SDD package is structurally complete and internally traceable. The user approved implementation and the open decisions needed for foundation storage/policy defaults are closed. Mutation-related platform evidence and security review still need to be completed before execution code.
+OD-018 insert grouping remains deferred until insert execution behavior is needed. OD-019 setup-controlled data policy enforcement is implemented through `Allow Data Policies`.
+
+The ASAP execution-readiness track in `docs/execution-readiness-kickoff.md` now tracks final sandbox validation for Phase 6 execution.
+
+The Phase 6 repository-side readiness packet has moved to final sandbox validation evidence. Test scenarios are final validation evidence, not a pre-code gate.
+
+The Phase 7 rollback implementation is recorded in `docs/rollback-readiness-kickoff.md`. Sandbox validation is still required before production use.
+
+The Phase 8 audit, retention, and export implementation is recorded in `docs/audit-retention-export-readiness-kickoff.md`. Sandbox validation was skipped by request for implementation and remains required before production use.
+
+The SDD package is structurally complete. The project moved from Phase 4 setup, retention, and UX shell work through Phase 5 target selection into Phase 6 grouped update execution, Phase 7 supported update rollback, Phase 8 export/cleanup, and Phase 9 local hardening. Mutation, rollback, export, and cleanup sandbox validation still need to be completed before production use.
 
 ## What Is Ready
 
@@ -12,10 +22,10 @@ The SDD package is structurally complete and internally traceable. The user appr
 | --- | --- |
 | SDD source map | Complete in `docs/sdd-index.md`. |
 | Business scope | Documented in `docs/project.md`. |
-| Requirements | `REQ-001` through `REQ-031` exist. |
-| Acceptance criteria | `AC-001` through `AC-029` exist. |
-| Test plan | `TST-001` through `TST-029` exist. |
-| Traceability | Every requirement has traceability coverage. |
+| Requirements | `REQ-001` through `REQ-033` exist. |
+| Acceptance criteria | `AC-001` through `AC-031` exist. |
+| Test plan | `TST-001` through `TST-034` exist. |
+| Traceability matrix | Available as optional reference material; it is not a readiness blocker. |
 | ADRs | Five accepted ADRs cover workflow, SDD gate, SUPER-only access, rollback/retention, and RecordId target selection. |
 | App design | Business Central-native UX direction documented. |
 | AL standards | Microsoft-aligned analyzers, coding, retention, and performance standards documented. |
@@ -24,18 +34,22 @@ The SDD package is structurally complete and internally traceable. The user appr
 | Object range | `app.json` and planning docs align to 88100-88149. |
 | Object ID conflict check | Local symbol scan found no Microsoft symbol objects in object range 88100..88149. |
 | App logo | `app.json` references `media/BCDataAgent-logo.png`. |
-| BC 28 symbol packages | `.alpackages/` contains target Business Central 28 package files and package names are recorded in `docs/symbol-discovery.md`. |
-| SUPER API evidence | `docs/symbol-discovery.md` records public `User Permissions`.IsSuper(UserSecurityId()) availability. |
-| Retention API evidence | `docs/symbol-discovery.md` records public `Reten. Pol. Allowed Tables` availability. |
+| BC 28 symbol packages | `.alpackages/` contains target Business Central 28 package files. |
+| SUPER API evidence | Public `User Permissions`.IsSuper(UserSecurityId()) availability is reflected in implemented access checks and local compile validation. |
+| Retention API evidence | Public `Reten. Pol. Allowed Tables` availability is reflected in retention manager compile validation. |
+| Phase 5 local implementation | Complete for non-mutating target selection, selected-field current value refresh, request staged-line preview, policy preview, preview audit, and read-only preview matrix behavior. Sandbox validation pending. |
+| Phase 6 local implementation | Complete for grouped `Update` execution with policy/access re-checks, `Allow Data Policies`, audit evidence, rollback snapshots when enabled or required, and sanitized failure handling. Sandbox validation pending. |
+| Phase 7 local implementation | Complete for rollback of successful `Update` execution audit entries with retained snapshots, conflict checks, policy re-checks, rollback operation records, and append-only audit evidence. Sandbox validation pending. |
+| Phase 8 local implementation | Complete for filtered audit metadata export and governed cleanup of expired eligible BCDA-owned operation records. Sandbox validation pending. |
+| Phase 9 local hardening | Complete for compile, analyzers, configuration, object range, permission-set source scan, and documentation consistency. Sandbox validation pending. |
 
 ## What Is Not Ready
 
 | Blocker | Why It Blocks Code |
 | --- | --- |
 | Posted/protected table behavior not verified | Execution depends on what BC allows safely through AL. |
-| RecordId/RecordRef target record selection and selected-field read behavior not verified in sandbox | Foundation target record line-action lookup and selected-line current value preview compile locally, but representative simple/composite key behavior, field type behavior, sensitive-value handling, and non-`SUPER` behavior still need sandbox proof before production use and before matrix line entry. |
+| RecordId/RecordRef target record selection and selected-field read behavior not verified in sandbox | Foundation target record line-action lookup and selected-line current value preview compile locally, but representative simple/composite key behavior, field type behavior, sensitive-value handling, and non-`SUPER` behavior still need sandbox validation before production use and before matrix line entry. |
 | Field type support not verified | Value serialization and rollback execution depend on type behavior. |
-| Human security/business review not complete | Posted and hidden data modification is high risk and remains blocked. |
 
 ## Consistency Checks Performed
 
@@ -45,25 +59,35 @@ The SDD package is structurally complete and internally traceable. The user appr
 | Previous target/runtime references | None found in docs or config. |
 | Previous object range references | None found in docs or config. |
 | AL source files | Foundation AL source exists under `src/`; local compile and analyzer validation passed. Sandbox deployment validation is still pending. |
-| Symbol packages | BC 28 package files found in `.alpackages/` and recorded in `docs/symbol-discovery.md`. |
+| Symbol packages | BC 28 package files found in `.alpackages/`. |
 | Foundation AL compile | Passed with AL compiler 17.0.34.45391 against BC 28 symbols. |
 | Foundation analyzer pass | Passed with CodeCop, UICop, and PerTenantExtensionCop using `ruleset.json`. |
-| Requirement-to-traceability coverage | Passed. |
-| Acceptance-to-test/trace coverage | Passed. |
-| Test-to-traceability coverage | Passed. |
+| Requirement and acceptance alignment | Passed for current documentation. |
+| Acceptance-to-test coverage | Passed for current documentation. |
+| Execution readiness kickoff | Complete for local implementation; final sandbox validation remains. |
+| Phase 6 implementation | Passed local compile for grouped update execution. |
+| OD-018/OD-019 decision blocker | Passed; insert grouping and policy-bypass behavior are deferred until their behavior is needed. |
+| Phase 7 implementation | Passed local compile/analyzer validation for supported update rollback. |
+| Rollback readiness kickoff | Complete locally in `docs/rollback-readiness-kickoff.md`; production use remains blocked until sandbox rollback success, conflict, snapshot, access, and policy validation are complete. |
+| Phase 8 implementation | Passed local compile/analyzer validation for filtered audit export and retention cleanup. |
+| Audit, retention, and export readiness kickoff | Complete locally in `docs/audit-retention-export-readiness-kickoff.md`; production use remains blocked until redaction, cleanup safety, upgrade, and sandbox release validation are complete. |
+| Phase 9 local hardening | Passed local build, analyzer, app manifest, object range, no-permission-set, and documentation consistency checks. |
 | Project skill structure | Manual validation passed. |
 | Placeholder markers | None found in project docs/prompts/skills. |
 
 ## Required Next Actions
 
-1. Deploy foundation package to sandbox and verify setup/policy/request/audit pages.
+1. Deploy the current package to sandbox and verify setup/policy/request/audit pages.
 2. Verify SUPER and non-SUPER access behavior in sandbox.
 3. Verify RecordId/RecordRef target record selection, formatting, display-key behavior, and selected-field current value preview for simple and composite primary keys.
-4. Verify representative normal, hidden, posted, and protected table behavior in sandbox before mutation code.
-5. Verify Phase 1 scalar field type support and blocked field types before serializer/execution code.
-6. Complete human review of `docs/security-review.md` before production or mutation release.
-7. Run a new readiness review before opening production target selection/current value preview, matrix entry, execution, rollback execution, export, or production gates.
+4. Verify representative normal, hidden, posted, and protected table behavior in sandbox before production use.
+5. Verify Phase 1 scalar field type support and blocked field types for execution.
+6. Complete sandbox-backed readiness updates before production export, production cleanup, non-update rollback, conflict override, policy-bypass production use, or production release.
+7. Complete Phase 6 sandbox validation before production use.
+8. Complete Phase 7 rollback sandbox validation before production use.
+9. Complete Phase 8 audit/retention/export sandbox validation before production support-export or cleanup use.
+10. Update the readiness gate before opening production target selection/current value preview, matrix entry, execution, rollback, export, cleanup, or production gates.
 
 ## Recommendation
 
-Generate only the Phase 2 foundation slice. Keep production target selection/current value preview, matrix entry, target data mutation, posted/protected table changes, rollback execution, and export blocked until sandbox behavior and security/business review are complete.
+Continue with sandbox validation for Phase 6 grouped update execution, Phase 7 supported update rollback, and Phase 8 export/cleanup. Keep `Rename`, `Delete`, `Insert`, non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, validate-trigger dry-run, external APIs, and broader target matrix editing blocked until their applicable implementation contracts, sandbox validation, and readiness gate updates are complete.

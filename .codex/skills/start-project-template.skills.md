@@ -178,20 +178,7 @@ Include when APIs exist or are expected:
 
 If there is no API, state that clearly and document why this file is intentionally minimal.
 
-### 11. `docs/symbol-discovery.md`
-
-Purpose: evidence for framework or platform-dependent behavior.
-
-Include:
-
-- SDK, library, platform, or symbol facts that implementation depends on.
-- Event hooks, interfaces, extension points, commands, routes, or schemas discovered.
-- What was verified locally.
-- What remains unverified.
-
-Do not implement behavior that depends on platform internals until this file records the evidence.
-
-### 12. `docs/acceptance-criteria.md`
+### 11. `docs/acceptance-criteria.md`
 
 Purpose: externally observable done conditions.
 
@@ -202,7 +189,7 @@ Include:
 - Separate current behavior from future behavior.
 - Stable IDs such as `AC-001`.
 
-### 13. `docs/implementation-contracts.md`
+### 12. `docs/implementation-contracts.md`
 
 Purpose: implementation-level commitments.
 
@@ -218,7 +205,7 @@ Include:
 
 This file lets implementation continue without guessing names or responsibilities.
 
-### 14. `docs/implementation-plan.md`
+### 13. `docs/implementation-plan.md`
 
 Purpose: build sequence.
 
@@ -232,7 +219,7 @@ Include:
 - Definition of done.
 - Deferred work.
 
-### 15. `docs/code-generation-readiness.md`
+### 14. `docs/code-generation-readiness.md`
 
 Purpose: final gate before code.
 
@@ -246,7 +233,7 @@ Include:
 - Open decisions that still block future work.
 - Definition of done for generated code.
 
-### 16. `docs/test-plan.md`
+### 15. `docs/test-plan.md`
 
 Purpose: validation map.
 
@@ -258,9 +245,9 @@ Include:
 - API or integration validation.
 - Minimum pre-release validation.
 
-### 17. `docs/traceability-matrix.md`
+### 16. `docs/traceability-matrix.md`
 
-Purpose: prove every implementation task is justified.
+Purpose: optional reference coverage for implementation tasks.
 
 Include a table with:
 
@@ -271,9 +258,9 @@ Include a table with:
 - Acceptance/test reference.
 - Status.
 
-Every new code object should have a row or be covered by one.
+Rows are useful for larger projects, but this file should not become a blocker unless the project explicitly chooses traceability governance.
 
-### 18. `docs/risk-register.md`
+### 17. `docs/risk-register.md`
 
 Purpose: active risk management.
 
@@ -289,7 +276,7 @@ Include:
 
 Capture technical, product, compliance, security, schedule, and integration risks.
 
-### 19. `docs/deployment.md`
+### 18. `docs/deployment.md`
 
 Purpose: environment and release steps.
 
@@ -303,7 +290,7 @@ Include:
 - Production notes.
 - Rollback or mitigation.
 
-### 20. `docs/operations-runbook.md`
+### 19. `docs/operations-runbook.md`
 
 Purpose: support guide after deployment.
 
@@ -318,7 +305,7 @@ Include:
 - Safe logging guidance.
 - Escalation package.
 
-### 21. `docs/upgrade-release-strategy.md`
+### 20. `docs/upgrade-release-strategy.md`
 
 Purpose: lifecycle governance.
 
@@ -333,7 +320,7 @@ Include:
 - Rollback and hotfix rules.
 - Release notes minimum content.
 
-### 22. `docs/ai-governance.md`
+### 21. `docs/ai-governance.md`
 
 Purpose: rules for AI-assisted work.
 
@@ -341,11 +328,11 @@ Include:
 
 - Required context before AI changes.
 - What AI may and may not implement.
-- Human review requirements.
+- Validation requirements.
 - Evidence required from AI-assisted changes.
 - Prohibited outputs, especially secrets or untraceable behavior.
 
-### 23. `README.md`
+### 22. `README.md`
 
 Purpose: human-facing project entry point.
 
@@ -394,7 +381,7 @@ When behavior changes, update these together:
 3. Architecture or ADRs.
 4. Implementation contracts.
 5. Test plan.
-6. Traceability matrix.
+6. Traceability matrix when the project uses one.
 7. Risk register.
 8. Deployment and operations docs when user/admin behavior changes.
 

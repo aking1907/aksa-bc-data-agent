@@ -12,7 +12,7 @@ Read:
 - docs/test-plan.md
 - docs/acceptance-criteria.md
 - docs/requirements.md
-- docs/traceability-matrix.md
+- docs/traceability-matrix.md when reference coverage is useful
 - docs/security-review.md
 - docs/deployment.md
 - docs/al-development-standards.md
@@ -31,4 +31,3 @@ Cover:
 
 Return the test matrix, missing coverage, required evidence, and release blockers.
 ```
-

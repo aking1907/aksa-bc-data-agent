@@ -19,24 +19,27 @@ Higher-order documents define intent. Lower-order documents may refine details, 
 | 9 | `docs/open-decisions.md` | Known assumptions and unresolved choices. |
 | 10 | `docs/data-model.md` | Planned app-owned data and retention. |
 | 11 | `docs/api-contract.md` | Internal and external contract boundary. |
-| 12 | `docs/symbol-discovery.md` | Verified Business Central symbol facts. |
-| 13 | `docs/acceptance-criteria.md` | Observable done conditions. |
-| 14 | `docs/implementation-contracts.md` | Planned object and procedure responsibilities. |
-| 15 | `docs/implementation-plan.md` | Build sequence and gates. |
-| 16 | `docs/code-generation-readiness.md` | Final gate before code. |
-| 17 | `docs/readiness-audit.md` | Current audit of readiness and blockers. |
-| 18 | `docs/test-plan.md` | Validation map. |
-| 19 | `docs/traceability-matrix.md` | Requirement-to-test coverage. |
-| 20 | `docs/risk-register.md` | Active risk management. |
-| 21 | `docs/deployment.md` | Environment and release steps. |
-| 22 | `docs/operations-runbook.md` | Support and troubleshooting. |
-| 23 | `docs/upgrade-release-strategy.md` | Lifecycle governance. |
-| 24 | `docs/ai-governance.md` | Rules for AI-assisted work. |
-| 25 | `docs/security-review.md` | High-risk security review. |
-| 26 | `docs/admin-guide.md` | Planned administrator guide. |
-| 27 | `UserGuide.md` | Detailed user-facing guide for foundation behavior and planned workflows. |
-| 28 | `docs/release-notes.md` | Release and documentation history. |
-| 29 | `README.md` | Human-facing entry point. |
+| 12 | `docs/acceptance-criteria.md` | Observable done conditions. |
+| 13 | `docs/implementation-contracts.md` | Planned object and procedure responsibilities. |
+| 14 | `docs/implementation-plan.md` | Build sequence and gates. |
+| 15 | `docs/code-generation-readiness.md` | Final gate before code. |
+| 16 | `docs/readiness-audit.md` | Current audit of readiness and blockers. |
+| 17 | `docs/execution-readiness-kickoff.md` | ASAP path to open the Phase 6 execution readiness gate safely. |
+| 18 | `docs/rollback-readiness-kickoff.md` | Prerequisites for opening the Phase 7 rollback readiness gate safely. |
+| 19 | `docs/audit-retention-export-readiness-kickoff.md` | Phase 8 audit, retention, and export implementation scope and release validation. |
+| 20 | `docs/hardening-release-readiness-kickoff.md` | Phase 9 hardening and full-project completion blockers. |
+| 21 | `docs/test-plan.md` | Validation map. |
+| 22 | `docs/traceability-matrix.md` | Optional requirement-to-test reference coverage. |
+| 23 | `docs/risk-register.md` | Active risk management. |
+| 24 | `docs/deployment.md` | Environment and release steps. |
+| 25 | `docs/operations-runbook.md` | Support and troubleshooting. |
+| 26 | `docs/upgrade-release-strategy.md` | Lifecycle governance. |
+| 27 | `docs/ai-governance.md` | Rules for AI-assisted work. |
+| 28 | `docs/security-review.md` | High-risk security review. |
+| 29 | `docs/admin-guide.md` | Planned administrator guide. |
+| 30 | `UserGuide.md` | Detailed user-facing guide for foundation behavior and planned workflows. |
+| 31 | `docs/release-notes.md` | Release and documentation history. |
+| 32 | `README.md` | Human-facing entry point. |
 
 ## Artifact Coverage Matrix
 
@@ -49,11 +52,10 @@ Higher-order documents define intent. Lower-order documents may refine details, 
 | App design | `app-design.md` | Drafted |
 | AL standards | `al-development-standards.md` | Drafted |
 | Data ownership | `data-model.md` | Drafted |
-| Platform evidence | `symbol-discovery.md` | Foundation APIs verified; mutation behavior still needs sandbox proof |
 | APIs/contracts | `api-contract.md`, `implementation-contracts.md` | Drafted |
-| Implementation sequencing | `implementation-plan.md`, `code-generation-readiness.md` | Foundation code allowed |
-| Readiness audit | `readiness-audit.md` | Ready for foundation code only |
-| Tests | `test-plan.md`, `traceability-matrix.md` | Drafted |
+| Implementation sequencing | `implementation-plan.md`, `code-generation-readiness.md`, `execution-readiness-kickoff.md`, `rollback-readiness-kickoff.md`, `audit-retention-export-readiness-kickoff.md`, `hardening-release-readiness-kickoff.md` | Phase 9 local hardening complete for the Phase 8 build; non-update rollback, non-update operation execution, unfiltered export, unredacted export, snapshot payload export, and external APIs remain gated |
+| Readiness audit | `readiness-audit.md` | Phase 9 local hardening complete; non-update rollback, non-update operation execution, unfiltered export, unredacted export, snapshot payload export, and external APIs remain blocked |
+| Tests | `test-plan.md`; optional reference in `traceability-matrix.md` | Drafted |
 | Security and compliance | `security-review.md`, `risk-register.md` | Drafted |
 | Deployment and support | `deployment.md`, `operations-runbook.md` | Drafted |
 | Release lifecycle | `upgrade-release-strategy.md` | Drafted |
@@ -68,7 +70,7 @@ Higher-order documents define intent. Lower-order documents may refine details, 
 
 - Documentation leads implementation.
 - AL source files may be generated only within the scope currently allowed by `docs/code-generation-readiness.md`.
-- Every new code object must trace to a requirement, acceptance criterion, and test scenario.
+- Every new code object must align with the requested behavior, requirements, acceptance criteria, and validation evidence. Traceability rows are optional reference material, not readiness blockers.
 - Posted table and hidden data modifications are treated as break-glass operations.
 - Audit entries are append-only during operations; rollback creates new audit entries and never deletes history. Governed retention may later remove expired operation records according to configured retention policy.
 - Rollback must restore business data from captured before-images, not erase the evidence of the correction.
@@ -76,7 +78,7 @@ Higher-order documents define intent. Lower-order documents may refine details, 
 - Audit metadata is mandatory; rollback before-image snapshots are configurable and must be visibly enabled, disabled, retained, or expired.
 - Approval requirement and approval separation are configurable; approval with a separate approver remains the safer default, but one-person companies may explicitly disable approval for standard requests or allow self-approval.
 - Retention for app-owned operation data must be user-configurable and should use Business Central native retention policy capabilities when feasible.
-- Future implementation agents should use the relevant project skill from `.codex/skills/` before changing architecture, AL code, UX, tests, security, release, or symbol discovery artifacts.
+- Future implementation agents should use the relevant project skill from `.codex/skills/` before changing architecture, AL code, UX, tests, security, release, or user guidance artifacts.
 - Future implementation agents should start from the relevant project prompt in `.codex/prompts/` when beginning repeatable workflows.
 - Future AI-assisted work should keep compact cost rollups in `cost/` without storing prompts, transcripts, secrets, customer data, posted values, hidden values, or rollback before-images.
 
@@ -84,14 +86,13 @@ Higher-order documents define intent. Lower-order documents may refine details, 
 
 | Skill | Use For |
 | --- | --- |
-| `bcda-sdd-steward` | SDD alignment, readiness, requirements, acceptance, and traceability. |
+| `bcda-sdd-steward` | SDD alignment, readiness, requirements, acceptance, and behavior coverage. |
 | `bcda-architecture-guardian` | Architecture boundaries, ADRs, services, data ownership, and rollback/audit flow. |
-| `bcda-al-implementation` | AL implementation after readiness is approved. |
+| `bcda-al-implementation` | AL implementation after the readiness gate allows it. |
 | `bcda-security-audit` | `SUPER` access, posted data risk, redaction, audit, rollback, and exports. |
 | `bcda-ux-design` | Business Central page/workflow usability and safe `SUPER` user experience. |
-| `bcda-test-validation` | Test planning, acceptance coverage, sandbox proof, and release validation. |
+| `bcda-test-validation` | Test planning, acceptance coverage, sandbox validation, and release validation. |
 | `bcda-release-ops` | Deployment, operations, upgrade, release notes, and support readiness. |
-| `bcda-symbol-discovery` | BC symbol/runtime evidence before platform-dependent code. |
 | `bcda-user-guide-steward` | Keep `UserGuide.md` aligned with behavior, setup, readiness, release, and support changes. |
 
 ## Project Prompts
@@ -100,7 +101,6 @@ Higher-order documents define intent. Lower-order documents may refine details, 
 | --- | --- |
 | `session-kickoff.prompt.md` | Start a new session with project status and blockers. |
 | `sdd-maintenance.prompt.md` | Update SDD docs for behavior or scope changes. |
-| `symbol-discovery.prompt.md` | Verify Business Central platform behavior before code. |
 | `readiness-review.prompt.md` | Decide whether implementation can start. |
 | `architecture-review.prompt.md` | Review architecture or workflow design. |
 | `ux-design-review.prompt.md` | Design Business Central pages/actions/workflows. |
@@ -117,8 +117,8 @@ Higher-order documents define intent. Lower-order documents may refine details, 
 | Gate | Required Evidence | Current Status |
 | --- | --- | --- |
 | Discovery | Product intent, scope, risks, open decisions documented | Complete |
-| Platform verification | BC symbols and foundation APIs verified locally; RecordId/RecordRef selection and mutation behavior verified in sandbox | Partially complete |
-| Security review | `SUPER`-only access model, audit model, rollback rules reviewed | Drafted, needs human review |
-| Implementation readiness | `code-generation-readiness.md` says Ready for the requested scope | Foundation only |
+| Platform verification | Foundation APIs verified locally; RecordId/RecordRef selection and mutation behavior verified in sandbox | Partially complete |
+| Security review | `SUPER`-only access model, audit model, rollback rules reviewed | Drafted; active checklist |
+| Implementation readiness | `code-generation-readiness.md` says Ready for the requested scope | Ready through Phase 9 local hardening for the current Phase 8 build |
 | Build validation | AL package compiles in sandbox | Local foundation compile/analyzers passed; sandbox deployment validation not started |
 | Release validation | Sandbox correction, rollback, audit, and upgrade tests pass | Not started |

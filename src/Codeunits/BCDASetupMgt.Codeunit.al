@@ -41,11 +41,14 @@ codeunit 88121 "BCDA Setup Mgt."
 
     local procedure UpgradeSetupDefaults(var Setup: Record "BCDA Setup")
     begin
-        if (Setup."Foundation Version" <> '') and (Setup."Foundation Version" <> '1.0') then
+        if Setup."Foundation Version" = '1.2' then
             exit;
 
-        Setup."Require Separate Approver" := Setup."Approval Required Default";
-        Setup."Foundation Version" := '1.1';
+        if (Setup."Foundation Version" = '') or (Setup."Foundation Version" = '1.0') then
+            Setup."Require Separate Approver" := Setup."Approval Required Default";
+
+        Setup."Allow Data Policies" := true;
+        Setup."Foundation Version" := '1.2';
         Setup.Modify(true);
     end;
 

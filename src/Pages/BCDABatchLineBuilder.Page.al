@@ -65,6 +65,12 @@ page 88142 "BCDA Batch Line Builder"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the batch entry number.';
                 }
+                field(Type; Rec.Type)
+                {
+                    ApplicationArea = All;
+                    Editable = BatchTableSelected;
+                    ToolTip = 'Specifies whether this batch entry stages an update, rename, delete, or insert operation.';
+                }
                 field("Record ID"; Rec."Record ID")
                 {
                     ApplicationArea = All;

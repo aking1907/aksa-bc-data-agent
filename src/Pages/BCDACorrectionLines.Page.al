@@ -17,6 +17,15 @@ page 88115 "BCDA Correction Lines"
                 {
                     ToolTip = 'Specifies the correction line number.';
                 }
+                field(Type; Rec.Type)
+                {
+                    ToolTip = 'Specifies whether this line stages an update, rename, delete, or insert operation.';
+
+                    trigger OnValidate()
+                    begin
+                        CurrPage.Update(false);
+                    end;
+                }
                 field("Table ID"; Rec."Table ID")
                 {
                     ToolTip = 'Specifies the target table ID.';
@@ -50,13 +59,14 @@ page 88115 "BCDA Correction Lines"
                 {
                     ToolTip = 'Specifies the target field name.';
                 }
+                field("Current Value Preview"; Rec."Current Value Preview")
+                {
+                    Editable = false;
+                    ToolTip = 'Specifies the current value for the selected record and field.';
+                }
                 field("Proposed New Value"; Rec."Proposed New Value")
                 {
                     ToolTip = 'Specifies the proposed new value text.';
-                }
-                field("Current Value Preview"; Rec."Current Value Preview")
-                {
-                    ToolTip = 'Specifies the current value for the selected record and field.';
                 }
                 field("Rollback Snapshot Mode"; Rec."Rollback Snapshot Mode")
                 {
@@ -94,6 +104,25 @@ page 88115 "BCDA Correction Lines"
                     SelectTargetRecord();
                 end;
             }
+            action(PreviewDataMatrix)
+            {
+                ApplicationArea = All;
+                Caption = 'Preview Data Matrix';
+                Image = ShowMatrix;
+                ToolTip = 'Opens a read-only matrix preview for correction lines in the current request.';
+
+                trigger OnAction()
+                var
+                    PreviewDataMatrix: Page "BCDA Preview Data Matrix";
+                begin
+                    if Rec."Request ID" = '' then
+                        Error(RequestRequiredBeforeMatrixErr);
+
+                    CurrPage.SaveRecord();
+                    PreviewDataMatrix.SetData(Rec."Request ID");
+                    PreviewDataMatrix.RunModal();
+                end;
+            }
         }
     }
 
@@ -108,6 +137,9 @@ page 88115 "BCDA Correction Lines"
     var
         TargetRecordLookup: Page "BCDA Target Record Lookup";
     begin
+        if Rec.Type = Rec.Type::Insert then
+            Error(RecordIdNotUsedForInsertErr);
+
         if Rec."Table ID" = 0 then
             Error(TableRequiredBeforeRecordErr);
 
@@ -121,5 +153,7 @@ page 88115 "BCDA Correction Lines"
     end;
 
     var
+        RecordIdNotUsedForInsertErr: Label 'Record ID is empty for Insert correction lines.';
+        RequestRequiredBeforeMatrixErr: Label 'Save the correction request before previewing the data matrix.';
         TableRequiredBeforeRecordErr: Label 'Select a table before selecting a record.';
 }

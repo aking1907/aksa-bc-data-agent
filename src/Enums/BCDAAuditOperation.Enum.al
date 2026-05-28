@@ -37,4 +37,8 @@ enum 88146 "BCDA Audit Operation"
     {
         Caption = 'Setup Change';
     }
+    value(80; "Audit Export")
+    {
+        Caption = 'Audit Export';
+    }
 }

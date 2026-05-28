@@ -12,17 +12,16 @@ Read:
 - docs/readiness-audit.md
 - docs/sdd-index.md
 - docs/open-decisions.md
-- docs/symbol-discovery.md
 - docs/security-review.md
 - docs/app-design.md
 - docs/al-development-standards.md
 - docs/requirements.md
 - docs/acceptance-criteria.md
 - docs/test-plan.md
-- docs/traceability-matrix.md
+- docs/traceability-matrix.md when reference coverage is useful
 
 Check whether every readiness blocker is closed:
-- BC symbols and runtime behavior.
+- BC runtime behavior and sandbox validation.
 - Object ID allocation.
 - Posted table policy.
 - SUPER access enforcement.
