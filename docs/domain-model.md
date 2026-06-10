@@ -15,8 +15,8 @@ The bounded domain is controlled Business Central data correction. The app owns 
 | Posted Data | Data in posted document, ledger, register, or historical tables where edits are high-risk. | Business Central |
 | Before-Image | Captured value and context before mutation, used for audit and rollback. | BC Data Agent |
 | Audit Metadata | Mandatory operation evidence such as user, company, target, result, reason, ticket, and timestamps. | BC Data Agent |
-| Rollback Snapshot | Optional protected value payload used to restore prior values when rollback is enabled and retained. | BC Data Agent |
-| Rollback Operation | A governed reversal that writes previous values back to target records. | BC Data Agent |
+| Rollback Snapshot | Optional protected value payload used to stage prior values when rollback is enabled and retained. | BC Data Agent |
+| Rollback Operation | Governed evidence that a completed request generated a rollback correction request. | BC Data Agent |
 | Retention Policy | User-controlled rule for how long BCDA-owned operation records remain in the database. | BC Data Agent and Business Central |
 | Data Policy | Configuration that allows, blocks, or restricts correction behavior by table, field, risk, and workflow policy. | BC Data Agent |
 | Policy Enforcement Bypass | Setup-controlled behavior through `Allow Data Policies`. When disabled, non-BCDA target data can proceed without matching policy records only if permanent safety blocks still pass. | BC Data Agent |
@@ -33,7 +33,7 @@ The bounded domain is controlled Business Central data correction. The app owns 
 | Correction Line | Table, key, field, value, validation mode, status, and error information. |
 | Audit Entry | Append-only record of preview, approval, execution, failure, and rollback activity. |
 | Value Snapshot | Protected before-image and after-image data needed for audit or rollback. |
-| Rollback Operation | Links rollback activity to original audit entries and records conflict decisions. |
+| Rollback Operation | Links rollback activity to the completed source request and generated rollback correction request. |
 | Retention Status | Operational view of configured retention, expired snapshots, and cleanup activity. |
 
 ## Value Objects
@@ -59,7 +59,7 @@ The bounded domain is controlled Business Central data correction. The app owns 
 - Audit entries are append-only during operations; governed retention may remove expired operation records.
 - Audit metadata is mandatory even when rollback snapshots are disabled.
 - Rollback snapshots are stored only when setup and policy enable them.
-- Rollback creates new changes and audit entries; it does not erase original activity.
+- Rollback creates a new correction request and new audit entries; it does not erase original activity.
 - Rollback must check that the current target value still matches the expected post-change value unless a policy-approved override exists.
 - Rollback is unavailable when snapshots were disabled, purged, or expired.
 - Retention cleanup must not delete active in-progress requests.
@@ -81,7 +81,7 @@ The bounded domain is controlled Business Central data correction. The app owns 
 | CorrectionLineFailed | One change line fails. |
 | CorrectionExecutionCompleted | Request execution ends. |
 | RollbackRequested | Rollback is initiated. |
-| RollbackCompleted | Rollback succeeds or finishes with partial failures. |
+| RollbackCompleted | Generated rollback correction request completes through the normal request execution workflow. |
 | RollbackSnapshotExpired | Retention cleanup removes rollback payloads for an operation. |
 | RetentionPolicyApplied | App-owned operation data cleanup completes. |
 

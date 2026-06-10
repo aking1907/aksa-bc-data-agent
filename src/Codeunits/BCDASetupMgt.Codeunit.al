@@ -34,6 +34,7 @@ codeunit 88121 "BCDA Setup Mgt."
         GetSetup(Setup);
         CorrectionRequest."Approval Required" := Setup."Approval Required Default";
         CorrectionRequest."Require Separate Approver" := CorrectionRequest."Approval Required" and Setup."Require Separate Approver";
+        CorrectionRequest."Ticket Reference Required" := Setup."Require Ticket Reference";
         CorrectionRequest."Preview Required" := Setup."Require Preview";
         CorrectionRequest."Rollback Availability" := Format(Setup."Rollback Snapshot Default");
         CorrectionRequest."Retention Impact" := StrSubstNo(RetentionImpactTxt, Setup."Audit Retention Days", Setup."Snapshot Retention Days", Setup."Technical Log Retention Days");
@@ -41,14 +42,15 @@ codeunit 88121 "BCDA Setup Mgt."
 
     local procedure UpgradeSetupDefaults(var Setup: Record "BCDA Setup")
     begin
-        if Setup."Foundation Version" = '1.2' then
+        if Setup."Foundation Version" = '1.3' then
             exit;
 
         if (Setup."Foundation Version" = '') or (Setup."Foundation Version" = '1.0') then
             Setup."Require Separate Approver" := Setup."Approval Required Default";
 
+        Setup."Require Ticket Reference" := false;
         Setup."Allow Data Policies" := true;
-        Setup."Foundation Version" := '1.2';
+        Setup."Foundation Version" := '1.3';
         Setup.Modify(true);
     end;
 

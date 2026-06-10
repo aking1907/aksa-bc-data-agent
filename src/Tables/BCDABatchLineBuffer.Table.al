@@ -22,8 +22,16 @@ table 88108 "BCDA Batch Line Buffer"
 
             trigger OnValidate()
             begin
-                if Type = Type::Insert then
-                    Clear("Record ID");
+                case Type of
+                    Type::Insert:
+                        Clear("Record ID");
+                    Type::Delete:
+                        begin
+                            "Field ID" := 0;
+                            Clear("Field Name");
+                            Clear("Proposed New Value");
+                        end;
+                end;
             end;
         }
         field(2; "Table ID"; Integer)
@@ -82,6 +90,14 @@ table 88108 "BCDA Batch Line Buffer"
             var
                 MetadataExplorer: Codeunit "BCDA Metadata Explorer";
             begin
+                if Type = Type::Delete then begin
+                    if "Field ID" <> 0 then
+                        Error(FieldNotUsedForDeleteErr);
+
+                    Clear("Field Name");
+                    exit;
+                end;
+
                 MetadataExplorer.ResolveFieldCaption("Table ID", "Field ID", "Table Name", "Field Name");
             end;
         }
@@ -115,6 +131,7 @@ table 88108 "BCDA Batch Line Buffer"
     }
 
     var
+        FieldNotUsedForDeleteErr: Label 'Field ID is not used for Delete batch entries.';
         RecordIdMustBeEmptyForInsertErr: Label 'Record ID must be empty for Insert correction lines.';
         RecordIdTableMismatchErr: Label 'Record ID %1 does not belong to table %2.', Comment = '%1 = record ID, %2 = table ID';
         TableRequiredBeforeRecordErr: Label 'Select a table before selecting a record.';

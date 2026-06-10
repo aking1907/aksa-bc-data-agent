@@ -359,6 +359,9 @@ table 88103 "BCDA Correction Line"
             FieldMetadata.Type::OemCode:
                 EnsureTextValueFitsFieldLength(FieldMetadata, DataValue);
             FieldMetadata.Type::DateFormula:
+                if DataValue = '' then
+                    exit
+                else
                 if not Evaluate(DateFormulaValue, DataValue) then
                     Error(ProposedValueTypeMismatchErr, FieldMetadata."No.", FieldMetadata.TableNo, Format(FieldMetadata.Type));
             FieldMetadata.Type::Boolean:
@@ -374,15 +377,27 @@ table 88103 "BCDA Correction Line"
                 if not Evaluate(DecimalValue, DataValue) then
                     Error(ProposedValueTypeMismatchErr, FieldMetadata."No.", FieldMetadata.TableNo, Format(FieldMetadata.Type));
             FieldMetadata.Type::Date:
+                if DataValue = '' then
+                    exit
+                else
                 if not Evaluate(DateValue, DataValue) then
                     Error(ProposedValueTypeMismatchErr, FieldMetadata."No.", FieldMetadata.TableNo, Format(FieldMetadata.Type));
             FieldMetadata.Type::Time:
+                if DataValue = '' then
+                    exit
+                else
                 if not Evaluate(TimeValue, DataValue) then
                     Error(ProposedValueTypeMismatchErr, FieldMetadata."No.", FieldMetadata.TableNo, Format(FieldMetadata.Type));
             FieldMetadata.Type::DateTime:
+                if DataValue = '' then
+                    exit
+                else
                 if not Evaluate(DateTimeValue, DataValue) then
                     Error(ProposedValueTypeMismatchErr, FieldMetadata."No.", FieldMetadata.TableNo, Format(FieldMetadata.Type));
             FieldMetadata.Type::GUID:
+                if DataValue = '' then
+                    exit
+                else
                 if not Evaluate(GuidValue, DataValue) then
                     Error(ProposedValueTypeMismatchErr, FieldMetadata."No.", FieldMetadata.TableNo, Format(FieldMetadata.Type));
             FieldMetadata.Type::Duration:

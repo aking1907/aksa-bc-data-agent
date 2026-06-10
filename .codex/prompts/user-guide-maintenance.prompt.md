@@ -23,9 +23,9 @@ Read:
 
 If AL behavior changed, also inspect the relevant files under src/.
 
-Keep current readiness boundaries explicit:
-- Foundation setup, policy, request, audit, retention-log, and SUPER-gated shell behavior may be documented.
-- Target mutation, rollback execution, arbitrary target value preview, audit export, and production enablement remain blocked until the next readiness gate.
+Keep current runtime and production boundaries explicit:
+- Foundation setup, policy, request, audit, retention-log, SUPER-gated shell behavior, supported update execution, supported update rollback, filtered audit export, and governed cleanup may be documented.
+- Non-update mutation, non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, external APIs, and production enablement remain controlled by runtime gates and validation evidence.
 
 Update UserGuide.md and any related admin/operations/release docs needed to prevent drift.
 

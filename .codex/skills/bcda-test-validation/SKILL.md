@@ -35,7 +35,7 @@ Create or review tests for:
 - Unauthorized access denied.
 - Policy allow/block decisions.
 - Dry-run preview without mutation.
-- Required reason and ticket.
+- Required reason and setup- or policy-required ticket/reference.
 - Approval required before high-risk execution.
 - Successful normal correction.
 - Successful allow-listed posted correction when platform permits.

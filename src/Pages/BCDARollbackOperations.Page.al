@@ -25,11 +25,15 @@ page 88120 "BCDA Rollback Operations"
                 }
                 field("Source Request ID"; Rec."Source Request ID")
                 {
-                    ToolTip = 'Specifies the correction request that produced the original execution audit entry.';
+                    ToolTip = 'Specifies the completed correction request used as the rollback source.';
                 }
                 field("Source Audit Entry No."; Rec."Source Audit Entry No.")
                 {
-                    ToolTip = 'Specifies the execution audit entry used as the rollback source.';
+                    ToolTip = 'Specifies the execution audit entry used by legacy rollback records. Request-level rollback staging leaves this blank.';
+                }
+                field("Generated Request ID"; Rec."Generated Request ID")
+                {
+                    ToolTip = 'Specifies the rollback correction request created from the completed source request.';
                 }
                 field(Status; Rec.Status)
                 {
@@ -53,15 +57,15 @@ page 88120 "BCDA Rollback Operations"
                 }
                 field("Completed By"; Rec."Completed By")
                 {
-                    ToolTip = 'Specifies the user who completed rollback processing.';
+                    ToolTip = 'Specifies the user who completed rollback request creation or legacy rollback processing.';
                 }
                 field("Completed At"; Rec."Completed At")
                 {
-                    ToolTip = 'Specifies when rollback processing completed.';
+                    ToolTip = 'Specifies when rollback request creation or legacy rollback processing completed.';
                 }
                 field("Sanitized Error"; Rec."Sanitized Error")
                 {
-                    ToolTip = 'Specifies sanitized rollback error details.';
+                    ToolTip = 'Specifies sanitized rollback request creation or legacy rollback error details.';
                 }
             }
         }

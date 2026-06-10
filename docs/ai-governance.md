@@ -1,31 +1,36 @@
 # AI Governance
 
-## Required Context Before AI Changes
+## Context Before AI Changes
 
-An AI agent must read:
+AI-assisted changes should use the lean process in `docs/sdd-index.md`: read the smallest set of docs needed to understand the requested behavior, the owning code, and the safety controls involved.
+
+For ordinary AL work, start with:
 
 - `docs/sdd-index.md`
-- `docs/project.md`
 - `docs/requirements.md`
-- `docs/architecture.md`
-- `docs/app-design.md`
-- `docs/al-development-standards.md`
+- `docs/acceptance-criteria.md`
 - `docs/code-generation-readiness.md`
-- `docs/readiness-audit.md`
-- `docs/security-review.md`
-- `docs/traceability-matrix.md` when reference coverage is useful
+- the relevant AL source files
 
-It must also use the relevant project-local skill from `.codex/skills/`:
+Open deeper docs only when the change touches that area:
 
-- `bcda-sdd-steward` for planning, readiness, and documentation alignment.
+- `docs/architecture.md`, `docs/adr/`, or `docs/implementation-contracts.md` for object boundaries and service ownership.
+- `docs/security-review.md` or `docs/risk-register.md` for `SUPER` access, audit, rollback, redaction, export, retention, posted data, or production risk.
+- `docs/app-design.md`, `UserGuide.md`, or `docs/admin-guide.md` for page, action, setup, or workflow changes.
+- `docs/test-plan.md` for changed behavior or validation coverage.
+- Deployment, operations, release, upgrade, readiness, or traceability docs only when those areas are affected.
+
+Use the relevant project-local skill from `.codex/skills/` when the task needs that guardrail:
+
+- `bcda-sdd-steward` for SDD alignment and documentation changes.
 - `bcda-architecture-guardian` for architecture or ADR changes.
-- `bcda-al-implementation` for AL code after the readiness gate allows it.
+- `bcda-al-implementation` for AL code under the standing implementation authorization.
 - `bcda-security-audit` for `SUPER` access, audit, rollback, redaction, posted data, or production risk.
 - `bcda-ux-design` for pages, actions, captions, and workflow design.
 - `bcda-test-validation` for tests and validation evidence.
 - `bcda-release-ops` for deployment, upgrade, operations, and release work.
 
-For repeatable workflows, start from the matching project prompt in `.codex/prompts/`. Use `session-kickoff.prompt.md` at the beginning of a new session and `docs-consistency-check.prompt.md` after substantial documentation changes.
+Project prompts in `.codex/prompts/` are optional helpers for repeatable workflows, not required gates.
 
 ## Cost Governance
 
@@ -44,14 +49,14 @@ AI usage cost is managed through the compact project artifacts in `cost/`.
 - Draft tests or implementation plans.
 - Prepare sandbox validation checklists.
 - Create or improve project-local skills that reinforce the SDD approach.
-- Create or improve project-local prompts that reinforce the SDD approach.
-- Generate or modify AL source only inside the exact scope allowed by `docs/code-generation-readiness.md`.
+- Create or improve optional project-local prompts.
+- Generate or modify AL source under the standing authorization in `docs/code-generation-readiness.md` when the work preserves user review, data policies, `SUPER`, audit, redaction, rollback, tests, and runtime/production validation boundaries.
 
 ## What AI May Not Do Now
 
-- Generate AL source outside the exact scope allowed by `docs/code-generation-readiness.md`.
-- Implement record modification outside the currently allowed execution and rollback scopes.
-- Implement non-update rollback, conflict override, export, or cleanup outside the currently allowed scope.
+- Enable runtime behavior outside the safety boundaries in `docs/code-generation-readiness.md`.
+- Implement record modification without request, policy, audit, `SUPER`, and rollback or rollback-unavailable context.
+- Enable non-update rollback, conflict override, export, cleanup, or APIs in production before their controls and validation evidence exist.
 - Add hidden bypasses.
 - Store secrets or real customer data.
 - Remove audit, policy, approval, or rollback requirements.
@@ -66,7 +71,7 @@ Before implementation depends on them, record validation evidence for:
 - Sensitive value redaction.
 - Rollback conflict behavior.
 - Production deployment.
-- Any generated AL code once the readiness gate allows code.
+- Any generated AL code that depends on platform-specific behavior before production reliance.
 
 ## Evidence Required From AI-Assisted Changes
 

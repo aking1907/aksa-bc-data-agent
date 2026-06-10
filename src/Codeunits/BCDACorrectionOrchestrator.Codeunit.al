@@ -77,34 +77,35 @@ codeunit 88125 "BCDA Correction Orchestrator"
     var
         AccessMgt: Codeunit "BCDA Access Mgt.";
         AuditWriter: Codeunit "BCDA Audit Writer";
+        SetupMgt: Codeunit "BCDA Setup Mgt.";
         ExecutionMessage: Text[2048];
-        FailedCount: Integer;
         SuccessCount: Integer;
         RequestApproved: Boolean;
     begin
         AccessMgt.EnsureSuperUser();
+        SetupMgt.EnsureSetup();
         EnsureExistingRequest(CorrectionRequest);
         EnsureRequestMetadata(CorrectionRequest);
         EnsureExecutionAllowed(CorrectionRequest);
         EnsureRequiredPreviewCompleted(CorrectionRequest);
 
         RequestApproved := CorrectionRequest.Status = CorrectionRequest.Status::Approved;
+        if not TryValidateExecutionRequest(CorrectionRequest, RequestApproved) then begin
+            ExecutionMessage := CopyStr(GetLastErrorText(), 1, MaxStrLen(ExecutionMessage));
+            MarkExecutionRequestPreflightFailed(CorrectionRequest, ExecutionMessage);
+            exit;
+        end;
+
         CorrectionRequest.Status := CorrectionRequest.Status::Executing;
         CorrectionRequest."Rollback Availability" := ExecutionRollbackAvailabilityTxt;
         CorrectionRequest.Modify(true);
 
-        ProcessExecutionGroups(CorrectionRequest, RequestApproved, SuccessCount, FailedCount);
+        ProcessExecutionGroups(CorrectionRequest, SuccessCount);
 
-        ExecutionMessage := CopyStr(StrSubstNo(ExecutionSummaryTxt, SuccessCount, FailedCount), 1, MaxStrLen(ExecutionMessage));
-        if FailedCount = 0 then begin
-            CorrectionRequest.Status := CorrectionRequest.Status::Completed;
-            CorrectionRequest.Modify(true);
-            AuditWriter.WriteRequestAudit(CorrectionRequest, "BCDA Audit Operation"::Execution, "BCDA Audit Result"::Success, ExecutionMessage);
-        end else begin
-            CorrectionRequest.Status := CorrectionRequest.Status::Failed;
-            CorrectionRequest.Modify(true);
-            AuditWriter.WriteRequestAudit(CorrectionRequest, "BCDA Audit Operation"::Execution, "BCDA Audit Result"::Failed, ExecutionMessage);
-        end;
+        ExecutionMessage := CopyStr(StrSubstNo(ExecutionSummaryTxt, SuccessCount), 1, MaxStrLen(ExecutionMessage));
+        CorrectionRequest.Status := CorrectionRequest.Status::Completed;
+        CorrectionRequest.Modify(true);
+        AuditWriter.WriteRequestAudit(CorrectionRequest, "BCDA Audit Operation"::Execution, "BCDA Audit Result"::Success, ExecutionMessage);
     end;
 
     local procedure EnsureExistingRequest(CorrectionRequest: Record "BCDA Correction Request")
@@ -323,7 +324,13 @@ codeunit 88125 "BCDA Correction Orchestrator"
             Error(LineRecordMustBeEmptyForInsertErr, CorrectionLine."Line No.");
     end;
 
-    local procedure ProcessExecutionGroups(var CorrectionRequest: Record "BCDA Correction Request"; RequestApproved: Boolean; var SuccessCount: Integer; var FailedCount: Integer)
+    [TryFunction]
+    local procedure TryValidateExecutionRequest(CorrectionRequest: Record "BCDA Correction Request"; RequestApproved: Boolean)
+    begin
+        ValidateExecutionGroups(CorrectionRequest, RequestApproved);
+    end;
+
+    local procedure ValidateExecutionGroups(CorrectionRequest: Record "BCDA Correction Request"; RequestApproved: Boolean)
     var
         CorrectionLine: Record "BCDA Correction Line";
         TempGroupLine: Record "BCDA Correction Line" temporary;
@@ -346,7 +353,7 @@ codeunit 88125 "BCDA Correction Orchestrator"
                (CorrectionLine."Record ID" <> CurrentRecordId)
             then begin
                 if HasGroup then
-                    ProcessExecutionGroup(CorrectionRequest, RequestApproved, TempGroupLine, CurrentType, SuccessCount, FailedCount);
+                    ValidateExecutionGroup(RequestApproved, TempGroupLine, CurrentType);
 
                 ClearExecutionGroup(TempGroupLine);
                 CurrentType := CorrectionLine.Type;
@@ -359,7 +366,56 @@ codeunit 88125 "BCDA Correction Orchestrator"
         until CorrectionLine.Next() = 0;
 
         if HasGroup then
-            ProcessExecutionGroup(CorrectionRequest, RequestApproved, TempGroupLine, CurrentType, SuccessCount, FailedCount);
+            ValidateExecutionGroup(RequestApproved, TempGroupLine, CurrentType);
+    end;
+
+    local procedure ValidateExecutionGroup(RequestApproved: Boolean; var TempGroupLine: Record "BCDA Correction Line" temporary; CurrentType: Enum "BCDA Correction Type")
+    begin
+        case CurrentType of
+            CurrentType::Update:
+                ValidateUpdateExecutionGroup(RequestApproved, TempGroupLine);
+            else
+                Error(UnsupportedExecutionTypeErr, Format(CurrentType));
+        end;
+    end;
+
+    local procedure ProcessExecutionGroups(var CorrectionRequest: Record "BCDA Correction Request"; var SuccessCount: Integer)
+    var
+        CorrectionLine: Record "BCDA Correction Line";
+        TempGroupLine: Record "BCDA Correction Line" temporary;
+        CurrentRecordId: RecordId;
+        CurrentTableId: Integer;
+        CurrentType: Enum "BCDA Correction Type";
+        HasGroup: Boolean;
+    begin
+        CorrectionLine.SetCurrentKey("Request ID", Type, "Table ID", "Record ID");
+        CorrectionLine.SetRange("Request ID", CorrectionRequest."Request ID");
+        if not CorrectionLine.FindSet() then
+            Error(NoLinesForExecutionErr, CorrectionRequest."Request ID");
+
+        CurrentTableId := 0;
+        Clear(CurrentRecordId);
+        repeat
+            if (not HasGroup) or
+               (CorrectionLine.Type <> CurrentType) or
+               (CorrectionLine."Table ID" <> CurrentTableId) or
+               (CorrectionLine."Record ID" <> CurrentRecordId)
+            then begin
+                if HasGroup then
+                    ProcessExecutionGroup(CorrectionRequest, TempGroupLine, CurrentType, SuccessCount);
+
+                ClearExecutionGroup(TempGroupLine);
+                CurrentType := CorrectionLine.Type;
+                CurrentTableId := CorrectionLine."Table ID";
+                CurrentRecordId := CorrectionLine."Record ID";
+                HasGroup := true;
+            end;
+
+            AddLineToExecutionGroup(TempGroupLine, CorrectionLine);
+        until CorrectionLine.Next() = 0;
+
+        if HasGroup then
+            ProcessExecutionGroup(CorrectionRequest, TempGroupLine, CurrentType, SuccessCount);
     end;
 
     local procedure ClearExecutionGroup(var TempGroupLine: Record "BCDA Correction Line" temporary)
@@ -374,34 +430,25 @@ codeunit 88125 "BCDA Correction Orchestrator"
         TempGroupLine.Insert();
     end;
 
-    local procedure ProcessExecutionGroup(var CorrectionRequest: Record "BCDA Correction Request"; RequestApproved: Boolean; var TempGroupLine: Record "BCDA Correction Line" temporary; CurrentType: Enum "BCDA Correction Type"; var SuccessCount: Integer; var FailedCount: Integer)
-    var
-        FailureMessage: Text[2048];
+    local procedure ProcessExecutionGroup(var CorrectionRequest: Record "BCDA Correction Request"; var TempGroupLine: Record "BCDA Correction Line" temporary; CurrentType: Enum "BCDA Correction Type"; var SuccessCount: Integer)
     begin
         case CurrentType of
             CurrentType::Update:
-                if TryApplyUpdateExecutionGroup(RequestApproved, TempGroupLine) then
-                    MarkExecutionGroupSucceeded(CorrectionRequest, TempGroupLine, SuccessCount)
-                else begin
-                    FailureMessage := CopyStr(GetLastErrorText(), 1, MaxStrLen(FailureMessage));
-                    MarkExecutionGroupFailed(CorrectionRequest, TempGroupLine, FailureMessage, FailedCount);
+                begin
+                    ApplyUpdateExecutionGroup(TempGroupLine);
+                    MarkExecutionGroupSucceeded(CorrectionRequest, TempGroupLine, SuccessCount);
                 end;
-            else begin
-                FailureMessage := CopyStr(StrSubstNo(UnsupportedExecutionTypeErr, Format(CurrentType)), 1, MaxStrLen(FailureMessage));
-                MarkExecutionGroupFailed(CorrectionRequest, TempGroupLine, FailureMessage, FailedCount);
-            end;
+            else
+                Error(UnsupportedExecutionTypeErr, Format(CurrentType));
         end;
     end;
 
-    [TryFunction]
-    local procedure TryApplyUpdateExecutionGroup(RequestApproved: Boolean; var TempGroupLine: Record "BCDA Correction Line" temporary)
+    local procedure ApplyUpdateExecutionGroup(var TempGroupLine: Record "BCDA Correction Line" temporary)
     var
         FieldMetadata: Record "Field";
         TargetFieldRef: FieldRef;
         TargetRecordRef: RecordRef;
     begin
-        ValidateUpdateExecutionGroup(RequestApproved, TempGroupLine);
-
         TempGroupLine.Reset();
         TempGroupLine.FindFirst();
         if not TargetRecordRef.Get(TempGroupLine."Record ID") then
@@ -484,6 +531,12 @@ codeunit 88125 "BCDA Correction Orchestrator"
                 TargetFieldRef.Validate(DataValue);
             FieldMetadata.Type::DateFormula:
                 begin
+                    if DataValue = '' then begin
+                        Clear(DateFormulaValue);
+                        TargetFieldRef.Validate(DateFormulaValue);
+                        exit;
+                    end;
+
                     Evaluate(DateFormulaValue, DataValue);
                     TargetFieldRef.Validate(DateFormulaValue);
                 end;
@@ -509,21 +562,45 @@ codeunit 88125 "BCDA Correction Orchestrator"
                 end;
             FieldMetadata.Type::Date:
                 begin
+                    if DataValue = '' then begin
+                        Clear(DateValue);
+                        TargetFieldRef.Validate(DateValue);
+                        exit;
+                    end;
+
                     Evaluate(DateValue, DataValue);
                     TargetFieldRef.Validate(DateValue);
                 end;
             FieldMetadata.Type::Time:
                 begin
+                    if DataValue = '' then begin
+                        Clear(TimeValue);
+                        TargetFieldRef.Validate(TimeValue);
+                        exit;
+                    end;
+
                     Evaluate(TimeValue, DataValue);
                     TargetFieldRef.Validate(TimeValue);
                 end;
             FieldMetadata.Type::DateTime:
                 begin
+                    if DataValue = '' then begin
+                        Clear(DateTimeValue);
+                        TargetFieldRef.Validate(DateTimeValue);
+                        exit;
+                    end;
+
                     Evaluate(DateTimeValue, DataValue);
                     TargetFieldRef.Validate(DateTimeValue);
                 end;
             FieldMetadata.Type::GUID:
                 begin
+                    if DataValue = '' then begin
+                        Clear(GuidValue);
+                        TargetFieldRef.Validate(GuidValue);
+                        exit;
+                    end;
+
                     Evaluate(GuidValue, DataValue);
                     TargetFieldRef.Validate(GuidValue);
                 end;
@@ -580,15 +657,18 @@ codeunit 88125 "BCDA Correction Orchestrator"
             until TempGroupLine.Next() = 0;
     end;
 
-    local procedure MarkExecutionGroupFailed(var CorrectionRequest: Record "BCDA Correction Request"; var TempGroupLine: Record "BCDA Correction Line" temporary; FailureMessage: Text[2048]; var FailedCount: Integer)
+    local procedure MarkExecutionRequestPreflightFailed(var CorrectionRequest: Record "BCDA Correction Request"; FailureMessage: Text[2048])
     var
         CorrectionLine: Record "BCDA Correction Line";
         AuditWriter: Codeunit "BCDA Audit Writer";
     begin
-        TempGroupLine.Reset();
-        if TempGroupLine.FindSet() then
+        CorrectionRequest.Status := CorrectionRequest.Status::Failed;
+        CorrectionRequest."Rollback Availability" := ExecutionPreflightFailedRollbackAvailabilityTxt;
+        CorrectionRequest.Modify(true);
+
+        CorrectionLine.SetRange("Request ID", CorrectionRequest."Request ID");
+        if CorrectionLine.FindSet(true) then
             repeat
-                CorrectionLine.Get(TempGroupLine."Request ID", TempGroupLine."Line No.");
                 CorrectionLine."Line Status" := CorrectionLine."Line Status"::Failed;
                 CorrectionLine."Sanitized Error" := CopyStr(FailureMessage, 1, MaxStrLen(CorrectionLine."Sanitized Error"));
                 Clear(CorrectionLine."Old Value Snapshot ID");
@@ -596,8 +676,9 @@ codeunit 88125 "BCDA Correction Orchestrator"
                 Clear(CorrectionLine."Snapshot Expires At");
                 CorrectionLine.Modify(true);
                 AuditWriter.WriteLineAudit(CorrectionRequest, CorrectionLine, "BCDA Audit Operation"::Execution, "BCDA Audit Result"::Failed, CorrectionLine."Sanitized Error");
-                FailedCount += 1;
-            until TempGroupLine.Next() = 0;
+            until CorrectionLine.Next() = 0;
+
+        AuditWriter.WriteRequestAudit(CorrectionRequest, "BCDA Audit Operation"::Execution, "BCDA Audit Result"::Failed, FailureMessage);
     end;
 
     local procedure ShouldCaptureRollbackSnapshot(CorrectionLine: Record "BCDA Correction Line"): Boolean
@@ -661,7 +742,7 @@ codeunit 88125 "BCDA Correction Orchestrator"
     end;
 
     var
-        MissingMetadataErr: Label 'Reason and ticket/reference are required before this action.';
+        MissingMetadataErr: Label 'Reason is required before this action. Ticket/reference is required only when the request requires it.';
         RequestRequiredErr: Label 'Initialize or save the correction request before this action.';
         ApprovalNotRequiredErr: Label 'This BC Data Agent request does not require approval. Review the approval setup if approval should be required.';
         ExecutionApprovalRequiredErr: Label 'Approve this BC Data Agent request before execution.';
@@ -674,10 +755,11 @@ codeunit 88125 "BCDA Correction Orchestrator"
         NoLinesForPreviewErr: Label 'Request %1 must have at least one correction line before preview.', Comment = '%1 = request ID';
         NoLinesForExecutionErr: Label 'Request %1 must have at least one correction line before execution.', Comment = '%1 = request ID';
         PreviewRollbackAvailabilityTxt: Label 'Preview only. Rollback snapshot mode is %1; execution can capture snapshots when enabled or required.', Comment = '%1 = rollback snapshot mode';
-        ExecutionRollbackAvailabilityTxt: Label 'Execution captures rollback snapshots for supported update lines when rollback snapshot mode is enabled or required.';
+        ExecutionRollbackAvailabilityTxt: Label 'Execution captures rollback snapshots for supported update lines when rollback snapshot mode is enabled or required. The request is applied as one transaction.';
+        ExecutionPreflightFailedRollbackAvailabilityTxt: Label 'Execution did not change target data because the request failed validation before mutation.';
         RetentionImpactTxt: Label 'Audit: %1 days; rollback snapshots: %2 days; technical logs: %3 days.', Comment = '%1 = audit retention days, %2 = snapshot retention days, %3 = technical log retention days';
         PreviewSummaryTxt: Label 'Preview checked %1 line(s): %2 failed validation, %3 blocked by policy, %4 require approval. No target data was changed.', Comment = '%1 = line count, %2 = failed count, %3 = blocked count, %4 = approval-required count';
-        ExecutionSummaryTxt: Label 'Execution finished: %1 line(s) executed, %2 failed.', Comment = '%1 = executed line count, %2 = failed line count';
+        ExecutionSummaryTxt: Label 'Execution finished: %1 line(s) executed. The correction request was applied as one transaction.', Comment = '%1 = executed line count';
         LineTableRequiredErr: Label 'Line %1 must have a target table before preview.', Comment = '%1 = line number';
         LineFieldRequiredErr: Label 'Line %1 must have a field before preview.', Comment = '%1 = line number';
         LineFieldNotAllowedForDeleteErr: Label 'Line %1 must not have a field for Delete preview.', Comment = '%1 = line number';
@@ -690,5 +772,5 @@ codeunit 88125 "BCDA Correction Orchestrator"
         FieldTypeNotSupportedForExecutionErr: Label 'Field %1 on table %2 has unsupported type %3 for execution.', Comment = '%1 = field ID, %2 = table ID, %3 = field type';
         LineBlockedByPolicyErr: Label 'Line %1 is blocked by data policy: %2', Comment = '%1 = line number, %2 = policy reason';
         LineRequiresApprovalErr: Label 'Line %1 requires an approved request before execution: %2', Comment = '%1 = line number, %2 = policy reason';
-        UnsupportedExecutionTypeErr: Label '%1 execution is not enabled in Phase 6. Stage it for preview only until the operation-specific execution and rollback contracts are implemented.', Comment = '%1 = correction type';
+        UnsupportedExecutionTypeErr: Label '%1 execution is not enabled yet. Stage it for preview only until operation-specific execution and rollback controls are implemented and validated.', Comment = '%1 = correction type';
 }

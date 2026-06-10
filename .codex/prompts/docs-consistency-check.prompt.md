@@ -26,7 +26,7 @@ Read:
 
 Verify:
 - No contradictions with higher-order docs.
-- AL code is allowed only within the exact scope allowed by `docs/code-generation-readiness.md`.
+- AL code has standing local implementation authorization under `docs/code-generation-readiness.md`, while runtime and production enablement remain controlled.
 - No BCDA-specific permission sets are planned.
 - Mandatory audit metadata cannot be disabled.
 - Rollback snapshots are configurable and retention-aware.

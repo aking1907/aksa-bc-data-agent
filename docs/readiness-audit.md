@@ -2,7 +2,7 @@
 
 ## Audit Status
 
-Current result: Phase 9 local hardening is complete for the current Phase 8 build. Local compile/analyzer/config/security/docs evidence exists for foundation RecordId lookup, selected-line current value preview, request-level staged-line preview, correction operation type staging, preview-required approval gating, BCDA app-owned target blocking, `Allow Data Policies` setup behavior, grouped update mutation, audit evidence, rollback snapshot capture, rollback conflict checks, rollback policy re-checks, rollback operation records, append-only rollback audit evidence, filtered audit metadata export, audit export evidence, governed retention cleanup, object-range alignment, and the no-BCDA-permission-set rule.
+Current result: Phase 9 local hardening is complete for the current Phase 8 build, and the SDD now allows continuous local implementation without per-phase paper confirmation. Local compile/analyzer/config/security/docs evidence exists for foundation RecordId lookup, selected-line current value preview, request-level staged-line preview, correction operation type staging, preview-required approval gating, BCDA app-owned target blocking, `Allow Data Policies` setup behavior, grouped update mutation, audit evidence, rollback snapshot capture, request-level rollback staging, generated rollback request current-value review, rollback operation records, append-only rollback audit evidence, filtered audit metadata export, audit export evidence, governed retention cleanup, object-range alignment, and the no-BCDA-permission-set rule.
 
 OD-018 insert grouping remains deferred until insert execution behavior is needed. OD-019 setup-controlled data policy enforcement is implemented through `Allow Data Policies`.
 
@@ -14,7 +14,7 @@ The Phase 7 rollback implementation is recorded in `docs/rollback-readiness-kick
 
 The Phase 8 audit, retention, and export implementation is recorded in `docs/audit-retention-export-readiness-kickoff.md`. Sandbox validation was skipped by request for implementation and remains required before production use.
 
-The SDD package is structurally complete. The project moved from Phase 4 setup, retention, and UX shell work through Phase 5 target selection into Phase 6 grouped update execution, Phase 7 supported update rollback, Phase 8 export/cleanup, and Phase 9 local hardening. Mutation, rollback, export, and cleanup sandbox validation still need to be completed before production use.
+The SDD package is structurally complete. The project moved from Phase 4 setup, retention, and UX shell work through Phase 5 target selection into Phase 6 grouped update execution, Phase 7 supported update rollback, Phase 8 export/cleanup, and Phase 9 local hardening. Additional code development may proceed under the standing authorization, while mutation, rollback, export, and cleanup sandbox validation still need to be completed before production use.
 
 ## What Is Ready
 
@@ -39,7 +39,7 @@ The SDD package is structurally complete. The project moved from Phase 4 setup, 
 | Retention API evidence | Public `Reten. Pol. Allowed Tables` availability is reflected in retention manager compile validation. |
 | Phase 5 local implementation | Complete for non-mutating target selection, selected-field current value refresh, request staged-line preview, policy preview, preview audit, and read-only preview matrix behavior. Sandbox validation pending. |
 | Phase 6 local implementation | Complete for grouped `Update` execution with policy/access re-checks, `Allow Data Policies`, audit evidence, rollback snapshots when enabled or required, and sanitized failure handling. Sandbox validation pending. |
-| Phase 7 local implementation | Complete for rollback of successful `Update` execution audit entries with retained snapshots, conflict checks, policy re-checks, rollback operation records, and append-only audit evidence. Sandbox validation pending. |
+| Phase 7 local implementation | Complete for request-level rollback staging from completed `Update` requests with retained snapshots, generated rollback correction requests, rollback operation records, and append-only audit evidence. Sandbox validation pending. |
 | Phase 8 local implementation | Complete for filtered audit metadata export and governed cleanup of expired eligible BCDA-owned operation records. Sandbox validation pending. |
 | Phase 9 local hardening | Complete for compile, analyzers, configuration, object range, permission-set source scan, and documentation consistency. Sandbox validation pending. |
 
@@ -86,8 +86,8 @@ The SDD package is structurally complete. The project moved from Phase 4 setup, 
 7. Complete Phase 6 sandbox validation before production use.
 8. Complete Phase 7 rollback sandbox validation before production use.
 9. Complete Phase 8 audit/retention/export sandbox validation before production support-export or cleanup use.
-10. Update the readiness gate before opening production target selection/current value preview, matrix entry, execution, rollback, export, cleanup, or production gates.
+10. Update runtime readiness evidence before opening production target selection/current value preview, matrix entry, execution, rollback, export, cleanup, or production gates.
 
 ## Recommendation
 
-Continue with sandbox validation for Phase 6 grouped update execution, Phase 7 supported update rollback, and Phase 8 export/cleanup. Keep `Rename`, `Delete`, `Insert`, non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, validate-trigger dry-run, external APIs, and broader target matrix editing blocked until their applicable implementation contracts, sandbox validation, and readiness gate updates are complete.
+Continue with sandbox validation for Phase 6 grouped update execution, Phase 7 supported update rollback, and Phase 8 export/cleanup. `Rename`, `Delete`, `Insert`, non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, validate-trigger dry-run, external APIs, and broader target matrix editing may be implemented locally, but runtime/production use remains blocked until their applicable implementation contracts, controls, sandbox validation, and runtime readiness evidence are complete.

@@ -25,7 +25,11 @@ page 88113 "BCDA Correction Requests"
                 }
                 field("Ticket Reference"; Rec."Ticket Reference")
                 {
-                    ToolTip = 'Specifies the external ticket or reference.';
+                    ToolTip = 'Specifies the external ticket or reference when one exists or is required.';
+                }
+                field("Ticket Reference Required"; Rec."Ticket Reference Required")
+                {
+                    ToolTip = 'Specifies whether this request requires a ticket/reference before preview, approval, or execution.';
                 }
                 field(Reason; Rec.Reason)
                 {

@@ -6,7 +6,7 @@ Accepted. App-owned `RecordId` storage, foundation primary-key line-action looku
 
 ## Context
 
-The original foundation correction line design stored a free-text `Record Key`. That is not strong enough for Business Central tables with complex primary keys, and it pushes serialization responsibility onto the user. A hand-entered key also makes later preview, audit, rollback conflict checks, and support diagnostics more fragile.
+The original foundation correction line design stored a free-text `Record Key`. That is not strong enough for Business Central tables with complex primary keys, and it pushes serialization responsibility onto the user. A hand-entered key also makes later preview, audit, generated rollback request review, and support diagnostics more fragile.
 
 Business Central already has platform record identity concepts. BCDA should use those concepts instead of inventing a key grammar for every target table.
 
@@ -29,7 +29,7 @@ The planned target record matrix will:
 - show existing correction lines for the same request and record,
 - let the user create or update proposed field changes,
 - write only BCDA-owned correction line records before execution readiness,
-- avoid target mutation and keep current-value display limited to the allowed non-mutating selected-line and staged-line preview scope until the execution readiness gate opens.
+- avoid target mutation and keep current-value display limited to SDD-approved selected-line and staged-line preview behavior until runtime validation supports broader use.
 
 ## Consequences
 

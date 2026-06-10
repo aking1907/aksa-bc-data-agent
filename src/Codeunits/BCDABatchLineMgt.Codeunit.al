@@ -31,8 +31,12 @@ codeunit 88128 "BCDA Batch Line Mgt."
             CorrectionLine.Validate("Table ID", TableId);
             if TempBatchLine.Type <> TempBatchLine.Type::Insert then
                 CorrectionLine.Validate("Record ID", TempBatchLine."Record ID");
-            CorrectionLine.Validate("Field ID", TempBatchLine."Field ID");
-            CorrectionLine.Validate("Proposed New Value", TempBatchLine."Proposed New Value");
+            if TempBatchLine.Type <> TempBatchLine.Type::Delete then begin
+                CorrectionLine.Validate("Field ID", TempBatchLine."Field ID");
+                CorrectionLine.Validate("Proposed New Value", TempBatchLine."Proposed New Value");
+            end else
+                if TempBatchLine."Proposed New Value" <> '' then
+                    Error(ProposedValueNotAllowedForDeleteErr, TempBatchLine."Entry No.");
             CorrectionLine.Validate("Rollback Snapshot Mode", TempBatchLine."Rollback Snapshot Mode");
             CorrectionLine.Validate("Validation Mode", TempBatchLine."Validation Mode");
             CorrectionLine.Insert(true);
@@ -53,14 +57,19 @@ codeunit 88128 "BCDA Batch Line Mgt."
         if (TempBatchLine.Type = TempBatchLine.Type::Insert) and (Format(TempBatchLine."Record ID") <> '') then
             Error(RecordIdMustBeEmptyForInsertErr, TempBatchLine."Entry No.");
 
-        if TempBatchLine."Field ID" = 0 then
+        if (TempBatchLine.Type <> TempBatchLine.Type::Delete) and (TempBatchLine."Field ID" = 0) then
             Error(FieldRequiredErr, TempBatchLine."Entry No.");
+
+        if (TempBatchLine.Type = TempBatchLine.Type::Delete) and (TempBatchLine."Field ID" <> 0) then
+            Error(FieldNotAllowedForDeleteErr, TempBatchLine."Entry No.");
     end;
 
     var
+        FieldNotAllowedForDeleteErr: Label 'Batch entry %1 must not have a field ID for Delete correction lines.', Comment = '%1 = batch entry number';
         FieldRequiredErr: Label 'Batch entry %1 must have a field ID before request lines can be created.', Comment = '%1 = batch entry number';
         MixedTableErr: Label 'Batch entry %1 does not match the selected batch table.', Comment = '%1 = batch entry number';
         NoBatchLinesErr: Label 'Enter at least one batch line before creating request lines.';
+        ProposedValueNotAllowedForDeleteErr: Label 'Batch entry %1 must not have a proposed value for Delete correction lines.', Comment = '%1 = batch entry number';
         RecordIdMustBeEmptyForInsertErr: Label 'Batch entry %1 must not have a record ID for Insert correction lines.', Comment = '%1 = batch entry number';
         RecordIdRequiredErr: Label 'Batch entry %1 must have a record ID before request lines can be created.', Comment = '%1 = batch entry number';
         RequestRequiredErr: Label 'Create or save the correction request before adding batch lines.';

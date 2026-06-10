@@ -7,7 +7,7 @@ description: UserGuide.md maintenance for BC Data Agent. Use when Codex changes 
 
 ## Purpose
 
-Keep `UserGuide.md` aligned with the SDD package, foundation AL behavior, admin guidance, release notes, and current readiness gates.
+Keep `UserGuide.md` aligned with the SDD package, foundation AL behavior, admin guidance, release notes, and current runtime and production boundaries.
 
 ## Required Reading
 
@@ -46,7 +46,7 @@ Update or review `UserGuide.md` whenever work changes:
 ## Workflow
 
 1. Identify the user-visible behavior or documentation change.
-2. Check the readiness boundary in `docs/code-generation-readiness.md`.
+2. Check the implementation mode and runtime/production boundary in `docs/code-generation-readiness.md`.
 3. Update `UserGuide.md` in the sections users would naturally consult:
    - status and scope,
    - setup,
@@ -58,13 +58,13 @@ Update or review `UserGuide.md` whenever work changes:
    - troubleshooting,
    - sandbox validation checklist.
 4. Keep examples artificial and non-sensitive.
-5. Keep blocked behavior explicit; do not imply mutation, rollback execution, export, or arbitrary target preview is available before readiness allows it.
+5. Keep blocked behavior explicit; do not imply mutation, rollback execution, export, or arbitrary target preview is production-ready before controls and validation allow it.
 6. Cross-check `docs/admin-guide.md`, `docs/operations-runbook.md`, `docs/deployment.md`, and `docs/release-notes.md` for drift.
 7. Update prompt or SDD indexes when adding new user-guide maintenance workflow files.
 
 ## Safety Rules
 
-- Never document a target data write path that is still blocked by readiness.
+- Never document a target data write path as production-ready while controls or sandbox validation are still pending.
 - Never include credentials, customer data, posted values, hidden values, rollback before-images, or screenshots with sensitive data.
 - Do not weaken `SUPER`-only access language.
 - Keep no-approval or self-approval guidance explicit about accepted business risk.

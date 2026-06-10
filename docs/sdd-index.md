@@ -1,124 +1,87 @@
 # SDD Index
 
-This is the source-of-truth map for the BC Data Agent project. The project is in gated implementation mode: AL code may be generated only within the scope that `docs/code-generation-readiness.md` explicitly allows and the user requests.
+BC Data Agent uses the SDD to protect high-risk Business Central data correction work. The process should help development move safely, not make every code change feel like a release audit.
 
-## Source Order
+Local AL implementation is authorized by default when the change preserves the core controls below. Runtime or production use still requires sandbox evidence for the behavior being relied on.
 
-Higher-order documents define intent. Lower-order documents may refine details, but must not contradict higher-order intent.
+## Lean Development Loop
 
-| Order | Document | Purpose |
-| --- | --- | --- |
-| 1 | `docs/sdd-index.md` | SDD rules and source map. |
-| 2 | `docs/project.md` | Product intent, scope, workflows, phases. |
-| 3 | `docs/requirements.md` | Stable requirement IDs. |
-| 4 | `docs/domain-model.md` | Business vocabulary and invariants. |
-| 5 | `docs/app-design.md` | User-facing app design and workflow design. |
-| 6 | `docs/architecture.md` | Technical design direction. |
-| 7 | `docs/al-development-standards.md` | Microsoft-aligned AL implementation standards. |
-| 8 | `docs/adr/` | Accepted or proposed architecture decisions. |
-| 9 | `docs/open-decisions.md` | Known assumptions and unresolved choices. |
-| 10 | `docs/data-model.md` | Planned app-owned data and retention. |
-| 11 | `docs/api-contract.md` | Internal and external contract boundary. |
-| 12 | `docs/acceptance-criteria.md` | Observable done conditions. |
-| 13 | `docs/implementation-contracts.md` | Planned object and procedure responsibilities. |
-| 14 | `docs/implementation-plan.md` | Build sequence and gates. |
-| 15 | `docs/code-generation-readiness.md` | Final gate before code. |
-| 16 | `docs/readiness-audit.md` | Current audit of readiness and blockers. |
-| 17 | `docs/execution-readiness-kickoff.md` | ASAP path to open the Phase 6 execution readiness gate safely. |
-| 18 | `docs/rollback-readiness-kickoff.md` | Prerequisites for opening the Phase 7 rollback readiness gate safely. |
-| 19 | `docs/audit-retention-export-readiness-kickoff.md` | Phase 8 audit, retention, and export implementation scope and release validation. |
-| 20 | `docs/hardening-release-readiness-kickoff.md` | Phase 9 hardening and full-project completion blockers. |
-| 21 | `docs/test-plan.md` | Validation map. |
-| 22 | `docs/traceability-matrix.md` | Optional requirement-to-test reference coverage. |
-| 23 | `docs/risk-register.md` | Active risk management. |
-| 24 | `docs/deployment.md` | Environment and release steps. |
-| 25 | `docs/operations-runbook.md` | Support and troubleshooting. |
-| 26 | `docs/upgrade-release-strategy.md` | Lifecycle governance. |
-| 27 | `docs/ai-governance.md` | Rules for AI-assisted work. |
-| 28 | `docs/security-review.md` | High-risk security review. |
-| 29 | `docs/admin-guide.md` | Planned administrator guide. |
-| 30 | `UserGuide.md` | Detailed user-facing guide for foundation behavior and planned workflows. |
-| 31 | `docs/release-notes.md` | Release and documentation history. |
-| 32 | `README.md` | Human-facing entry point. |
+Use this loop for ordinary implementation work:
 
-## Artifact Coverage Matrix
+1. Identify the requested behavior and the affected requirement or acceptance criterion.
+2. Implement the smallest safe change in the owning AL object or doc.
+3. Run local compile and analyzers when AL changes.
+4. Update only the docs that changed behavior, controls, or user/admin workflow.
+5. Record sandbox validation only when the behavior is intended for runtime or production reliance.
 
-| Area | Covered By | Status |
-| --- | --- | --- |
-| Product idea | `project.md`, `README.md` | Drafted |
-| Requirements | `requirements.md`, `acceptance-criteria.md` | Drafted |
-| Domain language | `domain-model.md` | Drafted |
-| Architecture | `architecture.md`, `adr/` | Drafted |
-| App design | `app-design.md` | Drafted |
-| AL standards | `al-development-standards.md` | Drafted |
-| Data ownership | `data-model.md` | Drafted |
-| APIs/contracts | `api-contract.md`, `implementation-contracts.md` | Drafted |
-| Implementation sequencing | `implementation-plan.md`, `code-generation-readiness.md`, `execution-readiness-kickoff.md`, `rollback-readiness-kickoff.md`, `audit-retention-export-readiness-kickoff.md`, `hardening-release-readiness-kickoff.md` | Phase 9 local hardening complete for the Phase 8 build; non-update rollback, non-update operation execution, unfiltered export, unredacted export, snapshot payload export, and external APIs remain gated |
-| Readiness audit | `readiness-audit.md` | Phase 9 local hardening complete; non-update rollback, non-update operation execution, unfiltered export, unredacted export, snapshot payload export, and external APIs remain blocked |
-| Tests | `test-plan.md`; optional reference in `traceability-matrix.md` | Drafted |
-| Security and compliance | `security-review.md`, `risk-register.md` | Drafted |
-| Deployment and support | `deployment.md`, `operations-runbook.md` | Drafted |
-| Release lifecycle | `upgrade-release-strategy.md` | Drafted |
-| AI governance | `ai-governance.md` | Drafted |
-| User guidance | `UserGuide.md`, `docs/admin-guide.md` | Drafted |
-| Release history | `release-notes.md` | Drafted |
-| Project skills | `.codex/skills/` | Drafted |
-| Project prompts | `.codex/prompts/` | Drafted |
-| AI cost governance | `cost/` | Initialized |
+Do not require broad SDD rewrites, traceability updates, release notes, or runbook edits for every local code change. Use them when they add real evidence or prevent drift.
 
-## SDD Rules
+## Core Controls
 
-- Documentation leads implementation.
-- AL source files may be generated only within the scope currently allowed by `docs/code-generation-readiness.md`.
-- Every new code object must align with the requested behavior, requirements, acceptance criteria, and validation evidence. Traceability rows are optional reference material, not readiness blockers.
-- Posted table and hidden data modifications are treated as break-glass operations.
-- Audit entries are append-only during operations; rollback creates new audit entries and never deletes history. Governed retention may later remove expired operation records according to configured retention policy.
-- Rollback must restore business data from captured before-images, not erase the evidence of the correction.
-- Sensitive values must be protected in UI, exports, logs, telemetry, and future tests.
-- Audit metadata is mandatory; rollback before-image snapshots are configurable and must be visibly enabled, disabled, retained, or expired.
-- Approval requirement and approval separation are configurable; approval with a separate approver remains the safer default, but one-person companies may explicitly disable approval for standard requests or allow self-approval.
-- Retention for app-owned operation data must be user-configurable and should use Business Central native retention policy capabilities when feasible.
-- Future implementation agents should use the relevant project skill from `.codex/skills/` before changing architecture, AL code, UX, tests, security, release, or user guidance artifacts.
-- Future implementation agents should start from the relevant project prompt in `.codex/prompts/` when beginning repeatable workflows.
-- Future AI-assisted work should keep compact cost rollups in `cost/` without storing prompts, transcripts, secrets, customer data, posted values, hidden values, or rollback before-images.
+Every implementation path must preserve these controls:
 
-## Project Skills
+- Existing Business Central `SUPER` access is required.
+- No BCDA-specific permission set objects.
+- No target data mutation without a correction request.
+- Policy and required metadata are checked before mutation.
+- Audit metadata is append-only and mandatory.
+- Rollback creates a governed inverse correction request from retained before-images.
+- Sensitive values stay out of logs, exports, telemetry, screenshots, and generic docs.
+- Unsupported or unvalidated runtime behavior remains blocked or visibly gated.
+- Production use waits for sandbox validation evidence.
 
-| Skill | Use For |
+## Working Doc Set
+
+For most code changes, start with:
+
+| Doc | Use |
 | --- | --- |
-| `bcda-sdd-steward` | SDD alignment, readiness, requirements, acceptance, and behavior coverage. |
-| `bcda-architecture-guardian` | Architecture boundaries, ADRs, services, data ownership, and rollback/audit flow. |
-| `bcda-al-implementation` | AL implementation after the readiness gate allows it. |
-| `bcda-security-audit` | `SUPER` access, posted data risk, redaction, audit, rollback, and exports. |
-| `bcda-ux-design` | Business Central page/workflow usability and safe `SUPER` user experience. |
-| `bcda-test-validation` | Test planning, acceptance coverage, sandbox validation, and release validation. |
-| `bcda-release-ops` | Deployment, operations, upgrade, release notes, and support readiness. |
-| `bcda-user-guide-steward` | Keep `UserGuide.md` aligned with behavior, setup, readiness, release, and support changes. |
+| `docs/requirements.md` | Requirement intent and IDs. |
+| `docs/acceptance-criteria.md` | Observable behavior to satisfy. |
+| `docs/code-generation-readiness.md` | Current implementation authorization and runtime blocks. |
+| `docs/implementation-contracts.md` | Object and service ownership when boundaries matter. |
+| `docs/test-plan.md` | Validation scenario to add or update when behavior changes. |
 
-## Project Prompts
+Open these only when the change touches the area:
 
-| Prompt | Use For |
+| Area | Docs |
 | --- | --- |
-| `session-kickoff.prompt.md` | Start a new session with project status and blockers. |
-| `sdd-maintenance.prompt.md` | Update SDD docs for behavior or scope changes. |
-| `readiness-review.prompt.md` | Decide whether implementation can start. |
-| `architecture-review.prompt.md` | Review architecture or workflow design. |
-| `ux-design-review.prompt.md` | Design Business Central pages/actions/workflows. |
-| `security-audit.prompt.md` | Review SUPER access, audit, rollback, retention, and redaction risks. |
-| `implementation-planning.prompt.md` | Plan implementation without generating AL. |
-| `al-implementation-ready.prompt.md` | Implement AL only after readiness is Ready. |
-| `test-validation.prompt.md` | Plan or review tests and release evidence. |
-| `release-ops.prompt.md` | Prepare deployment, operations, upgrade, or release notes. |
-| `docs-consistency-check.prompt.md` | Find and fix documentation drift. |
-| `user-guide-maintenance.prompt.md` | Keep `UserGuide.md` aligned with behavior, setup, release, and SDD changes. |
+| Architecture or object boundaries | `docs/architecture.md`, `docs/adr/` |
+| Security, audit, rollback, redaction, posted data | `docs/security-review.md`, `docs/risk-register.md` |
+| Setup, pages, actions, user/admin workflow | `UserGuide.md`, `docs/admin-guide.md`, `docs/app-design.md` |
+| Deployment, support, release, upgrade | `docs/deployment.md`, `docs/operations-runbook.md`, `docs/upgrade-release-strategy.md`, `docs/release-notes.md` |
+| Historical readiness evidence | `docs/readiness-audit.md`, `docs/*-readiness-kickoff.md` |
+| Reference coverage | `docs/traceability-matrix.md` |
+
+## Documentation Update Rule
+
+Update docs by impact, not by checklist:
+
+| Change Type | Usually Update |
+| --- | --- |
+| Behavior or runtime control changes | Requirements or acceptance criteria, plus test plan. |
+| Object responsibility or service boundary changes | Implementation contracts, architecture only if the boundary changed. |
+| Security, audit, rollback, redaction, or posted-data risk changes | Security review or risk register. |
+| Page/action/setup/user workflow changes | User guide or admin guide. |
+| Release or production-readiness changes | Deployment, operations, release notes, readiness evidence. |
+| Internal refactor with no behavior change | No SDD doc update required beyond comments in code if helpful. |
+
+`docs/traceability-matrix.md` is optional reference material. It is useful before release or when coverage is unclear, but it is not a local implementation gate.
 
 ## Readiness Gates
 
-| Gate | Required Evidence | Current Status |
-| --- | --- | --- |
-| Discovery | Product intent, scope, risks, open decisions documented | Complete |
-| Platform verification | Foundation APIs verified locally; RecordId/RecordRef selection and mutation behavior verified in sandbox | Partially complete |
-| Security review | `SUPER`-only access model, audit model, rollback rules reviewed | Drafted; active checklist |
-| Implementation readiness | `code-generation-readiness.md` says Ready for the requested scope | Ready through Phase 9 local hardening for the current Phase 8 build |
-| Build validation | AL package compiles in sandbox | Local foundation compile/analyzers passed; sandbox deployment validation not started |
-| Release validation | Sandbox correction, rollback, audit, and upgrade tests pass | Not started |
+| Gate | Meaning |
+| --- | --- |
+| Local implementation | Allowed when the core controls remain intact and the behavior aligns with requirements/acceptance criteria. |
+| Local validation | AL compile and analyzers pass for AL changes; docs are consistent for behavior changes. |
+| Runtime enablement | Feature is not merely present in code; it is available through guarded pages/actions/setup only when controls exist. |
+| Production reliance | Sandbox validation covers the representative target data, access, audit, rollback, export, retention, and upgrade scenarios involved. |
+
+## Source Map
+
+The repository still keeps detailed reference docs under `docs/`, but the lean process above determines which ones matter for a given task. When docs conflict, prefer:
+
+1. Requirements and acceptance criteria for what must happen.
+2. ADRs for accepted architectural decisions.
+3. Code-generation readiness for what may be implemented locally and what remains runtime-gated.
+4. User/admin guides for current user-facing behavior.

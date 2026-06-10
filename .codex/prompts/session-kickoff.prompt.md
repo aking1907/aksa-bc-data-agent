@@ -16,10 +16,10 @@ Read:
 
 Then give me a compact status brief:
 - Current implementation mode.
-- Whether AL code generation is allowed.
+- Whether AL code generation is authorized for local implementation.
 - Blocking open decisions.
 - Highest-risk areas.
 - Best next action.
 
-Do not generate AL code unless docs/code-generation-readiness.md says Ready and I explicitly ask for implementation.
+Generate AL code only when I explicitly ask for implementation; local implementation is allowed under docs/code-generation-readiness.md unless the request removes mandatory controls.
 ```

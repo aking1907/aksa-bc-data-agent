@@ -23,7 +23,7 @@ The app will support:
 ## Consequences
 
 - Users can control database growth and sensitive rollback payload retention.
-- Rollback is available only while snapshots exist and conflict checks pass.
+- Rollback request creation is available only while required snapshots exist; generated rollback requests handle current-value review through normal preview and execution controls.
 - Audit metadata remains available according to configured audit retention.
 - UI must clearly warn when rollback snapshots are disabled or expired.
 - Implementation must distinguish audit evidence from rollback payloads.

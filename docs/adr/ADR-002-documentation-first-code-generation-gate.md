@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded by ADR-006
 
 ## Context
 
@@ -10,9 +10,11 @@ The project touches high-risk Business Central data. Implementation details must
 
 ## Decision
 
-No AL code will be generated outside the scope that `docs/code-generation-readiness.md` marks Ready and the user explicitly requests.
+The original decision was that no AL code would be generated outside the scope that `docs/code-generation-readiness.md` marked Ready and the user explicitly requested.
 
-The readiness gate must confirm:
+This decision is superseded by ADR-006. The documentation-first intent remains, but local implementation now has standing authorization under the SDD and runtime/production enablement remains gated by controls and validation evidence.
+
+The readiness gate had to confirm:
 
 - Required SDD docs exist.
 - Blocking open decisions are closed or accepted as assumptions.

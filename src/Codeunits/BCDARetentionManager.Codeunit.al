@@ -200,11 +200,16 @@ codeunit 88126 "BCDA Retention Manager"
     local procedure CanDeleteRollbackOperation(RollbackOperation: Record "BCDA Rollback Operation"): Boolean
     var
         AuditEntry: Record "BCDA Audit Entry";
+        CorrectionRequest: Record "BCDA Correction Request";
     begin
         if IsActiveStatus(RollbackOperation.Status) then
             exit(false);
 
-        if AuditEntry.Get(RollbackOperation."Source Audit Entry No.") then
+        if (RollbackOperation."Generated Request ID" <> '') and CorrectionRequest.Get(RollbackOperation."Generated Request ID") then
+            if IsActiveStatus(CorrectionRequest.Status) then
+                exit(false);
+
+        if (RollbackOperation."Source Audit Entry No." <> 0) and AuditEntry.Get(RollbackOperation."Source Audit Entry No.") then
             exit(false);
 
         exit(true);

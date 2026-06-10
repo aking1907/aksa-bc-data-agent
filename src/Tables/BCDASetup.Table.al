@@ -91,6 +91,10 @@ table 88100 "BCDA Setup"
             Caption = 'Allow Data Policies';
             InitValue = true;
         }
+        field(15; "Require Ticket Reference"; Boolean)
+        {
+            Caption = 'Require Ticket Reference';
+        }
     }
 
     keys
@@ -107,7 +111,7 @@ table 88100 "BCDA Setup"
             "Primary Key" := GetPrimaryKey();
 
         if "Foundation Version" = '' then
-            "Foundation Version" := '1.2';
+            "Foundation Version" := '1.3';
 
         if "Last Initialized At" = 0DT then
             "Last Initialized At" := CurrentDateTime();

@@ -105,6 +105,11 @@ table 88102 "BCDA Correction Request"
                     Error(SeparateApproverRequiresApprovalErr);
             end;
         }
+        field(17; "Ticket Reference Required"; Boolean)
+        {
+            Caption = 'Ticket Reference Required';
+            Editable = false;
+        }
     }
 
     keys
@@ -135,7 +140,7 @@ table 88102 "BCDA Correction Request"
 
     procedure HasRequiredMetadata(): Boolean
     begin
-        exit((Reason <> '') and ("Ticket Reference" <> ''));
+        exit((Reason <> '') and ((not "Ticket Reference Required") or ("Ticket Reference" <> '')));
     end;
 
     var

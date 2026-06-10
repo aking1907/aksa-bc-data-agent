@@ -27,7 +27,7 @@ Read the SDD source order in docs/sdd-index.md, then update all affected documen
 - docs/deployment.md and docs/operations-runbook.md if admin/user behavior changes
 - UserGuide.md when user-facing behavior, setup, page actions, validation steps, release guidance, or readiness scope changes
 
-Keep the current boundary: AL code is allowed only within the exact scope allowed by `docs/code-generation-readiness.md`.
+Keep the current boundary: AL code has standing local implementation authorization under `docs/code-generation-readiness.md`, while runtime and production enablement remain controlled.
 
 End with changed files, readiness status, and remaining blockers.
 ```

@@ -34,7 +34,11 @@ page 88114 "BCDA Correction Request Card"
                 }
                 field("Ticket Reference"; Rec."Ticket Reference")
                 {
-                    ToolTip = 'Specifies the external ticket or reference.';
+                    ToolTip = 'Specifies the external ticket or reference when one exists or is required.';
+                }
+                field("Ticket Reference Required"; Rec."Ticket Reference Required")
+                {
+                    ToolTip = 'Specifies whether this request requires a ticket/reference before preview, approval, or execution.';
                 }
                 field("Risk Level"; Rec."Risk Level")
                 {
@@ -142,9 +146,9 @@ page 88114 "BCDA Correction Request Card"
             action(BatchAddLines)
             {
                 Caption = 'Batch Add Lines';
-                Enabled = false;
+                Enabled = BatchAddLinesEnabled;
                 Image = CreateLinesFromJob;
-                ToolTip = 'Blocked until batch RecordId selection or target matrix entry is implemented.';
+                ToolTip = 'Opens same-table batch entry for creating correction lines from selected target records and fields.';
 
                 trigger OnAction()
                 var
@@ -202,6 +206,29 @@ page 88114 "BCDA Correction Request Card"
                     CurrPage.Update(false);
                 end;
             }
+            action(Rollback)
+            {
+                Caption = 'Rollback';
+                Enabled = RollbackEnabled;
+                Image = Undo;
+                ToolTip = 'Creates a new correction request with suggested update lines that revert this completed request. No target data is changed until the new request is previewed, approved if required, and executed.';
+
+                trigger OnAction()
+                var
+                    RollbackRequest: Record "BCDA Correction Request";
+                    RollbackService: Codeunit "BCDA Rollback Service";
+                    RollbackRequestId: Code[20];
+                begin
+                    if not Confirm(RollbackConfirmQst, false, Rec."Request ID") then
+                        exit;
+
+                    RollbackService.CreateRollbackRequest(Rec, RollbackRequestId);
+                    CurrPage.Update(false);
+
+                    if RollbackRequest.Get(RollbackRequestId) then
+                        Page.Run(Page::"BCDA Correction Request Card", RollbackRequest);
+                end;
+            }
         }
     }
 
@@ -230,20 +257,25 @@ page 88114 "BCDA Correction Request Card"
     begin
         SeparateApproverEnabled := Rec."Approval Required";
         PreviewEnabled := (Rec.Status = Rec.Status::Open) or (Rec.Status = Rec.Status::Previewed);
+        BatchAddLinesEnabled := PreviewEnabled;
         SubmitApprovalEnabled := Rec."Approval Required" and
             ((Rec.Status = Rec.Status::Open) or (Rec.Status = Rec.Status::Previewed));
         ApproveEnabled := Rec."Approval Required" and (Rec.Status = Rec.Status::"Pending Approval");
         ExecuteEnabled := (Rec.Status = Rec.Status::Approved) or
             ((not Rec."Approval Required") and
              ((Rec.Status = Rec.Status::Previewed) or ((not Rec."Preview Required") and (Rec.Status = Rec.Status::Open))));
+        RollbackEnabled := Rec.Status = Rec.Status::Completed;
     end;
 
     var
         ApproveEnabled: Boolean;
+        BatchAddLinesEnabled: Boolean;
         ExecuteEnabled: Boolean;
         ExecutionCompletedMsg: Label 'Execution finished. Review correction line statuses and audit entries for the final result.';
         PreviewEnabled: Boolean;
         PreviewCompletedMsg: Label 'Preview completed. Review correction line statuses and sanitized messages before approval.';
+        RollbackConfirmQst: Label 'Create a new rollback correction request for completed request %1? No target data will be changed until the new request is previewed, approved if required, and executed.', Comment = '%1 = source request ID';
+        RollbackEnabled: Boolean;
         SeparateApproverEnabled: Boolean;
         SubmitApprovalEnabled: Boolean;
 }

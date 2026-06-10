@@ -1,25 +1,25 @@
 ---
 name: bcda-al-implementation
-description: Business Central AL implementation guardrails for BC Data Agent. Use when Codex is explicitly asked to generate, modify, or review AL source after the SDD readiness gate allows it; implement tables, pages, codeunits, reports, tests, setup, SUPER-only access checks, policy, audit, rollback, metadata discovery, or data-correction workflows.
+description: Business Central AL implementation guardrails for BC Data Agent. Use when Codex is explicitly asked to generate, modify, or review AL source under the standing SDD implementation authorization; implement tables, pages, codeunits, reports, tests, setup, SUPER-only access checks, policy, audit, rollback, metadata discovery, or data-correction workflows.
 ---
 
 # BCDA AL Implementation
 
 ## Purpose
 
-Implement AL changes only after the SDD gate allows code generation. Build testable Business Central objects that align with requirements and preserve policy, audit, rollback, and redaction invariants.
+Implement AL changes under the standing SDD authorization. Build testable Business Central objects that align with requirements and preserve policy, audit, rollback, and redaction invariants.
 
 ## Gate
 
 Before writing AL files:
 
 1. Read `docs/code-generation-readiness.md`.
-2. Confirm status is Ready.
+2. Confirm standing local implementation authorization covers the request.
 3. Confirm the user explicitly requested implementation.
-4. Confirm blocking open decisions are closed or accepted.
-5. Confirm sandbox validation, security review, and test evidence cover the platform behavior being used.
+4. Confirm open decisions that materially affect runtime behavior are closed, accepted, or documented as assumptions.
+5. Confirm sandbox validation, security review, and test evidence cover production reliance, or keep the behavior guarded and document pending validation.
 
-If any item fails, do not create AL code. Update docs or ask for the missing decision.
+Do not create AL code only when the request would bypass mandatory `SUPER`, policy, audit, rollback, redaction, or production-validation controls. Otherwise implement behind the guardrails and update docs.
 
 ## Required Reading
 
@@ -70,7 +70,7 @@ Read:
 
 For every AL change:
 
-- Align with requirements, acceptance criteria, and validation evidence.
+- Align with requirements, acceptance criteria, and validation evidence or documented pending sandbox validation.
 - Compile in the target BC environment.
 - Pass required analyzers or document approved exceptions.
 - Add or update tests or manual validation steps.

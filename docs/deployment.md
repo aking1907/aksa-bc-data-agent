@@ -4,7 +4,7 @@
 
 Initial target: Business Central 2026 release wave 1 / version 28 sandbox matching `app.json` platform/application `28.0.0.0` and runtime `17.0`.
 
-Production deployment is blocked until sandbox release validation passes and the readiness gate is updated.
+Production deployment is blocked until sandbox release validation passes and runtime readiness evidence is updated.
 
 Phase 8 filtered audit metadata export and governed retention cleanup are implemented locally. Sandbox validation was skipped by request for implementation and remains required before production use.
 
@@ -29,7 +29,7 @@ Phase 8 filtered audit metadata export and governed retention cleanup are implem
 
 ## Install Or Deployment Steps
 
-Foundation implementation has started. Package deployment is allowed only to sandbox for setup, policy, request, audit, retention, and SUPER access validation.
+Local implementation is standing-authorized under the SDD. Package deployment is allowed only to sandbox for setup, policy, request, audit, retention, and SUPER access validation until release gates pass.
 
 1. Build AL package.
 2. Publish to sandbox.
@@ -77,7 +77,7 @@ Foundation implementation has started. Package deployment is allowed only to san
 
 There are two rollback meanings:
 
-- Data rollback: BCDA restores before-images through the governed rollback workflow.
+- Data rollback: BCDA creates a governed rollback correction request from retained before-images, then that generated request is previewed, approved if required, and executed through the normal workflow.
 - Extension rollback: uninstall or downgrade package only after confirming app-owned data and dependency impact.
 
 Extension rollback must not be treated as a substitute for data rollback or audit review.

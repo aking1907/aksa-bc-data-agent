@@ -1,6 +1,6 @@
 # BCDA AL Implementation Prompt
 
-Use this prompt only after the readiness gate is Ready.
+Use this prompt when the user asks for BCDA AL implementation under the standing SDD authorization.
 
 ```text
 Use $bcda-al-implementation, $bcda-sdd-steward, $bcda-security-audit, $bcda-test-validation, and $bcda-user-guide-steward when user-facing behavior changes.
@@ -9,7 +9,7 @@ Implement this approved BC Data Agent AL change:
 <describe the implementation task>
 
 Before editing:
-- Confirm docs/code-generation-readiness.md says Ready.
+- Confirm docs/code-generation-readiness.md authorizes continuous local implementation for this scope.
 - Confirm I explicitly asked for implementation.
 - Read docs/implementation-contracts.md.
 - Read docs/app-design.md and docs/al-development-standards.md.

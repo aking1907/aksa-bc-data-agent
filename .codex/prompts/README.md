@@ -13,10 +13,10 @@ Use the prompt that matches the task:
 | `ux-design-review.prompt.md` | Design Business Central pages/actions/workflows. |
 | `security-audit.prompt.md` | Review SUPER access, audit, rollback, retention, and redaction risks. |
 | `implementation-planning.prompt.md` | Plan implementation without generating AL. |
-| `al-implementation-ready.prompt.md` | Implement AL only after readiness is Ready. |
+| `al-implementation-ready.prompt.md` | Implement AL under the standing SDD authorization. |
 | `test-validation.prompt.md` | Plan or review tests and release evidence. |
 | `release-ops.prompt.md` | Prepare deployment, operations, upgrade, or release notes. |
 | `docs-consistency-check.prompt.md` | Find and fix documentation drift. |
 | `user-guide-maintenance.prompt.md` | Keep `UserGuide.md` aligned with behavior, setup, release, and SDD changes. |
 
-Default rule: generate AL code only within the exact scope allowed by `docs/code-generation-readiness.md`.
+Default rule: generate AL code when implementation is requested and the change preserves mandatory safety controls; runtime and production enablement remain governed by `docs/code-generation-readiness.md`.

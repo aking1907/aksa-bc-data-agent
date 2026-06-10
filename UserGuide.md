@@ -4,14 +4,14 @@
 
 This guide explains how to use BC Data Agent from a user and administrator point of view.
 
-Current implementation status: Phase 9 local hardening is complete for the current Phase 8 build. The `BC Data Agent` profile and BCDA Role Center provide navigation, and setup, policy, correction request, correction line, audit entry, rollback operation, retention log, and other shell pages are `SUPER`-gated. Limited RecordId target selection, selected-field current value refresh, request-level staged-line preview, policy preview, read-only preview matrix behavior, `Allow Data Policies`, supported grouped `Update` execution, rollback of successful `Update` execution audit entries, filtered audit metadata export, governed retention cleanup, and local hardening evidence are open for sandbox validation. Validate-trigger dry-run, non-update execution, non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, and external APIs are not enabled.
+Current implementation status: Phase 9 local hardening is complete for the current Phase 8 build. The SDD now allows continuous local implementation without per-phase paper confirmation, while production/runtime use still requires controls and validation evidence. The `BC Data Agent` profile and BCDA Role Center provide navigation, and setup, policy, correction request, correction line, audit entry, rollback operation, retention log, and other shell pages are `SUPER`-gated. Limited RecordId target selection, selected-field current value refresh, request-level staged-line preview, policy preview, read-only preview matrix behavior, `Allow Data Policies`, supported grouped `Update` execution, request-level rollback staging for completed `Update` requests, filtered audit metadata export, governed retention cleanup, and local hardening evidence are open for sandbox validation. Validate-trigger dry-run, non-update execution, non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, and external APIs are not enabled at runtime.
 
 Sandbox validation was skipped by request for the Phase 8 implementation pass. Phase 9 completed local hardening only; do not use execution, rollback, export, or cleanup in production until sandbox validation and export-handling rules are complete.
 
 Use this guide in two ways:
 
 - For the current build, follow the sandbox validation and administration steps that are marked as available now.
-- For the planned full workflow, use the future sections as the operating model that later readiness gates must implement and validate.
+- For the planned full workflow, use the future sections as the operating model that later implementation work can build and validate before runtime or production use.
 
 ## Product Purpose
 
@@ -25,13 +25,13 @@ The app is not a casual table editor. It is a break-glass workflow for authorize
 2. Use BC Data Agent only for exceptional support or recovery cases.
 3. All users must already have the standard Business Central `SUPER` permission set.
 4. Do not create, assign, or expect BCDA-specific permission sets.
-5. Every request must have a business reason and a ticket/reference before preview, approval, or execution actions.
+5. Every request must have a business reason before preview, approval, or execution. A ticket/reference is required only when the request says `Ticket Reference Required`.
 6. Posted data and high-risk data must be treated as break-glass work.
 7. Approval is configurable. Use a separate approver for higher-risk companies, disable approval only for accepted standard-request workflows, and allow self-approval only when the business accepts that control model.
 8. Audit metadata is mandatory.
 9. Rollback snapshot logging is configurable, but if snapshots are disabled, rollback will be unavailable.
 10. Retention settings control how long app-owned operation records remain available.
-11. In the current build, only grouped `Update` execution and rollback of successful `Update` execution audit entries are enabled; `Rename`, `Delete`, and `Insert` execution and rollback are audited or blocked.
+11. In the current build, only grouped `Update` execution and request-level rollback staging for completed `Update` requests are enabled; `Rename`, `Delete`, and `Insert` execution and rollback are audited or blocked.
 12. Audit export is filtered metadata only. It omits target values, target record identity text, and rollback snapshot payloads.
 13. Retention cleanup must be run only after reviewing retention settings because expired eligible BCDA-owned operation records can be purged or deleted.
 
@@ -43,7 +43,7 @@ The app is not a casual table editor. It is a break-glass workflow for authorize
 | `SUPER` Support User | Create correction requests and add correction lines. |
 | `SUPER` Approver | Review and approve high-risk or approval-required requests when the setup requires approval. |
 | `SUPER` Reviewer | Review audit entries, retention logs, and support evidence. |
-| Technical Lead | Validate sandbox behavior before opening the next readiness gate. |
+| Technical Lead | Validate sandbox behavior before runtime or production enablement. |
 
 ## Current Capability Map
 
@@ -55,12 +55,12 @@ The app is not a casual table editor. It is a break-glass workflow for authorize
 | Data policies | Yes | Maintain table and field policy records and configure whether policy records participate through `Allow Data Policies`. | When `Allow Data Policies` is off, policy records are bypassed, but BCDA app-owned tables, unsupported fields, non-`SUPER` access, metadata, audit, and rollback controls still apply. |
 | Correction requests | Yes | Create request headers, apply setup defaults, preview staged lines, execute supported grouped updates, and manage request state. | Preview is non-mutating; execution is limited to supported grouped `Update` lines. |
 | Correction lines | Partial | Stage a correction type, use lookup suggestions for target table and field, use `Select Record` to select a target record ID when applicable, review the selected field's current value, enter proposed value text, and open `Preview Data Matrix` to review staged line data. | Current value preview and the matrix use stored correction-line data only; `Insert` keeps `Record ID` empty; `Rename`, `Delete`, and `Insert` execution are still blocked. |
-| Batch line builder | Paused | Batch entry is visible as foundation scaffolding. | Batch creation is blocked until batch RecordId selection or target matrix entry is implemented. |
+| Batch line builder | Yes | Create same-table correction lines from selected target records, fields, proposed values, and rollback/validation settings. | No target data is changed by batch creation; unsupported runtime operation types still follow the normal execution gates. |
 | Approval | Yes | Submit and approve requests only when approval is required, with configurable separate-approver or self-approval behavior. | Full policy-driven approval workflow is still future hardening. |
-| Execution | Yes, limited | Execute supported grouped `Update` corrections after metadata, preview, approval/policy, and rollback snapshot checks pass. | Unsupported operation types are audited as blocked. |
+| Execution | Yes, limited | Execute supported grouped `Update` corrections after metadata, preview, approval/policy, and rollback snapshot checks pass. | The request is applied as one transaction; unsupported operation types are blocked before mutation. |
 | Audit entries | Yes | Review append-only audit evidence and export filtered metadata when export is enabled and filters are applied. | Export omits target values, target record identity text, and rollback snapshot payloads. |
 | Retention logs | Yes | Review retention log records and cleanup evidence. | Cleanup touches only expired eligible BCDA-owned operation records, not target Business Central business data. |
-| Rollback | Yes, limited | Roll back successful `Update` execution audit entries when retained snapshots exist and conflict checks pass. | `Rename`, `Delete`, `Insert`, conflict override, and snapshot-missing rollback are blocked. |
+| Rollback | Yes, limited | Create a new rollback correction request from a completed `Update` request when retained before-image snapshots exist for every executed supported line. | The rollback action itself does not change target data; the generated request must be previewed, approved if required, and executed. |
 
 ## Opening BC Data Agent
 
@@ -110,7 +110,8 @@ Perform first-time setup in a sandbox environment only.
 | Environment Label | Text shown to help users recognize where they are working. | Use a plain label such as `Sandbox`, `UAT`, or `Production - Restricted`. |
 | Default Policy Decision | Decision used when no matching table or field policy exists. | `Block`. |
 | Allow Data Policies | Whether BCDA data policy records participate in preview and execution decisions. | Enabled. Turn off only when the business accepts bypassing policy records while preserving permanent runtime controls. |
-| Approval Required Default | Whether requests require approval by default. | Enabled for dual control; disabled for owner-operated companies that approve through ticket discipline instead. |
+| Require Ticket Reference | Whether new requests require a ticket/reference before preview, approval, or execution. | Disabled for paperless standard updates; enabled when company policy requires an external case, ticket, or approval reference. |
+| Approval Required Default | Whether requests require approval by default. | Enabled for dual control; disabled for owner-operated companies that accept a documented reason-only standard workflow. |
 | Require Separate Approver | Whether approval must be performed by a different `SUPER` user when approval is required. | Enabled for safer default; disabled only when one `SUPER` user must perform the whole workflow. |
 | Require Preview | Whether a request must be previewed before execution. | Enabled. |
 
@@ -127,7 +128,7 @@ Rollback snapshot modes:
 | Mode | Meaning | User Impact |
 | --- | --- | --- |
 | Policy Controlled | Resolve behavior from setup and data policy. | Best when policy rules are mature. |
-| Enabled | Store rollback snapshots for supported execution. | Rollback can be available later while snapshots are retained and conflict checks pass. |
+| Enabled | Store rollback snapshots for supported execution. | Request-level rollback staging can be available later while snapshots are retained. |
 | Disabled | Do not store rollback snapshots. | Rollback will be unavailable. Audit metadata still remains mandatory. |
 | Required | Execution should require rollback snapshot capture. | Safer default for posted and high-risk targets. |
 
@@ -249,7 +250,7 @@ Review:
 
 | Risk Level | Meaning | Typical Handling |
 | --- | --- | --- |
-| Low | Low operational impact. | Still audit and require reason/ticket. |
+| Low | Low operational impact. | Still audit and require a reason; require a ticket/reference only when configured. |
 | Normal | Standard governed correction. | Preview, policy check, audit, and rollback awareness required. |
 | High | Business-critical or sensitive target. | Approval and rollback snapshots recommended. |
 | Posted | Posted data or posting-related data. | Treat as break-glass, require approval, and require rollback snapshot logging unless explicitly accepted otherwise. |
@@ -295,7 +296,8 @@ Important columns:
 | --- | --- |
 | Request ID | Unique request identifier. |
 | Status | Current workflow state. |
-| Ticket Reference | External support ticket, incident, case, or approval reference. |
+| Ticket Reference | External support ticket, incident, case, or approval reference when one exists or is required. |
+| Ticket Reference Required | Whether this request requires a ticket/reference before preview, approval, or execution. |
 | Reason | Business reason for the correction. |
 | Risk Level | Request-level risk classification. |
 | Requested By | User who created the request. |
@@ -313,7 +315,8 @@ General:
 - `Status`: workflow state.
 - `Company Name`: company context.
 - `Reason`: required business reason.
-- `Ticket Reference`: required external reference.
+- `Ticket Reference`: external reference when one exists or is required.
+- `Ticket Reference Required`: setup-derived flag that shows whether the reference is required for this request.
 - `Risk Level`: request risk classification.
 
 Approval:
@@ -365,29 +368,30 @@ Use `Preview Data Matrix` on the correction lines part to open a read-only tempo
 
 ### Batch Add Lines
 
-`Batch Add Lines` is paused because manual record-key entry has been removed. It will return after batch RecordId selection or target matrix entry can populate target record identities safely.
+`Batch Add Lines` opens a same-table worksheet that creates normal correction lines from selected target records and fields.
 
-After batch RecordId selection is implemented, the planned batch builder works like a staging worksheet:
+Use it when several lines belong to the same target table:
 
 1. Select one `Table ID` for the batch.
-2. Add one row for each target record ID and field/value pair through target record selection.
-3. Use field lookup to choose enabled normal fields for the selected table.
-4. Enter the proposed new value text for each row.
-5. Choose `Create Request Lines`.
+2. Add one batch entry per requested field change or record-level delete staging row.
+3. For `Update`, `Rename`, or `Delete`, use `Select Record` to populate the target `Record ID`.
+4. For `Update`, `Rename`, or `Insert`, use field lookup and enter the proposed value.
+5. Choose rollback snapshot mode and validation mode when needed.
+6. Choose `Create Request Lines`.
 
-The app will then create normal `BCDA Correction Line` records. The batch builder must not introduce a separate execution path.
+The app creates normal `BCDA Correction Line` records. The batch builder does not introduce a separate execution path.
 
 ### Required Request Metadata
 
 Before preview, approval, or execution actions, enter:
 
 - `Reason`,
-- `Ticket Reference`.
+- `Ticket Reference` only when `Ticket Reference Required` is on.
 
-If either value is missing, the app stops the action with this foundation error:
+If required metadata is missing, the app stops the action with this error:
 
 ```text
-Reason and ticket/reference are required before this action.
+Reason is required before this action. Ticket/reference is required only when the request requires it.
 ```
 
 ### Foundation Request Actions
@@ -395,13 +399,13 @@ Reason and ticket/reference are required before this action.
 | Action | Available Now | What It Does |
 | --- | --- | --- |
 | Initialize | Yes | Applies setup defaults, saves the request, and writes request-created audit evidence. |
-| Batch Add Lines | Paused | Blocked until batch RecordId selection or target matrix entry is implemented. |
+| Batch Add Lines | Yes for open or previewed requests | Opens same-table batch entry and creates normal correction lines from selected records and fields. |
 | Preview Data Matrix | Yes from correction lines | Opens a read-only temporary matrix with field columns and `Current`/`New` rows for each staged target record in the current request. |
 | Preview Request | Yes while the request is open or previewed | Runs non-mutating preview, refreshes selected current values, validates staged line shape and proposed values, evaluates policy, updates line statuses/sanitized messages, updates rollback/retention text, and writes preview audit evidence. |
 | Submit For Approval | Yes when approval is required and the request is not already pending or approved | Sets status to `Pending Approval` after required metadata exists and required preview lines are previewed. |
 | Approve | Yes when approval is required and the request is pending approval | Approves the request after required preview lines are still previewed. The requester can approve only when separate approver is not required. |
-| Execute | Yes for supported states | Executes grouped `Update` lines after metadata, preview, approval/policy, `SUPER`, audit, and rollback snapshot checks pass. Unsupported operation types are audited as blocked. |
-| Rollback | Yes from audit entries | Rolls back a successful execution audit entry when it is an `Update` line, retained old/new snapshots exist, policy allows rollback, and the current target value still matches the executed value. |
+| Execute | Yes for supported states | Executes grouped `Update` lines as one request transaction after metadata, preview, approval/policy, `SUPER`, audit, and rollback snapshot checks pass. Unsupported operation types are blocked before mutation. |
+| Rollback | Yes from completed requests | Creates a new rollback correction request with suggested inverse `Update` lines from retained before-images. No target data changes until the generated request is previewed, approved if required, and executed. |
 
 ### Request Statuses
 
@@ -414,7 +418,7 @@ Reason and ticket/reference are required before this action.
 | Previewed | Non-mutating request preview completed. |
 | Executing | Execution in progress. |
 | Completed | Execution completed successfully. |
-| Failed | Execution completed with one or more failed lines. |
+| Failed | Request validation failed before mutation, or execution did not complete. Target data is not partially updated by a failed request. |
 | Cancelled | Planned cancelled state. |
 
 ### Line Statuses
@@ -441,11 +445,11 @@ Use this workflow to validate the current build in a sandbox.
 6. Create a safe sandbox policy.
 7. Open `BCDA Correction Requests`.
 8. Create a new request.
-9. Enter `Reason`, `Ticket Reference`, `Company Name`, and `Risk Level`.
+9. Enter `Reason`, `Company Name`, and `Risk Level`; enter `Ticket Reference` when the request requires it or when you want that evidence retained.
 10. Use `Initialize`.
 11. Add one correction line, choose `Type`, select the target table, use `Record ID` assist edit or `Select Record` on the line to choose the target record when the type is not `Insert`, and use field lookup to select field metadata when applicable.
 12. Use `Preview Data Matrix` on the lines part to review the staged line data for the request.
-13. Do not use `Batch Add Lines`; it is paused until batch RecordId selection or target matrix entry is available.
+13. Optionally use `Batch Add Lines` to create multiple same-table correction lines from selected records and fields.
 14. Use `Preview Request`.
 15. Use `Submit For Approval` if approval is required.
 16. If `Require Separate Approver` is enabled, sign in or switch to a different `SUPER` user.
@@ -453,18 +457,19 @@ Use this workflow to validate the current build in a sandbox.
 18. Use `Execute` for supported grouped `Update` lines only.
 19. Open `BCDA Audit Entries`.
 20. Confirm audit entries exist for request creation, preview, approval where applicable, and execution.
-21. For a successful `Update` execution audit entry with rollback available, use `Rollback` only on artificial sandbox data.
-22. Open `BCDA Rollback Operations` and confirm the rollback operation result.
-23. Open `BCDA Retention Logs` if retention registration or cleanup validation produced log entries.
+21. If the completed request needs reversal and rollback snapshots are retained, use `Rollback` from the completed correction request only on artificial sandbox data.
+22. Review the generated rollback correction request, run `Preview Request`, and execute it only through the same governed workflow when appropriate.
+23. Open `BCDA Rollback Operations` and confirm the generated rollback request is linked to the completed source request.
+24. Open `BCDA Retention Logs` if retention registration or cleanup validation produced log entries.
 
-If a line uses `Rename`, `Delete`, or `Insert`, execution should audit it as blocked and leave target Business Central data unchanged for that line.
+If any line uses `Rename`, `Delete`, or `Insert`, execution is blocked before mutation and target Business Central data remains unchanged for the request.
 
 ## Planned Full Correction Workflow
 
-This section describes the intended user experience after future readiness gates enable richer target-matrix preview and non-update operation behavior. Execution is currently available only for grouped `Update` lines, rollback is currently available only for successful `Update` execution audit entries, and export is filtered audit metadata only.
+This section describes the intended user experience after future implementation and validation enable richer target-matrix preview and non-update operation behavior at runtime. Execution is currently available only for grouped `Update` requests, rollback currently creates a new correction request from a completed supported `Update` request, and export is filtered audit metadata only.
 
 1. A `SUPER` support user creates a correction request.
-2. The user enters reason, ticket/reference, company, and target table.
+2. The user enters reason, any setup- or policy-required ticket/reference, company, and target table.
 3. The user selects the target record, then uses the planned matrix selector to stage field changes for the resolved `RecordId`.
 4. The app evaluates setup and data policy.
 5. The user runs preview.
@@ -473,12 +478,12 @@ This section describes the intended user experience after future readiness gates
 8. The user executes the approved request.
 9. The app re-checks policy and access before mutation.
 10. The app captures before-image snapshots when rollback snapshot logging is enabled or required.
-11. The app writes the target field change only if Business Central platform behavior allows it.
+11. The app writes target field changes as one request transaction only if Business Central platform behavior allows the whole request.
 12. The app writes audit evidence for success, failure, or blocked result.
 13. A reviewer validates audit evidence.
-14. If the correction was wrong, a `SUPER` user starts rollback while snapshots are retained.
-15. The app checks for conflicts before rollback.
-16. Rollback restores the previous value when allowed and writes new audit evidence.
+14. If the correction was wrong, a `SUPER` user starts rollback from the completed correction request while snapshots are retained.
+15. The app creates a new rollback correction request with suggested inverse values for review.
+16. The generated request is previewed, approved if required, and executed through the normal all-or-nothing workflow.
 
 ## Rollback And Retention Concepts
 
@@ -495,14 +500,14 @@ Examples:
 - company,
 - table and field IDs,
 - reason,
-- ticket/reference,
+- ticket/reference when provided or required,
 - operation,
 - result,
 - sanitized error.
 
 ### Rollback Snapshots
 
-Rollback snapshots are before-image and value records that supported rollback uses to restore prior values.
+Rollback snapshots are before-image and value records that supported rollback uses to stage prior values in a generated rollback correction request.
 
 If rollback snapshots are disabled:
 
@@ -516,26 +521,27 @@ If rollback snapshots expire or are purged:
 - rollback material is gone,
 - rollback must be blocked or escalated outside BCDA.
 
-### Running Supported Rollback
+### Creating A Rollback Request
 
-Supported rollback starts from `BCDA Audit Entries`.
+Supported rollback starts from a completed correction request.
 
-1. Open `BCDA Audit Entries`.
-2. Select a successful `Execution` audit entry with `Rollback Available` enabled.
+1. Open the completed source request in `BCDA Correction Request Card`.
+2. Confirm all source lines are supported `Update` lines with retained rollback snapshots.
 3. Choose `Rollback`.
 4. Confirm the prompt.
-5. Review the resulting rollback audit entry and `BCDA Rollback Operations` record.
+5. Review the generated rollback correction request.
+6. Run `Preview Request` on the generated request before approval or execution.
+7. Review the resulting rollback audit entry and `BCDA Rollback Operations` record.
 
-Rollback succeeds only when:
+Rollback request creation succeeds only when:
 
-- the source execution entry belongs to a supported `Update` line,
-- old and new value snapshots still exist, are not purged, and are not expired,
-- the correction line is still in `Executed` status,
-- the current target value still matches the executed new value,
+- the source request is completed,
+- every source line is a supported executed `Update` line,
+- old value snapshots still exist, are not purged, and are not expired,
 - the user is `SUPER`,
-- data policy permits the rollback or the original request has approval when policy requires approval.
+- no active or completed rollback request already exists for the source request.
 
-If any check fails, BCDA leaves the target unchanged, stores a sanitized error, and appends rollback audit evidence.
+The rollback action itself never changes target data. The generated request must pass preview, policy, approval when required, execution, audit, and all-or-nothing transaction controls before any target data changes.
 
 ### Retention Categories
 
@@ -565,12 +571,12 @@ Important columns:
 | Company Name | Company context. |
 | Target Table ID | Target table number. |
 | Target Field ID | Target field number. |
-| Rollback Available | Whether rollback material is linked. |
+| Rollback Available | Whether rollback material is linked for request-level rollback staging. |
 | Sanitized Error | Non-sensitive error or status detail. |
 
-Audit entries are append-only during operations. Rollback creates new audit entries rather than erasing original evidence. Governed retention may later remove expired app-owned operation records according to configured retention policy.
+Audit entries are append-only during operations. Request-level rollback creation and generated rollback request execution create new audit entries rather than erasing original evidence. Governed retention may later remove expired app-owned operation records according to configured retention policy.
 
-The `Rollback` action is available only for successful execution entries that still point to an executed line and do not already have a completed rollback operation.
+The audit page does not provide rollback actions. Use `Rollback` from the completed correction request.
 
 ### Exporting Filtered Audit Metadata
 
@@ -615,7 +621,7 @@ Cleanup:
 
 - purges expired rollback snapshot payloads,
 - deletes expired eligible audit metadata,
-- deletes expired eligible rollback operation records only after their source audit entry is gone,
+- deletes expired eligible rollback operation records only after linked active requests and retained dependencies are protected,
 - deletes expired retention logs without deleting cleanup evidence created in the same run,
 - protects active requests, pending approvals, incomplete execution, and retained rollback dependencies,
 - never changes target Business Central business records.
@@ -653,7 +659,7 @@ Recommended approval practice:
 - The approver checks rollback snapshot mode and retention impact.
 - The approver confirms the request is in the correct company and environment.
 - The approver confirms the target is covered by policy.
-- If approval is disabled or self-approval is enabled, the same `SUPER` user must still document the reason, ticket/reference, rollback impact, and policy decision clearly enough for later review.
+- If approval is disabled or self-approval is enabled, the same `SUPER` user must still document the reason, any required or provided ticket/reference, rollback impact, and policy decision clearly enough for later review.
 
 ## Working With Posted Or Hidden Data
 
@@ -685,7 +691,7 @@ Do not use BC Data Agent to:
 - store credentials or secrets in request text,
 - paste sensitive customer data into external chats or generic logs,
 - export target values, target record identity text, or rollback snapshot payloads,
-- execute production corrections before sandbox validation and readiness-gate update.
+- execute production corrections before sandbox validation and runtime readiness approval.
 
 ## Troubleshooting
 
@@ -693,20 +699,20 @@ Do not use BC Data Agent to:
 | --- | --- | --- |
 | User cannot open BCDA pages | User is not recognized as `SUPER`. | Confirm the standard Business Central `SUPER` permission set is assigned. |
 | Setup page opens but values are blank | Setup was not initialized or page did not refresh. | Reopen `BCDA Setup`; setup should be created automatically. |
-| Preview, approval, or execution action fails for missing metadata | Reason or ticket/reference is blank. | Enter both fields on the request card. |
+| Preview, approval, or execution action fails for missing metadata | Reason is blank, or `Ticket Reference Required` is on and the ticket/reference is blank. | Enter the reason and, when required, the ticket/reference on the request card. |
 | Preview Request is blocked | The request is no longer open or previewed, required metadata is missing, or staged lines are invalid. | Preview must be completed before approval workflow advances the request when preview is required. Review line statuses and sanitized errors. |
 | Requester cannot approve their own request | `Require Separate Approver` is enabled for the request. | Use a different `SUPER` user, or change setup for future requests if the company accepts self-approval. |
 | Approval actions are unavailable | `Approval Required` is off, the request is already pending approval, or the request is already approved. | Continue with the next allowed workflow step, or change setup/future request defaults if approval should be required. |
 | Execute action is disabled | The request is not in an executable state, required preview is missing, approval is missing, or execution already completed/failed. | Review request status, preview requirement, approval settings, and line statuses. |
 | Field ID lookup is empty | No table is selected, or the selected table has no enabled normal fields available through metadata. | Select `Table ID` first and confirm the target field is an enabled normal stored field. |
 | Table ID is rejected | The table is owned by BC Data Agent or is otherwise outside the current foundation target rules. | Choose a Business Central business table that is not part of the BCDA app-owned operation data. |
-| Batch Add Lines is unavailable | Manual record-key batch entry has been removed. | Wait for batch RecordId selection or target matrix entry before using batch line creation. |
+| Batch line creation fails | A batch table is missing, no batch entries exist, a non-insert entry has no target record, or a non-delete entry has no field. | Select a batch table, use `Select Record` for existing-record line types, select field metadata where applicable, and then create request lines. |
 | Record ID is blank | No target record has been selected, or the selected table has no records available in the foundation lookup. | Select `Table ID`, then use `Record ID` assist edit or the `Select Record` line action. |
 | Record ID lookup is blocked | The line type is `Insert`. | Leave `Record ID` empty for insert staging. Future insert execution must create the record without using an input target `RecordId`. |
 | Current Value Preview is blank | `Record ID` or `Field ID` is blank, the selected record no longer exists, or the selected field cannot be formatted for preview. | Use `Record ID` assist edit or `Select Record`, choose `Field ID` again, then review any error shown by the line. |
 | Proposed New Value is rejected | The target record or field is missing, the field is disabled, non-normal, primary-key, system-managed, removed, unsupported for staging/execution, too long for the field, or the text cannot be parsed as the field type. | Select a valid target record and enabled normal non-primary-key field, then enter a value formatted for that field type. |
-| Rollback action is unavailable | The selected audit entry is not a successful execution entry, rollback snapshots are unavailable, the source line is no longer executed, or rollback already completed. | Select a successful execution audit entry with `Rollback Available` enabled and review line status. |
-| Rollback is blocked | Snapshot logging is disabled, expired, purged, policy blocks rollback, the current value no longer matches the executed value, or the line type is not supported. | Review rollback operation sanitized error, snapshot retention, policy, and whether the target was changed after execution. |
+| Rollback action is unavailable | The request is not completed, rollback snapshots are unavailable, or a rollback request already exists for the completed source request. | Open the completed correction request and review rollback availability, line statuses, and existing rollback operations. |
+| Rollback request creation is blocked | Snapshot logging is disabled, expired, purged, a source line is not an executed `Update`, or retained before-images are missing for part of the request. | Review rollback operation evidence, snapshot retention, and whether the completed request is fully eligible for request-level rollback staging. |
 | Audit export is blocked | Export is disabled or no required filter is applied. | Turn on `Export Enabled` only when approved, then filter by request, company, occurred-at date/time, operation, or result. |
 | Audit export omits target values | Phase 8 export is metadata-only by design. | Review audit metadata and use authorized BCDA pages for privileged value review. Do not expect snapshot payloads in CSV export. |
 | Policy blocks the request | No matching allow policy exists, policy is disabled, or decision is Block. | Review table-level and field-level policies. |
@@ -746,7 +752,7 @@ Do not share:
 
 ## Sandbox Validation Checklist
 
-Use this checklist before opening any later readiness gate.
+Use this checklist before enabling any later runtime behavior.
 
 | Check | Expected Result |
 | --- | --- |
@@ -763,8 +769,8 @@ Use this checklist before opening any later readiness gate.
 | Correction line field lookup is used after table selection | The field list is filtered by table and `Field Name` is filled from metadata. |
 | Proposed New Value is entered | Supported scalar values are accepted, unsupported field types and non-modifiable foundation fields are blocked, type mismatch errors do not echo the proposed value, and no target data is changed. |
 | Preview Data Matrix is opened | A read-only temporary matrix opens for the current request, shows one table section at a time with unique field columns and `Current`/`New` rows per record, and no target data is changed. |
-| Batch Add Lines is checked | The action is paused until batch RecordId selection or target matrix entry is implemented. |
-| Request without reason or ticket is submitted | Action is blocked. |
+| Batch Add Lines is checked | Same-table batch entries select canonical target RecordIds, create standard correction lines, and do not mutate target data. |
+| Request without a reason, or without a configured-required ticket/reference, is submitted | Action is blocked. |
 | Request preview is run | Status changes to `Previewed`, correction lines are marked `Previewed` or `Failed`, and preview audit entry exists. |
 | Request is submitted for approval | Status becomes `Pending Approval`. |
 | Approval is attempted before submit | Action is unavailable or blocked with a submit-first message. |
@@ -772,10 +778,10 @@ Use this checklist before opening any later readiness gate.
 | Same user tries to approve while separate approver is required | Approval is blocked. |
 | Same user tries to approve while separate approver is not required | Status becomes `Approved`. |
 | Different `SUPER` approves | Status becomes `Approved`. |
-| Execute action is checked | Action is enabled only for supported executable request states; grouped `Update` execution writes audit evidence and updates line statuses. |
+| Execute action is checked | Action is enabled only for supported executable request states; grouped `Update` execution writes audit evidence, updates line statuses, and applies the request as one transaction. |
 | Audit entries page opens read-only | Entries are visible and not editable. |
-| Supported rollback is run from audit entry | A successful `Update` execution entry rolls back only when snapshots exist and no conflict is detected; a rollback audit entry and rollback operation record are written. |
-| Rollback conflict is tested | Rollback is blocked when the current target value no longer matches the executed value, and sanitized failure evidence is written. |
+| Supported rollback is created from a completed request | A completed `Update` request creates a new rollback correction request only when retained before-image snapshots exist for every executed supported line; rollback audit evidence and a rollback operation record are written. |
+| Generated rollback request is previewed | The generated rollback correction request shows current target values and proposed retained before-images before any target mutation. |
 | Filtered audit metadata export is tested | Export is blocked until `Export Enabled` is on and at least one required filter is applied; exported CSV omits target values, target record identity text, and snapshot payloads. |
 | Retention cleanup is run | Expired rollback snapshot payloads are purged, expired eligible operation records are deleted, active requests and retained rollback dependencies are protected, and retention log evidence is written. |
 | Retention logs page opens read-only | Logs are visible and not editable. |
@@ -792,14 +798,14 @@ Use this checklist before opening any later readiness gate.
 | Create request | BCDA Correction Requests | New |
 | Apply request defaults | BCDA Correction Request Card | Initialize |
 | Add target field change | BCDA Correction Request Card | Lines part, using Table ID and Field ID lookup suggestions |
-| Add multiple same-table changes | BCDA Correction Request Card | Planned RecordId-based batch or matrix selector |
+| Add multiple same-table changes | BCDA Correction Request Card | Use `Batch Add Lines` for same-table entries; use future matrix editing for richer field staging. |
 | Run request preview | BCDA Correction Request Card | Preview Request |
 | Submit approval request | BCDA Correction Request Card | Submit For Approval |
 | Approve request | BCDA Correction Request Card | Approve |
 | Execute supported update | BCDA Correction Request Card | Execute |
 | Review evidence | BCDA Audit Entries | Read-only list |
 | Export filtered audit metadata | BCDA Audit Entries | Export Filtered Metadata |
-| Roll back supported update | BCDA Audit Entries | Rollback |
+| Create rollback request | BCDA Correction Request Card | Rollback |
 | Review rollback operations | BCDA Rollback Operations | Read-only list |
 | Review retention evidence | BCDA Retention Logs | Read-only list |
 
@@ -807,17 +813,17 @@ Use this checklist before opening any later readiness gate.
 
 | Term | Meaning |
 | --- | --- |
-| Audit metadata | Required operation evidence such as user, time, request, target, result, reason, and ticket. |
+| Audit metadata | Required operation evidence such as user, time, request, target, result, reason, and any provided or required ticket. |
 | Break-glass operation | Exceptional, high-risk action used only when normal business processes are insufficient. |
 | Correction line | One proposed field-level data change in a correction request. |
-| Correction request | Header record that groups reason, ticket, approval, rollback, retention, and correction lines. |
+| Correction request | Header record that groups reason, optional ticket/reference, approval, rollback, retention, and correction lines. |
 | Data policy | Rule that blocks, allows, or requires approval for a table or field. |
 | Foundation build | Earlier implementation stage that supported app-owned records and pages before grouped update execution and supported update rollback. |
 | Posted data | Business Central data related to posted documents or posting outcomes. Treat as high-risk. |
 | Record ID | Canonical target record identity. In the current build it is populated from field assist edit or the `Select Record` lookup; future matrix selection will build richer field staging around it. |
 | Retention | Rules controlling how long app-owned audit, snapshot, and technical records are kept. |
-| Rollback | Governed action that restores a prior value from retained snapshots for supported `Update` execution entries. |
-| Rollback snapshot | Stored before-image or value data used for rollback. |
+| Rollback | Governed action that creates a new correction request with suggested inverse values from retained snapshots for a completed supported `Update` request. |
+| Rollback snapshot | Stored before-image or value data used to stage rollback correction lines. |
 | `SUPER` | Standard Business Central permission set required for all BCDA functionality. |
 
 ## Final User Rule

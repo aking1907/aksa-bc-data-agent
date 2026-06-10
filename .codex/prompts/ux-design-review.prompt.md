@@ -28,6 +28,5 @@ Apply Business Central-native UX:
 - Captions/tooltips/status fields suitable for SUPER users.
 
 Return page layout, actions, states, warnings, acceptance coverage, and doc updates.
-Do not generate AL code unless readiness is Ready and I ask for implementation.
+Do not generate AL code unless I ask for implementation; local implementation is allowed under the standing SDD authorization when mandatory controls stay intact.
 ```
-

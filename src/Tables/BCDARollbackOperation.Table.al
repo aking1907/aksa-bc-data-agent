@@ -62,6 +62,11 @@ table 88106 "BCDA Rollback Operation"
             Caption = 'Sanitized Error';
             Editable = false;
         }
+        field(12; "Generated Request ID"; Code[20])
+        {
+            Caption = 'Generated Request ID';
+            TableRelation = "BCDA Correction Request";
+        }
     }
 
     keys

@@ -26,7 +26,7 @@ Read:
 
 - Use Business Central-native page patterns.
 - Prefer clear workflow states over clever interaction.
-- Require reason and ticket before execution.
+- Require reason before execution and ticket/reference only when setup or policy requires it.
 - Separate preview from execution.
 - Show risk and approval state before dangerous actions.
 - Show whether approval requires a different `SUPER` user or allows self-approval.

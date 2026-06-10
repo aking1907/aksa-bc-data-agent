@@ -12,11 +12,11 @@ Enable trusted support users to make targeted corrections to Business Central da
 
 ## Current Implementation Mode
 
-Phase 9 local hardening is complete for the current Phase 8 build. Phase 8 Audit, Retention, And Export local implementation is complete for grouped `Update` corrections, supported update rollback, filtered audit metadata export, and governed retention cleanup. Sandbox validation was skipped by request for Phase 8 implementation and remains required before production use.
+Phase 9 local hardening is complete for the current Phase 8 build. Phase 8 Audit, Retention, And Export local implementation is complete for grouped `Update` corrections, request-level rollback staging, filtered audit metadata export, and governed retention cleanup. Local implementation now has standing authorization under the SDD, so code development does not require per-phase paper confirmation. Sandbox validation was skipped by request for Phase 8 implementation and remains required before production use.
 
-AL code is allowed for app-owned foundation objects, security/policy hardening, setup/retention/UX shell work, target selection and preview workflow, supported grouped update execution, supported update rollback, filtered audit metadata export, and retention cleanup. This includes limited RecordId lookup, selected-field current value refresh, staged-line request preview, policy preview, read-only preview matrix behavior, `Allow Data Policies` setup behavior, grouped update mutation, rollback from successful update execution audit entries, setup-enabled filtered audit CSV export, and cleanup of expired eligible BCDA-owned operation records.
+AL code is allowed for local implementation work that follows the SDD and preserves user review, policies, `SUPER` access, audit, redaction, rollback, tests, and production validation controls. This includes app-owned foundation objects, security/policy hardening, setup/retention/UX shell work, target selection and preview workflow, supported grouped update execution, supported and future operation-specific rollback/execution work, filtered audit metadata export, retention cleanup, and controlled prototypes for broader export/API behavior.
 
-Selected-line current value preview is available after a target record and field are selected. Request-level staged-line preview is available without mutation. Supported grouped update execution is available after request metadata, preview, approval/policy, and `SUPER` checks pass. Supported rollback is available from successful `Update` execution audit entries when retained snapshots exist and conflict checks pass. Filtered audit export and retention cleanup are implemented locally. `Rename`, `Delete`, `Insert`, non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, external APIs, and production enablement remain blocked until their respective readiness gates are opened.
+Selected-line current value preview is available after a target record and field are selected. Request-level staged-line preview is available without mutation. Supported grouped update execution is available after required request metadata, preview when configured, approval/policy when configured, and `SUPER` checks pass. Supported rollback is available from completed `Update` requests when retained before-image snapshots exist for every executed supported line; rollback creates a new correction request and does not mutate target data directly. Filtered audit export and retention cleanup are implemented locally. `Rename`, `Delete`, `Insert`, non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, external APIs, and production enablement may be developed locally only with controls and remain blocked at runtime until validation evidence supports use.
 
 ## Personas
 
@@ -33,14 +33,14 @@ All personas require the existing Business Central `SUPER` permission set. The e
 ## Phase 1 Scope
 
 - Discover accessible BC tables, records, fields, and metadata needed for correction workflows.
-- Create a correction request with reason, ticket/reference, target table, canonical target record identity, field, old value, and new value.
+- Create a correction request with reason, setup- or policy-required ticket/reference, target table, canonical target record identity, field, old value, and new value.
 - Support dry-run preview before changing data.
 - Enforce policy before modifying normal, hidden, or posted table data.
 - Require existing `SUPER` access and approval for posted or high-risk data.
 - Capture mandatory audit metadata for every operation.
 - Let users configure whether rollback before-image snapshots are stored, with safe defaults and visible warnings.
 - Let users control retention time for audit metadata, rollback snapshots, and technical logs.
-- Provide rollback from captured before-images with conflict checks when rollback snapshots are enabled and retained.
+- Provide request-level rollback staging from captured before-images when rollback snapshots are enabled and retained.
 - Provide audit review and export for authorized `SUPER` users, subject to redaction/export policy.
 
 ## Non-Goals
@@ -63,16 +63,16 @@ All personas require the existing Business Central `SUPER` permission set. The e
 5. SUPER user executes the approved request.
 6. System writes mandatory audit metadata and, when enabled by setup/policy, rollback snapshots.
 7. SUPER reviewer reviews or exports the correction history.
-8. SUPER user performs rollback if the result is wrong and policy allows rollback.
+8. SUPER user creates and reviews a rollback correction request if the result is wrong and snapshots are retained.
 
 ## Success Definition
 
 Phase 1 succeeds when an authorized user can correct one allowed field on one target record in a sandbox, including a posted table scenario, and then prove:
 
-- The change required existing Business Central `SUPER` access and policy approval.
+- The change required existing Business Central `SUPER` access and the configured policy/approval path.
 - Old and new values were displayed during preview and retained according to rollback logging policy.
-- The user, company, table, target record identity, date/time, reason, and ticket were recorded.
-- Rollback can restore the previous value or safely report unavailable/expired/conflicted rollback state.
+- The user, company, table, target record identity, date/time, reason, and any required or provided ticket/reference were recorded.
+- Rollback can create a governed inverse correction request or safely report unavailable/expired rollback state.
 - Audit history remains intact after rollback.
 - Retention settings are visible and can be changed by `SUPER` users.
 - Approval can be required with separate approval for dual-control companies, disabled for accepted standard-request workflows, or configured for self-approval by one-person companies that accept the risk.
@@ -84,7 +84,7 @@ Phase 1 succeeds when an authorized user can correct one allowed field on one ta
 - Posted accounting data has legal, audit, and operational risk.
 - Sensitive values may be present in target records and rollback snapshots.
 - Rollback snapshot retention and audit retention can affect rollback availability and operation history visibility.
-- Foundation compile verification has been performed for `SUPER` detection, retention allowed-table registration, grouped update execution, supported rollback, filtered audit export, and retention cleanup. Target mutation, rollback, export, and cleanup behavior still require sandbox validation before production use.
+- Foundation compile verification has been performed for `SUPER` detection, retention allowed-table registration, grouped update execution, request-level rollback staging, filtered audit export, and retention cleanup. Target mutation, rollback request execution, export, and cleanup behavior still require sandbox validation before production use.
 - Current `app.json` targets Business Central 2026 release wave 1 / version 28 with application/platform `28.0.0.0` and runtime `17.0`.
 
 ## Phases
@@ -97,7 +97,7 @@ Phase 1 succeeds when an authorized user can correct one allowed field on one ta
 | 3 | Security And Policy | Enforce `SUPER` access, policy evaluation, redaction rules, and permanent table blocks. Complete for the current non-mutating slice. |
 | 4 | Setup, Retention, And UX Shell | Provide setup pages, policy pages, retention settings, and request shell pages. Complete for the current non-mutating slice. |
 | 5 | Target Selection And Preview Workflow | Support RecordId target selection, matrix line entry, metadata discovery, and dry-run preview without mutation. Local implementation complete; sandbox validation pending. |
-| 6 | Execution Workflow | Execute approved grouped `Update` field corrections with mandatory audit and rollback snapshot controls. Local implementation complete; sandbox validation still required before production use. |
-| 7 | Rollback Workflow | Restore before-images for successful `Update` execution audit entries with conflict detection. Local implementation complete; sandbox validation still required before production use. |
+| 6 | Execution Workflow | Execute workflow-eligible grouped `Update` field corrections with mandatory audit and rollback snapshot controls. Local implementation complete; sandbox validation still required before production use. |
+| 7 | Rollback Workflow | Create governed rollback correction requests from completed `Update` requests with retained before-images. Local implementation complete; sandbox validation still required before production use. |
 | 8 | Audit, Retention, And Export | Provide setup-enabled filtered audit metadata export and governed cleanup of expired eligible BCDA-owned operation records. Local implementation complete; sandbox validation still required before production use. |
 | 9 | Hardening | Local compile, analyzer, config, object-range, access-model, and documentation hardening complete. Sandbox release validation still required before production use. |

@@ -34,14 +34,14 @@
 | Current Value Manager | Foundation selected-line reader that fills `Current Value Preview` only for the selected `Record ID` and `Field ID`. |
 | Preview Data Matrix | Foundation read-only matrix page that displays stored correction-line data for one request grouped by request, correction type, table, record, and field without target mutation or full dry-run validation. |
 | Target Record Matrix | Planned richer selector/editor to maintain field correction lines for a selected record without hand-entering composite keys. |
-| Batch Line Builder | Foundation same-table helper shell; line creation is paused until batch `RecordId` selection or target matrix entry can supply canonical identities. |
+| Batch Line Builder | Same-table helper that uses target record lookup to populate canonical `RecordId` identities and create standard correction lines without target mutation. |
 | Data Policy Manager | Configure allow/block rules and approval requirements. |
 | Correction Orchestrator | Own request state transitions and execution order. |
 | Validation Runner | Dry-run changes and report warnings before execution. |
 | Audit Writer | Write append-only audit entries for every material action. |
 | Snapshot Store | Store before/after values needed for audit and rollback. |
 | Retention Manager | Manage operation retention settings and integrate with Business Central retention policies where feasible. |
-| Rollback Service | Restore before-images with conflict detection. |
+| Rollback Service | Create governed rollback correction requests from retained before-images. |
 | Audit Viewer | Search, filter, and export redacted correction metadata. |
 
 ## Object And Module Map
@@ -68,7 +68,7 @@ Foundation objects are implemented for setup, policy, request, audit, snapshot, 
 8. Correction Orchestrator executes line changes by grouping staged lines by correction type and canonical target identity when applicable. `Insert` execution must not use an input `RecordId`.
 9. Audit Writer records mandatory attempt, outcome, target, user, reason, and ticket metadata.
 10. Snapshot Store keeps rollback material only when rollback snapshot logging is enabled by setup and policy.
-11. Rollback Service can restore retained before-images for supported `Update` execution audit entries if conflict checks pass.
+11. Rollback Service can create a new governed correction request from a completed supported `Update` request when retained before-images exist for the whole request.
 12. Audit Export Manager exports filtered audit metadata only when `SUPER` access, setup export enablement, and required filters are present.
 13. Retention Manager purges expired rollback snapshot payloads and deletes expired eligible BCDA-owned operation records while preserving active requests and retained rollback dependencies.
 
@@ -76,10 +76,11 @@ Foundation objects are implemented for setup, policy, request, audit, snapshot, 
 
 - Policy failures stop execution before mutation.
 - Validation failures stop execution unless policy explicitly allows override.
-- Runtime write failures mark the line failed and record sanitized error details.
-- Partial request failures leave successful lines auditable and failed lines visible.
-- Rollback conflicts stop rollback for the affected operation type and target identity unless override policy allows it.
-- Rollback-disabled and rollback-expired states stop rollback before mutation and explain the reason.
+- Runtime write failures roll back the request transaction so supported target writes are not partially applied.
+- Request validation failures before mutation mark the request failed and record sanitized audit evidence without changing target data.
+- Partial request target updates are not allowed.
+- Rollback creates a new correction request for the entire completed source request; it does not restore values directly from audit entries.
+- Rollback-disabled and rollback-expired states stop rollback request creation before mutation and explain the reason.
 - Retention cleanup failures are visible in retention logs and do not affect active correction execution.
 
 ## Security Model
@@ -89,7 +90,7 @@ Foundation objects are implemented for setup, policy, request, audit, snapshot, 
 - Approval requirement and approval separation are workflow settings, not permission sets. Setup can require a different `SUPER` approver, allow self-approval, or disable approval for standard requests when one-person companies explicitly accept that control model.
 - Posted or hidden data changes require `SUPER` access and break-glass policy approval.
 - Policy defaults should be deny-first until configured.
-- `Allow Data Policies` can bypass policy records when disabled. It must not bypass `SUPER`, request metadata, audit, rollback snapshot controls, sandbox validation, or permanent blocks for BCDA app-owned, system-managed, and unsupported targets.
+- `Allow Data Policies` can bypass policy records when disabled. It must not bypass `SUPER`, required request metadata, audit, rollback snapshot controls, sandbox validation, or permanent blocks for BCDA app-owned, system-managed, and unsupported targets.
 - Audit and snapshot tables are available only through `SUPER`-gated features and redacted export/support channels.
 - Sensitive values are redacted outside privileged pages; Phase 8 export omits target value and snapshot payload content.
 - The app never stores environment credentials in repository files.

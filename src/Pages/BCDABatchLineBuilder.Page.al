@@ -139,9 +139,9 @@ page 88142 "BCDA Batch Line Builder"
             {
                 ApplicationArea = All;
                 Caption = 'Create Request Lines';
-                Enabled = false;
+                Enabled = BatchTableSelected;
                 Image = CreateLinesFromJob;
-                ToolTip = 'Blocked until batch RecordId selection or target matrix entry is implemented.';
+                ToolTip = 'Creates correction lines from the batch entries.';
 
                 trigger OnAction()
                 var
@@ -154,6 +154,19 @@ page 88142 "BCDA Batch Line Builder"
                     CreatedCount := BatchLineMgt.CreateCorrectionLines(CorrectionRequest, BatchTableId, BatchTableName, Rec);
                     Message(RequestLinesCreatedMsg, CreatedCount);
                     CurrPage.Close();
+                end;
+            }
+            action(SelectRecord)
+            {
+                ApplicationArea = All;
+                Caption = 'Select Record';
+                Enabled = BatchTableSelected;
+                Image = View;
+                ToolTip = 'Opens target record lookup and fills Record ID for the selected batch entry.';
+
+                trigger OnAction()
+                begin
+                    SelectTargetRecord();
                 end;
             }
         }
@@ -211,17 +224,41 @@ page 88142 "BCDA Batch Line Builder"
             ApplyBatchTableToLine();
     end;
 
+    local procedure SelectTargetRecord()
+    var
+        TargetRecordLookup: Page "BCDA Target Record Lookup";
+    begin
+        if Rec."Entry No." = 0 then
+            Error(BatchEntryRequiredErr);
+
+        if Rec.Type = Rec.Type::Insert then
+            Error(RecordIdNotUsedForInsertErr);
+
+        EnsureBatchTableSelected();
+        ApplyBatchTableToLine();
+        TargetRecordLookup.SetTargetTable(BatchTableId);
+        TargetRecordLookup.LookupMode(true);
+        if TargetRecordLookup.RunModal() = Action::LookupOK then begin
+            Rec.Validate("Record ID", TargetRecordLookup.GetSelectedRecordId());
+            if not Rec.Modify(true) then
+                Rec.Insert(true);
+            CurrPage.Update(false);
+        end;
+    end;
+
     local procedure UpdateBatchTableSelected()
     begin
         BatchTableSelected := BatchTableId <> 0;
     end;
 
     var
+        BatchEntryRequiredErr: Label 'Select or create a batch entry before choosing a target record.';
         BatchTableId: Integer;
         BatchTableName: Text[250];
         BatchTableSelected: Boolean;
         ClearLinesBeforeTableChangeErr: Label 'Delete the current batch entries before changing the batch table.';
         NextEntryNo: Integer;
+        RecordIdNotUsedForInsertErr: Label 'Record ID is empty for Insert batch entries.';
         RequestId: Code[20];
         RequestLinesCreatedMsg: Label '%1 request line(s) were created from the batch.', Comment = '%1 = number of created request lines';
         RequestRequiredErr: Label 'Create or save the correction request before adding batch lines.';

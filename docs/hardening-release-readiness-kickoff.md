@@ -4,13 +4,13 @@
 
 Record the Phase 9 hardening request, local hardening evidence, and the release-readiness work required before BC Data Agent can be treated as production-ready.
 
-Phase 9 does not bypass earlier readiness gates. It hardens whatever scope is already implemented and proves whether the project is locally releasable. Phase 9 local hardening is complete for the current Phase 8 build, but sandbox release validation is still required before production use.
+Phase 9 does not bypass runtime or production safety gates. It hardens whatever scope is already implemented and proves whether the project is locally releasable. Phase 9 local hardening is complete for the current Phase 8 build, and local implementation now has standing authorization under the SDD, but sandbox release validation is still required before production use.
 
 ## Current Completion Decision
 
-Hardening readiness work is complete locally for the currently allowed Phase 8 build.
+Hardening readiness work is complete locally for the current Phase 8 build.
 
-AL code generation remains limited by `docs/code-generation-readiness.md`. Phase 9 does not open external APIs, non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, or production enablement.
+AL code generation follows the standing authorization in `docs/code-generation-readiness.md`. Phase 9 does not open external APIs, non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, or production enablement at runtime.
 
 ## Hardening Scope Available Now
 
@@ -30,9 +30,9 @@ The project cannot be marked fully implemented until all of these are complete:
 - Phase 6 execution passes sandbox validation.
 - Phase 7 supported update rollback passes sandbox validation.
 - Phase 8 audit export and retention cleanup pass sandbox validation.
-- Sandbox-backed readiness gates open production policy.
+- Sandbox-backed runtime readiness evidence opens production policy.
 - Sandbox release validation passes for `SUPER`/non-`SUPER`, preview, execution, rollback, audit, export, retention, upgrade, and operations.
-- `docs/code-generation-readiness.md` is updated ahead of each implementation pass.
+- `docs/code-generation-readiness.md` remains aligned before runtime or production enablement decisions.
 
 ## Phase 9 Exit Criteria
 

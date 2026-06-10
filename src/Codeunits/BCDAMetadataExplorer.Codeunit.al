@@ -84,5 +84,5 @@ codeunit 88127 "BCDA Metadata Explorer"
         AppOwnedTableBlockedErr: Label 'Table %1 is owned by BC Data Agent and cannot be selected as a correction target or policy target.', Comment = '%1 = table ID';
         TableNotFoundErr: Label 'Table %1 was not found in Business Central metadata.', Comment = '%1 = table ID';
         TableRequiredBeforeFieldErr: Label 'Select a table before selecting a field.';
-        TargetDiscoveryBlockedErr: Label 'Target metadata discovery is blocked until sandbox behavior is verified for the next readiness gate.';
+        TargetDiscoveryBlockedErr: Label 'Target metadata discovery is not available for this action yet. Use the supported table, field, and record lookup actions.';
 }

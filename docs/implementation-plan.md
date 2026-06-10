@@ -1,83 +1,55 @@
 # Implementation Plan
 
-## Guiding Rules
+## Development Rules
 
-- Start with safety infrastructure before mutation features.
-- Keep all logic out of pages when a service object should own it.
-- Add tests or final validation evidence alongside each behavior phase.
-- Keep implementation aligned with requirements and acceptance criteria; traceability rows are optional reference material.
-- Do not implement direct table editing without request, policy, audit, and rollback context.
-- Use the relevant project skill from `.codex/skills/` before changing architecture, AL code, UX, security, tests, release, or user guidance docs.
+- Build the requested behavior in the owning service/page/table, not in process paperwork.
+- Preserve the BCDA core controls: `SUPER`, request workflow, policy, audit, rollback, redaction, and validation boundaries.
+- Keep pages thin; put workflow and mutation logic in codeunits.
+- Compile and run analyzers for AL changes.
+- Update docs only when behavior, risk, user workflow, or release readiness changes.
 
-## Phases
+## Daily Development Flow
 
-| Phase | Build Order | Exit Criteria |
-| --- | --- | --- |
-| 0 Documentation | Complete SDD package and readiness gate | Docs exist; implementation scope is gated. |
-| 1 Platform Validation | Download symbols and verify BC runtime assumptions | Runtime assumptions are reflected in readiness, security, and test coverage. |
-| 2 Foundation Data | Setup, policy, request, line, audit, snapshot, rollback storage | App compiles; table upgrade strategy drafted. |
-| 3 Security And Policy | `SUPER` access checks, policy evaluation, redaction rules | Non-`SUPER` users blocked; policy tests pass. |
-| 4 Setup, Retention, And UX Shell | Setup pages, policy pages, retention settings, request list/card shell | Users can configure rollback logging and retention; pages match `app-design.md`. |
-| 5 Target Selection And Preview Workflow | RecordId target selection, matrix line entry, metadata discovery, and dry-run preview | Target record identity supports complex keys; preview reads targets without mutation and shows rollback/retention impact. |
-| 6 Execution Workflow | Approved field-level correction with mandatory audit and optional rollback snapshots | Sandbox correction succeeds and failures are audited. |
-| 7 Rollback Workflow | Rollback from retained before-images with conflict checks | Rollback succeeds, reports conflict, or reports unavailable snapshots safely. |
-| 8 Audit, Retention, And Export | SUPER-gated audit pages, retention status, cleanup, and export | Retention cleanup and export work with redaction policy. |
-| 9 Hardening | Analyzers, performance, upgrade, deployment, operations | Release validation passes in sandbox. |
+1. Read the requirement or acceptance criterion that matches the request.
+2. Inspect the existing AL objects and local patterns.
+3. Make the smallest safe implementation change.
+4. Run compile/analyzers.
+5. Update targeted docs only if the behavior changed.
+6. Leave sandbox validation as a release-readiness item unless the task is specifically validation work.
 
-## Project Skill Support
+## When To Update Which Doc
 
-| Skill | Phase Support |
+| Situation | Update |
 | --- | --- |
-| `bcda-sdd-steward` | All phases; keeps docs, readiness, and behavior alignment current. |
-| `bcda-architecture-guardian` | Phases 1-9; protects object and service boundaries. |
-| `bcda-al-implementation` | Phases 2-9; guides AL code after the readiness gate allows it. |
-| `bcda-security-audit` | Phases 2-9; reviews high-risk mutation, audit, rollback, retention, and redaction. |
-| `bcda-ux-design` | Phases 3-8; shapes safe BC pages and workflows. |
-| `bcda-test-validation` | Phases 2-9; maps tests to acceptance and release gates. |
-| `bcda-release-ops` | Phases 6-9; prepares deployment, operations, upgrade, and release evidence. |
+| Requirement or observable behavior changes | `docs/requirements.md` or `docs/acceptance-criteria.md` |
+| Procedure ownership or object boundary changes | `docs/implementation-contracts.md`; `docs/architecture.md` only when the design changed |
+| Security, posted data, audit, rollback, redaction, export, retention risk changes | `docs/security-review.md` or `docs/risk-register.md` |
+| Page/action/setup/admin workflow changes | `UserGuide.md` or `docs/admin-guide.md` |
+| Test or sandbox expectation changes | `docs/test-plan.md` |
+| Release/deployment/support changes | `docs/deployment.md`, `docs/operations-runbook.md`, or `docs/release-notes.md` |
+| Internal refactor only | No process doc update required |
 
-## Definition Of Ready For Code
+`docs/traceability-matrix.md` can be updated before release or when coverage is unclear. It is not required for every local change.
 
-- User confirms implementation should begin.
-- `code-generation-readiness.md` status is Ready for the requested scope.
-- BC symbols are downloaded or available in `.alpackages/`.
-- Object ID allocation is confirmed.
-- Posted table default policy is confirmed.
-- Field type support boundary is confirmed.
-- `RecordId`/`RecordRef` target record selection and complex-key display behavior are confirmed.
-- Approval model among `SUPER` users is configurable: approval with a separate approver by default, no-approval or self-approval allowed when setup permits it.
-- Rollback snapshot logging default is confirmed.
-- Audit/snapshot/technical log retention periods and implementation approach are confirmed.
-- Required analyzer baseline is confirmed.
-- Non-update rollback and conflict override additionally require operation-specific before/after identity behavior, sandbox conflict validation, and `docs/rollback-readiness-kickoff.md` exit criteria to be updated.
-- Production use of audit export and retention cleanup additionally requires export redaction validation, active-record cleanup protection, upgrade readability evidence, sandbox release validation, and `docs/audit-retention-export-readiness-kickoff.md` release exit criteria to be complete.
+## Current Runtime Slices
 
-Foundation data code may start when the requested scope is limited to setup, policy, request, audit, snapshot, rollback-state, retention-log, SUPER-gated shell pages, and supporting services. RecordId-driven target record selection, target matrix selection, execution, supported update rollback, export, cleanup, and arbitrary target record preview require an explicit readiness scope.
+| Slice | Local Status | Production Status |
+| --- | --- | --- |
+| Target selection and preview | Implemented | Sandbox validation pending before reliance |
+| Grouped `Update` execution | Implemented | Sandbox validation pending before reliance |
+| Request-level rollback staging | Implemented | Sandbox validation pending before reliance |
+| Filtered audit metadata export | Implemented | Sandbox validation pending before reliance |
+| Retention cleanup | Implemented | Sandbox validation pending before reliance |
+| `Rename`, `Delete`, `Insert`, non-update rollback, conflict override, APIs, unredacted export | Runtime-gated | Not production-ready |
 
-Phase 6 grouped update execution is implemented locally and compile validated. Sandbox validation is still required before production use.
+## Local Done
 
-Phase 7 supported update rollback is implemented locally and compile/analyzer validated. Sandbox validation is still required before production use.
+- Code compiles.
+- Required analyzers pass or documented exceptions exist.
+- Access, policy, audit, rollback, and redaction controls are preserved.
+- Changed behavior has focused validation coverage or a manual validation note.
+- Only relevant docs were updated.
 
-Phase 8 filtered audit metadata export and retention cleanup are implemented locally and compile/analyzer validated. Phase 9 local hardening is complete for compile, analyzers, configuration, object range, access model, and documentation consistency. Sandbox validation is still required before production use.
+## Production Ready
 
-## Definition Of Done
-
-- Code compiles in target BC environment.
-- Requested behavior has acceptance coverage and tests or final validation evidence.
-- Unauthorized access is blocked.
-- Audit entries are append-only during operations; governed retention handles expired operation records.
-- Rollback does not erase audit history.
-- Rollback-disabled and rollback-expired states are visible and safe.
-- Retention cleanup respects configured periods and protects active records.
-- Required AL analyzers pass or have documented exceptions.
-- Sensitive values are redacted in logs and exports.
-- Sandbox deployment, upgrade, correction, rollback, and export scenarios pass.
-
-## Deferred Work
-
-- External APIs.
-- Bulk correction import.
-- External approval workflow integration.
-- AI-assisted correction suggestions.
-- BLOB/media modification.
-- Automated table risk classification beyond initial heuristics.
+Production readiness is a separate release decision. It requires sandbox evidence for the affected access, policy, execution, rollback, audit, export, retention, and upgrade paths.

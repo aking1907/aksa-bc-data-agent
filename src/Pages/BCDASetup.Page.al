@@ -28,6 +28,10 @@ page 88110 "BCDA Setup"
                 {
                     ToolTip = 'Specifies whether BCDA data policy records are enforced. When this is off, policies are bypassed, but BCDA app-owned tables, unsupported fields, SUPER access, request metadata, and audit controls still apply.';
                 }
+                field("Require Ticket Reference"; Rec."Require Ticket Reference")
+                {
+                    ToolTip = 'Specifies whether new requests require a ticket/reference before preview, approval, or execution.';
+                }
                 field("Approval Required Default"; Rec."Approval Required Default")
                 {
                     ToolTip = 'Specifies whether requests require approval by default. Turn this off only when the company accepts no separate approval step for standard requests.';

@@ -13,6 +13,7 @@ The project currently has Phase 2-8 AL objects, including grouped update executi
 - Confirm the `BC Data Agent` profile opens the BCDA Role Center for convenient navigation.
 - Confirm posted table default policy is deny-first or explicitly approved.
 - Confirm approval requirement and separate-approver settings match the company control model.
+- Confirm `Require Ticket Reference` matches the company evidence model.
 - Confirm rollback snapshot logging default is configured.
 - Confirm audit metadata, rollback snapshot, and technical log retention are configured.
 - Confirm `Allow Data Policies` is enabled by default, or explicitly accepted before policy records are bypassed.
@@ -32,13 +33,13 @@ The project currently has Phase 2-8 AL objects, including grouped update executi
 - Confirm selecting `Field ID` after `Record ID` fills `Current Value Preview` for that selected field only.
 - Confirm entering `Proposed New Value` accepts supported scalar field values, blocks disabled, non-normal, primary-key, system-managed, removed, unsupported-type, length-invalid, and scalar type-incompatible values, and does not echo sensitive proposed values in errors.
 - Confirm `Preview Data Matrix` opens from the correction lines part, shows staged correction-line data for the current request, and remains read-only.
-- Confirm `Batch Add Lines` is paused until batch RecordId selection or target matrix entry can populate canonical target identities.
+- Confirm `Batch Add Lines` opens same-table batch entry, can select target records, and creates normal correction lines without target mutation.
 - Confirm `Preview Request` does not mutate target data; target value reads stay limited to the selected staged lines and update app-owned line status, rollback/retention text, and audit evidence only.
 - Confirm setup defaults show rollback logging mode, retention period, and rollback availability text.
 - Confirm audit entry is written for preview or blocked attempt when expected.
 - Confirm rollback-disabled preview clearly states rollback will be unavailable.
-- Confirm supported rollback from a successful update execution audit entry restores the retained before-image only when no conflict exists.
-- Confirm rollback conflict, expired/purged snapshot, policy-blocked rollback, and non-`SUPER` rollback attempts are blocked with sanitized audit evidence.
+- Confirm supported rollback from a completed update correction request creates a new rollback correction request from retained before-images and that the generated request previews current target values before execution.
+- Confirm generated rollback request review, expired/purged snapshot, policy-blocked rollback request execution, and non-`SUPER` rollback attempts are blocked with sanitized audit evidence.
 - Confirm filtered audit metadata export is blocked until `Export Enabled` is on and at least one required audit filter is applied.
 - Confirm retention cleanup purges/deletes only expired eligible BCDA-owned operation records and protects active requests and retained rollback dependencies.
 - Confirm unauthorized test user cannot access correction or rollback pages.
@@ -46,13 +47,13 @@ The project currently has Phase 2-8 AL objects, including grouped update executi
 ## Main Workflow
 
 1. SUPER user creates correction request.
-2. SUPER user enters reason and ticket/reference.
+2. SUPER user enters reason and ticket/reference when required or available.
 3. SUPER user selects correction type, target table, target record identity when applicable, and field metadata when applicable, reviews the selected field's current value for existing-record lines, then stages the proposed value. Mutation remains limited to supported grouped `Update` execution after all controls pass.
 4. SUPER user runs preview.
 5. SUPER user approves if approval is required. Use a different SUPER user only when approval policy requires separation; skip approval only when setup or policy explicitly says approval is not required.
 6. SUPER user executes supported grouped `Update` corrections after metadata, preview, approval/policy, and rollback snapshot checks pass.
 7. SUPER reviewer reviews evidence.
-8. SUPER user requests supported rollback from the successful execution audit entry if needed and while snapshots are retained.
+8. SUPER user requests supported rollback from the completed correction request if needed and while snapshots are retained, then reviews the generated rollback correction request.
 9. SUPER reviewer exports filtered audit metadata only when export is enabled and required filters are applied.
 10. SUPER administrator runs retention cleanup only after reviewing retention settings.
 
@@ -66,9 +67,9 @@ The project currently has Phase 2-8 AL objects, including grouped update executi
 | Preview failed | Confirm target record exists and field type is supported. |
 | Preview Data Matrix is empty or blocked | Confirm the request is saved, has correction lines, and the user has `SUPER` access. |
 | Proposed value rejected | Confirm the line type rules: `Update` needs an existing target record and non-primary-key field, `Rename` may stage primary-key fields for future execution, `Insert` must keep Record ID empty, and all value-staging fields must be enabled, normal, not system-managed, not removed, supported for foundation staging, and type/length compatible. |
-| Execution unavailable | The request is not in an executable state, metadata is missing, required preview is not complete, approval is missing, policy blocks the line, or the line type is not supported for Phase 6 execution. |
-| Rollback conflict | The current target value no longer matches the executed new value. Review the rollback operation sanitized error and decide whether a separate manual correction is required. |
-| Rollback unavailable | Confirm the source audit entry is a successful `Update` execution, rollback snapshot logging was enabled, snapshots have not expired or been purged, and the line has not already been rolled back. |
+| Execution unavailable | The request is not in an executable state, metadata is missing, required preview is not complete, approval is missing, policy blocks the line, or the line type is not enabled for runtime execution. |
+| Rollback review difference | The generated rollback correction request preview shows a current target value that differs from the original executed value. Review the generated request and decide whether a separate correction is required. |
+| Rollback unavailable | Confirm the source request is completed, all source lines are executed supported `Update` lines, rollback snapshot logging was enabled, snapshots have not expired or been purged, and no rollback request already exists. |
 | Retention cleanup issue | Review retention status, retention policy setup, and sanitized retention log entries. |
 | Export blocked | Confirm `SUPER` access, `Export Enabled`, and a filter on request, company, occurred-at date/time, operation, or result. |
 | Export missing target values | This is expected. Phase 8 export omits target values, target record identity text, and rollback snapshot payloads by design. |
