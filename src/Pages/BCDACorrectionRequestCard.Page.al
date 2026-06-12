@@ -195,7 +195,7 @@ page 88114 "BCDA Correction Request Card"
                 Caption = 'Execute';
                 Enabled = ExecuteEnabled;
                 Image = ExecuteBatch;
-                ToolTip = 'Executes supported update correction groups after metadata, preview, approval, policy, audit, and rollback snapshot checks pass.';
+                ToolTip = 'Executes supported update, delete, and insert correction groups after metadata, preview, approval, policy, audit, and rollback checks pass.';
 
                 trigger OnAction()
                 var

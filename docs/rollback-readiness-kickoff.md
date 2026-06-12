@@ -10,7 +10,7 @@ Phase 7 is implemented as governed rollback request staging, not a simple undo b
 
 Rollback local implementation is complete for the supported request-level `Update` rollback staging slice.
 
-AL rollback request staging code exists in `BCDA Rollback Service`. The current rollback gate still blocks direct audit-entry rollback, conflict override, and operation-aware rollback for `Rename`, `Delete`, or `Insert`; Phase 8 export and cleanup are tracked separately.
+AL rollback request staging code exists in `BCDA Rollback Service`. The current rollback gate still blocks direct audit-entry rollback, conflict override, and operation-aware rollback for `Rename`, `Delete`, or `Insert`; supported `Rename`, `Delete`, and `Insert` execution remain rollback-unavailable. Phase 8 export and cleanup are tracked separately.
 
 The repository-side Phase 7 package tracks implementation and sandbox validation. The remaining production-readiness items cannot be completed from source files alone because they require Business Central sandbox rollback/conflict validation.
 
@@ -47,7 +47,7 @@ Rollback behavior should:
 - Append audit evidence for rollback request creation and generated request execution.
 - Never delete or modify the original execution audit entry.
 - Store only sanitized errors outside protected value storage.
-- Keep `Rename`, `Insert`, delete rollback, conflict override, posted/protected rollback, and policy bypass blocked unless explicitly implemented with operation-aware controls.
+- Keep rename rollback, delete rollback, insert rollback, conflict override, posted/protected rollback, and policy bypass blocked unless explicitly implemented with operation-aware controls.
 
 The local implementation exposes rollback from completed correction requests. It writes a `BCDA Rollback Operation`, creates a new correction request with inverse `Update` lines, opens that request for review, and appends rollback audit evidence. Snapshot validation failures block rollback request creation before any target data changes.
 

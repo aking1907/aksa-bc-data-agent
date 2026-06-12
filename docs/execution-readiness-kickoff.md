@@ -4,15 +4,15 @@
 
 Track Phase 6 correction workflow execution implementation and final sandbox validation.
 
-Phase 2-5 foundation and non-mutating objects exist for app-owned setup, policy, request, line, audit, snapshot, rollback-state, retention-log, SUPER-gated shell pages, target selection, and request preview. Phase 6 local implementation adds grouped `Update` execution, supported record-level `Delete` execution, `Allow Data Policies`, execution audit evidence, rollback snapshot capture for supported update lines when enabled or required, and rollback-unavailable status for delete lines.
+Phase 2-5 foundation and non-mutating objects exist for app-owned setup, policy, request, line, audit, snapshot, rollback-state, retention-log, SUPER-gated shell pages, target selection, and request preview. Phase 6 local implementation adds grouped `Update` execution, supported primary-key `Rename` execution, supported record-level `Delete` execution, supported grouped `Insert` execution, `Allow Data Policies`, execution audit evidence, rollback snapshot capture for supported update lines when enabled or required, and rollback-unavailable status for rename, delete, and insert lines.
 
 ## Current Start Decision
 
 Execution readiness work is complete for local implementation and has moved to sandbox validation.
 
-AL mutation code is implemented for supported grouped `Update` lines and supported record-level `Delete` lines. The current execution gate still blocks `Rename` and `Insert`; Phase 8 export and retention cleanup are tracked separately.
+AL mutation code is implemented for supported grouped `Update` lines, supported primary-key `Rename` lines, supported record-level `Delete` lines, and supported grouped `Insert` lines. Phase 8 export and retention cleanup are tracked separately.
 
-OD-018 insert grouping remains deferred until insert execution behavior is needed. OD-019 setup-controlled data policy enforcement is implemented as `Allow Data Policies`.
+OD-018 insert grouping is implemented for the current local slice as one insert group per request/table with empty staged `Record ID` and created-record identity capture after execution. Richer multiple-record insert grouping remains deferred until an app-owned insert group identity or matrix workflow exists. OD-019 setup-controlled data policy enforcement is implemented as `Allow Data Policies`.
 
 Phase 7 rollback readiness is tracked separately in `docs/rollback-readiness-kickoff.md`. Supported update rollback is implemented locally and remains subject to sandbox validation before production use.
 
@@ -22,7 +22,7 @@ The repository-side Phase 6 implementation package is complete. The remaining va
 
 Do not use Phase 6 execution in production until:
 
-- Sandbox validation is completed for grouped update execution.
+- Sandbox validation is completed for grouped update, primary-key rename, record-level delete, and grouped insert execution.
 - Release readiness records the target table/field behavior and any unsupported platform results.
 
 ## ASAP Track

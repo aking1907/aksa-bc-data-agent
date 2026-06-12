@@ -2,9 +2,9 @@
 
 ## Audit Status
 
-Current result: Phase 9 local hardening is complete for the current Phase 8 build, and the SDD now allows continuous local implementation without per-phase paper confirmation. Local compile/analyzer/config/security/docs evidence exists for foundation RecordId lookup, selected-line current value preview, request-level staged-line preview, correction operation type staging, preview-required approval gating, BCDA app-owned target blocking, `Allow Data Policies` setup behavior, grouped update mutation, audit evidence, rollback snapshot capture, request-level rollback staging, generated rollback request current-value review, rollback operation records, append-only rollback audit evidence, filtered audit metadata export, audit export evidence, governed retention cleanup, object-range alignment, and the no-BCDA-permission-set rule.
+Current result: Phase 9 local hardening is complete for the current Phase 8 build, and the SDD now allows continuous local implementation without per-phase paper confirmation. Local compile/analyzer/config/security/docs evidence exists for foundation RecordId lookup, selected-line current value preview, request-level staged-line preview, correction operation type staging, preview-required approval gating, BCDA app-owned target blocking, `Allow Data Policies` setup behavior, grouped update mutation, record-level delete mutation, grouped insert mutation, audit evidence, rollback snapshot capture, request-level rollback staging, generated rollback request current-value review, rollback operation records, append-only rollback audit evidence, filtered audit metadata export, audit export evidence, governed retention cleanup, object-range alignment, and the no-BCDA-permission-set rule.
 
-OD-018 insert grouping remains deferred until insert execution behavior is needed. OD-019 setup-controlled data policy enforcement is implemented through `Allow Data Policies`.
+OD-018 insert grouping is implemented for the current local slice as one request/table insert group with empty staged `RecordId`, required staged primary-key fields, rollback-unavailable status, and created-record identity capture after successful execution. Richer multiple-record insert grouping remains deferred. OD-019 setup-controlled data policy enforcement is implemented through `Allow Data Policies`.
 
 The ASAP execution-readiness track in `docs/execution-readiness-kickoff.md` now tracks final sandbox validation for Phase 6 execution.
 
@@ -22,9 +22,9 @@ The SDD package is structurally complete. The project moved from Phase 4 setup, 
 | --- | --- |
 | SDD source map | Complete in `docs/sdd-index.md`. |
 | Business scope | Documented in `docs/project.md`. |
-| Requirements | `REQ-001` through `REQ-033` exist. |
-| Acceptance criteria | `AC-001` through `AC-031` exist. |
-| Test plan | `TST-001` through `TST-034` exist. |
+| Requirements | `REQ-001` through `REQ-034` exist. |
+| Acceptance criteria | `AC-001` through `AC-035` exist. |
+| Test plan | `TST-001` through `TST-038` exist. |
 | Traceability matrix | Available as optional reference material; it is not a readiness blocker. |
 | ADRs | Five accepted ADRs cover workflow, SDD gate, SUPER-only access, rollback/retention, and RecordId target selection. |
 | App design | Business Central-native UX direction documented. |
@@ -38,7 +38,7 @@ The SDD package is structurally complete. The project moved from Phase 4 setup, 
 | SUPER API evidence | Public `User Permissions`.IsSuper(UserSecurityId()) availability is reflected in implemented access checks and local compile validation. |
 | Retention API evidence | Public `Reten. Pol. Allowed Tables` availability is reflected in retention manager compile validation. |
 | Phase 5 local implementation | Complete for non-mutating target selection, selected-field current value refresh, request staged-line preview, policy preview, preview audit, and read-only preview matrix behavior. Sandbox validation pending. |
-| Phase 6 local implementation | Complete for grouped `Update` execution with policy/access re-checks, `Allow Data Policies`, audit evidence, rollback snapshots when enabled or required, and sanitized failure handling. Sandbox validation pending. |
+| Phase 6 local implementation | Complete for grouped `Update` execution, supported record-level `Delete` execution, supported grouped `Insert` execution, policy/access re-checks, `Allow Data Policies`, audit evidence, rollback snapshots for supported updates when enabled or required, rollback-unavailable status for delete/insert, and sanitized failure handling. Sandbox validation pending. |
 | Phase 7 local implementation | Complete for request-level rollback staging from completed `Update` requests with retained snapshots, generated rollback correction requests, rollback operation records, and append-only audit evidence. Sandbox validation pending. |
 | Phase 8 local implementation | Complete for filtered audit metadata export and governed cleanup of expired eligible BCDA-owned operation records. Sandbox validation pending. |
 | Phase 9 local hardening | Complete for compile, analyzers, configuration, object range, permission-set source scan, and documentation consistency. Sandbox validation pending. |
@@ -66,7 +66,7 @@ The SDD package is structurally complete. The project moved from Phase 4 setup, 
 | Acceptance-to-test coverage | Passed for current documentation. |
 | Execution readiness kickoff | Complete for local implementation; final sandbox validation remains. |
 | Phase 6 implementation | Passed local compile for grouped update execution. |
-| OD-018/OD-019 decision blocker | Passed; insert grouping and policy-bypass behavior are deferred until their behavior is needed. |
+| OD-018/OD-019 decision blocker | Passed; current insert grouping and policy-bypass behavior are implemented locally, while richer multiple-record insert grouping remains deferred until needed. |
 | Phase 7 implementation | Passed local compile/analyzer validation for supported update rollback. |
 | Rollback readiness kickoff | Complete locally in `docs/rollback-readiness-kickoff.md`; production use remains blocked until sandbox rollback success, conflict, snapshot, access, and policy validation are complete. |
 | Phase 8 implementation | Passed local compile/analyzer validation for filtered audit export and retention cleanup. |
@@ -90,4 +90,4 @@ The SDD package is structurally complete. The project moved from Phase 4 setup, 
 
 ## Recommendation
 
-Continue with sandbox validation for Phase 6 grouped update execution, supported record-level delete execution, Phase 7 supported update rollback, and Phase 8 export/cleanup. `Rename`, `Insert`, delete rollback, non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, validate-trigger dry-run, external APIs, and broader target matrix editing may be implemented locally, but runtime/production use remains blocked until their applicable implementation contracts, controls, sandbox validation, and runtime readiness evidence are complete.
+Continue with sandbox validation for Phase 6 grouped update execution, supported primary-key rename execution, supported record-level delete execution, supported grouped insert execution, Phase 7 supported update rollback, and Phase 8 export/cleanup. Rename/delete/insert rollback, broader non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, validate-trigger dry-run, external APIs, richer insert grouping, and broader target matrix editing may be implemented locally, but runtime/production use remains blocked until their applicable implementation contracts, controls, sandbox validation, and runtime readiness evidence are complete.

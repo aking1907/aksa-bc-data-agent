@@ -2,7 +2,7 @@
 
 BC Data Agent is a Business Central AL project for a governed data correction extension. The main idea is to let authorized users correct normally hidden or posted Business Central data when standard correction workflows are not enough, while tracking every change and supporting rollback if something goes wrong.
 
-Phase 9 local hardening is complete for the current Phase 8 build, and local implementation now has standing authorization under the SDD. The project includes supported grouped `Update` corrections, request-level rollback staging from completed update requests, filtered audit metadata export, governed retention cleanup, and local build/analyzer/config/security/docs hardening evidence. Sandbox validation remains required before production use.
+Phase 9 local hardening is complete for the current Phase 8 build, and local implementation now has standing authorization under the SDD. The project includes supported grouped `Update` corrections, supported primary-key `Rename` execution, supported record-level `Delete` execution, supported grouped `Insert` execution for one new record per request/table insert group, request-level rollback staging from completed update requests, filtered audit metadata export, governed retention cleanup, and local build/analyzer/config/security/docs hardening evidence. Sandbox validation remains required before production use.
 
 ## Why It Matters
 
@@ -18,7 +18,9 @@ Changing hidden or posted data is powerful and risky. This project treats those 
 - Foundation AL code exists under `src/` and compiles against Business Central 28.0 symbols.
 - A `BC Data Agent` Business Central profile and Role Center provide convenient access to the available foundation tools.
 - Supported grouped `Update` execution is implemented with `SUPER`, required request metadata, configurable approval/policy, audit, and rollback snapshot controls.
+- Supported primary-key `Rename` execution is implemented with `SUPER`, required request metadata, configurable approval/policy, audit, transaction controls, renamed-record identity capture, and rollback-unavailable status.
 - Supported record-level `Delete` execution is implemented with `SUPER`, required request metadata, configurable approval/policy, audit, transaction controls, and rollback-unavailable status.
+- Supported grouped `Insert` execution is implemented with `SUPER`, required request metadata, configurable approval/policy, audit, transaction controls, required staged primary-key fields, created-record identity capture, and rollback-unavailable status.
 - Supported rollback creates a new correction request from a completed `Update` request when retained before-image snapshots exist for every executed supported line.
 - Filtered audit metadata export is implemented with `SUPER`, `Export Enabled`, required filters, and omission of target values, target record identity text, and snapshot payloads.
 - Retention cleanup is implemented for expired eligible BCDA-owned operation records with active request and retained rollback dependency protection.
@@ -26,8 +28,9 @@ Changing hidden or posted data is powerful and risky. This project treats those 
 
 ## Current Boundaries
 
-- `Rename` and `Insert` execution are not enabled at runtime until their operation-specific contracts, user review, policy, audit, rollback/unavailable-state handling, and validation evidence exist.
-- `Rename`, `Insert`, delete rollback, conflict override, and snapshot-missing rollback may be developed locally, but runtime availability remains blocked until their controls are implemented and validated.
+- Rename, insert, and delete rollback are unavailable until operation-aware rollback controls and validation evidence exist.
+- Conflict override and snapshot-missing rollback may be developed locally, but runtime availability remains blocked until their controls are implemented and validated.
+- Insert execution currently creates one new record per request/table insert group; staging multiple new records for the same table in one request remains blocked until an app-owned insert group identity or matrix workflow exists.
 - No arbitrary target value preview, unfiltered export, unredacted export, snapshot payload export, external API, or target business-data cleanup behavior has been implemented.
 - No BCDA-specific permission sets should be created; access is for existing Business Central `SUPER` users only.
 - Approval is configurable: dual-control companies can require a different `SUPER` approver, while one-person companies can explicitly disable approval for standard requests or allow self-approval.
@@ -46,7 +49,7 @@ Changing hidden or posted data is powerful and risky. This project treats those 
 | `.codex/skills/` | Project-local skills for SDD, architecture, AL implementation, UX, security, tests, release, and user-guide upkeep. Use only the skill that matches the task. |
 | `.codex/prompts/` | Optional reusable prompts for repeatable workflows. |
 | `cost/` | Compact AI cost policy, pricing assumptions, usage rollup, and generated cost report. |
-| `src/` | Phase 2-8 AL objects covering foundation data, security, policy, setup, retention, UX shell, target selection, preview, grouped update execution, supported update rollback, filtered audit export, and retention cleanup. |
+| `src/` | Phase 2-8 AL objects covering foundation data, security, policy, setup, retention, UX shell, target selection, preview, grouped update/rename/delete/insert execution, supported update rollback, filtered audit export, and retention cleanup. |
 | `ruleset.json` | Analyzer rules, including the documented no-permission-set exception for ADR-003. |
 | `docs/sdd-index.md` | Lean development process and source map. |
 | `docs/code-generation-readiness.md` | Standing implementation authorization and runtime/production safety boundary. |
@@ -101,7 +104,7 @@ Status: Phase 9 local hardening is complete and local code development is no lon
 Next steps:
 
 1. Deploy to sandbox and verify SUPER/non-SUPER access behavior.
-2. Verify target selection, request preview, grouped update execution, audit, rollback snapshot behavior, and request-level rollback staging against representative normal, hidden, posted, and protected tables.
+2. Verify target selection, request preview, grouped update/rename/delete/insert execution, audit, rollback snapshot behavior, and request-level rollback staging against representative normal, hidden, posted, and protected tables.
 3. Verify generated rollback request preview/execution, expired/purged snapshot blocking, policy-blocked rollback, and sanitized failure behavior.
 4. Verify filtered audit export redaction, required filters, and non-`SUPER` blocking.
 5. Verify retention cleanup purges/deletes only expired eligible BCDA-owned operation records and protects active requests and retained rollback dependencies.

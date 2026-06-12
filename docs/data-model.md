@@ -1,6 +1,6 @@
 # Data Model
 
-This document describes app-owned data. Phase 2-8 foundation storage, non-mutating preview behavior, grouped update execution, supported update rollback, filtered audit metadata export, and governed retention cleanup now exist in AL, while non-update operation execution, non-update rollback, conflict override, unredacted export, snapshot payload export, and external APIs remain gated.
+This document describes app-owned data. Phase 2-8 foundation storage, non-mutating preview behavior, grouped update execution, supported primary-key rename execution, supported record-level delete execution, supported grouped insert execution, supported update rollback, filtered audit metadata export, and governed retention cleanup now exist in AL, while non-update rollback, conflict override, unredacted export, snapshot payload export, and external APIs remain gated.
 
 ## App-Owned Entities
 
@@ -48,7 +48,7 @@ This document describes app-owned data. Phase 2-8 foundation storage, non-mutati
 ## Migration Notes
 
 - Value snapshots use the current serialized text shape; future format changes need versioning and upgrade tests.
-- Correction line, batch buffer, and audit schema now use canonical `RecordId` storage where an existing target record is applicable. `Insert` correction lines deliberately keep `RecordId` empty, so insert execution must use an app-owned grouping/created-record identity before mutation readiness can open. The foundation lookup uses a temporary display key; persistent display-key storage can be added before richer target matrix preview or mutation is released.
+- Correction line, batch buffer, and audit schema now use canonical `RecordId` storage where an existing target record is applicable. `Insert` correction lines deliberately keep `RecordId` empty while staged; the current execution slice groups insert lines by request/table, creates one record per group, and stores the created `RecordId` after success for audit/review. The foundation lookup uses a temporary display key; persistent display-key storage and an app-owned insert group identity can be added before richer target matrix preview or multiple same-table inserts per request are released.
 - Retention category enum values must remain stable for upgrade compatibility.
 - Schema changes to audit or snapshot tables need upgrade routines and compatibility tests.
 - Audit history must remain readable after extension upgrades.

@@ -67,6 +67,7 @@ The bounded domain is controlled Business Central data correction. The app owns 
 - BCDA app-owned, system, protected, unsupported, unaudited, rollback-unready, and non-`SUPER` mutation paths remain blocked even if a future setup setting disables data policy record enforcement.
 - Sensitive values cannot be exposed to users without `SUPER` access or through unauthorized logs, exports, or support channels.
 - Correction lines identify target records by a canonical platform `RecordId` plus company context. In the foundation build the value is read-only app-owned storage populated by the `Select Record` primary-key lookup; hand-entered serialized keys are not part of the workflow.
+- Insert correction lines keep `RecordId` empty while staged, execute as one new record per request/table insert group, require staged nonblank primary-key fields, and store the created `RecordId` after successful execution for audit/review.
 
 ## Domain Events
 
@@ -95,4 +96,4 @@ BC Data Agent owns only its setup, policy, request, snapshot, audit, and rollbac
 - Default and minimum retention periods for audit metadata and rollback snapshots.
 - External approval workflow integration, if ever needed beyond configurable one-person or separate-approver approval.
 - Which posted tables are blocked by default.
-- Operation-aware execution for `Rename` and `Insert`, plus operation-aware rollback behavior for `Rename`, `Delete`, and `Insert`.
+- Richer insert grouping and operation-aware rollback behavior for `Rename`, `Delete`, and `Insert`.

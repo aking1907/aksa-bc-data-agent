@@ -46,7 +46,7 @@
 
 ## Object And Module Map
 
-Foundation objects are implemented for setup, policy, request, audit, snapshot, rollback-state, retention-log, SUPER-gated shells, supporting services, grouped update execution, supported update rollback, filtered audit metadata export, and retention cleanup. Objects marked future remain gated by readiness.
+Foundation objects are implemented for setup, policy, request, audit, snapshot, rollback-state, retention-log, SUPER-gated shells, supporting services, grouped update execution, supported record-level delete execution, supported grouped insert execution, supported update rollback, filtered audit metadata export, and retention cleanup. Objects marked future remain gated by readiness.
 
 | Object Area | Names |
 | --- | --- |
@@ -65,7 +65,7 @@ Foundation objects are implemented for setup, policy, request, audit, snapshot, 
 5. Policy Guard evaluates `SUPER` access, table policy, field policy, approval need, and any future reviewed policy-enforcement exception.
 6. Correction Orchestrator performs the current non-mutating staged-line preview and reports warnings, rollback logging mode, retention period, and rollback availability. Full validate-trigger dry-run remains gated.
 7. SUPER approver approves when required by policy.
-8. Correction Orchestrator executes line changes by grouping staged lines by correction type and canonical target identity when applicable. `Insert` execution must not use an input `RecordId`.
+8. Correction Orchestrator executes line changes by grouping staged lines by correction type and canonical target identity when applicable. `Insert` execution must not use an input `RecordId`; the current implementation groups insert lines by request/table, creates one record per group, and stores the created `RecordId` after success.
 9. Audit Writer records mandatory attempt, outcome, target, user, reason, and ticket metadata.
 10. Snapshot Store keeps rollback material only when rollback snapshot logging is enabled by setup and policy.
 11. Rollback Service can create a new governed correction request from a completed supported `Update` request when retained before-images exist for the whole request.

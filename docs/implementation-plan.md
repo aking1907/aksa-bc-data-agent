@@ -37,11 +37,13 @@
 | --- | --- | --- |
 | Target selection and preview | Implemented | Sandbox validation pending before reliance |
 | Grouped `Update` execution | Implemented | Sandbox validation pending before reliance |
+| Primary-key `Rename` execution | Implemented | Sandbox validation pending before reliance; rollback unavailable |
 | Record-level `Delete` execution | Implemented | Sandbox validation pending before reliance; rollback unavailable |
+| Grouped `Insert` execution | Implemented | Sandbox validation pending before reliance; rollback unavailable; one new record per request/table insert group |
 | Request-level rollback staging | Implemented | Sandbox validation pending before reliance |
 | Filtered audit metadata export | Implemented | Sandbox validation pending before reliance |
 | Retention cleanup | Implemented | Sandbox validation pending before reliance |
-| `Rename`, `Insert`, delete rollback, non-update rollback, conflict override, APIs, unredacted export | Runtime-gated | Not production-ready |
+| Rename/delete/insert rollback, broader non-update rollback, conflict override, APIs, unredacted export | Runtime-gated | Not production-ready |
 
 ## Local Done
 

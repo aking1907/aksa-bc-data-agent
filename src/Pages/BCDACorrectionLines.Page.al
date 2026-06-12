@@ -39,7 +39,7 @@ page 88115 "BCDA Correction Lines"
                     AssistEdit = true;
                     Caption = 'Record ID';
                     Editable = false;
-                    ToolTip = 'Specifies the target record identity selected for this correction line. Use assist edit or Select Record to choose it.';
+                    ToolTip = 'Specifies the target record identity selected for existing-record lines, or the created record identity after successful Insert execution.';
 
                     trigger OnAssistEdit()
                     begin
@@ -153,7 +153,7 @@ page 88115 "BCDA Correction Lines"
     end;
 
     var
-        RecordIdNotUsedForInsertErr: Label 'Record ID is empty for Insert correction lines.';
+        RecordIdNotUsedForInsertErr: Label 'Record ID is not selected for Insert correction lines. Execution assigns the created record identity after a successful insert.';
         RequestRequiredBeforeMatrixErr: Label 'Save the correction request before previewing the data matrix.';
         TableRequiredBeforeRecordErr: Label 'Select a table before selecting a record.';
 }

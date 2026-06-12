@@ -11,6 +11,7 @@ Implemented local runtime slices include:
 - non-mutating target selection and request preview,
 - supported grouped `Update` execution with request-wide validation and all-or-nothing transaction behavior,
 - supported record-level `Delete` execution with rollback-unavailable status,
+- supported grouped `Insert` execution with one new record per request/table insert group and rollback-unavailable status,
 - request-level rollback staging from completed supported `Update` requests,
 - filtered audit metadata export,
 - governed retention cleanup for expired BCDA-owned operation records.
@@ -43,7 +44,7 @@ Local implementation is allowed for:
 - security and policy hardening,
 - target selection, preview, batch entry, and matrix-style staging,
 - supported `Update` execution and generated rollback correction requests,
-- operation-specific local work for `Rename`, `Delete`, `Insert`, richer rollback, validate-trigger dry-run, export, retention, and APIs when guarded or blocked at runtime until controls and validation exist,
+- operation-specific local work for rename/delete/insert rollback, richer rollback, validate-trigger dry-run, export, retention, and APIs when guarded or blocked at runtime until controls and validation exist,
 - tests, analyzers, documentation, and release evidence.
 
 ## Permanent Blocks
@@ -62,8 +63,8 @@ Do not implement or enable:
 
 The following may be developed locally, but must remain disabled, blocked, or guarded until operation-specific controls and sandbox validation exist:
 
-- `Rename` and `Insert` execution.
-- Delete rollback, non-update rollback, and conflict override.
+- Rename rollback, delete rollback, insert rollback, broader non-update rollback, and conflict override.
+- Multiple inserted records for the same table in one request until an app-owned insert group identity or matrix workflow exists.
 - Validate-trigger dry-run or target write rehearsal.
 - Full target record matrix selector or arbitrary target filtering/search.
 - Unfiltered, unredacted, snapshot-payload, or external API export.

@@ -272,6 +272,9 @@ table 88103 "BCDA Correction Line"
 
         EnsureFieldClassCanBeCorrected(FieldMetadata);
 
+        if (Type = Type::Rename) and not FieldMetadata.IsPartOfPrimaryKey then
+            Error(FieldMustBePrimaryKeyForRenameErr, "Field ID", "Table ID");
+
         if FieldMetadata.IsPartOfPrimaryKey and not AllowsPrimaryKeyValueStaging() then
             Error(FieldPrimaryKeyNotModifiableErr, "Field ID", "Table ID");
 
@@ -479,6 +482,7 @@ table 88103 "BCDA Correction Line"
         FieldDisabledErr: Label 'Field %1 on table %2 is disabled and cannot be selected for a correction line.', Comment = '%1 = field ID, %2 = table ID';
         FieldIdNotInitializedErr: Label 'Field ID is not initialized.';
         FieldNotUsedForDeleteErr: Label 'Field ID is not used for Delete correction lines.';
+        FieldMustBePrimaryKeyForRenameErr: Label 'Field %1 on table %2 must be part of the primary key for Rename correction lines.', Comment = '%1 = field ID, %2 = table ID';
         FieldNotFoundErr: Label 'Field %1 was not found for table %2.', Comment = '%1 = field ID, %2 = table ID';
         FieldNotNormalErr: Label 'Field %1 on table %2 is not a normal stored field and cannot be selected for a correction line.', Comment = '%1 = field ID, %2 = table ID';
         FieldPrimaryKeyNotModifiableErr: Label 'Field %1 on table %2 is part of the primary key and cannot be modified by BC Data Agent.', Comment = '%1 = field ID, %2 = table ID';
@@ -489,7 +493,7 @@ table 88103 "BCDA Correction Line"
         ProposedValueNotAllowedForDeleteErr: Label 'Proposed new value is not used for Delete correction lines.';
         ProposedValueFieldTooLongErr: Label 'Proposed new value for field %1 on table %2 cannot be longer than %3 characters.', Comment = '%1 = field ID, %2 = table ID, %3 = maximum field length';
         RecordIdTableMismatchErr: Label 'Record ID %1 does not belong to table %2.', Comment = '%1 = record ID, %2 = table ID';
-        RecordIdMustBeEmptyForInsertErr: Label 'Record ID must be empty for Insert correction lines.';
+        RecordIdMustBeEmptyForInsertErr: Label 'Record ID must be empty while staging Insert correction lines. Execution assigns the created record identity after a successful insert.';
         RecordIdNotInitializedErr: Label 'Record ID is not initialized.';
         ProposedValueTypeMismatchErr: Label 'Proposed new value is not compatible with field %1 on table %2 type %3.', Comment = '%1 = field ID, %2 = table ID, %3 = field type';
         RequestRequiredErr: Label 'A correction line must belong to a saved correction request.';

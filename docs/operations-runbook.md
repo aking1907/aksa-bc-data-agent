@@ -2,7 +2,7 @@
 
 ## Current Support Boundary
 
-The project currently has Phase 2-8 AL objects, including grouped update execution, supported update rollback, filtered audit metadata export, and governed retention cleanup. Phase 8 sandbox validation was skipped by request for implementation and remains required before production use.
+The project currently has Phase 2-8 AL objects, including grouped update execution, supported record-level delete execution, supported grouped insert execution, supported update rollback, filtered audit metadata export, and governed retention cleanup. Phase 8 sandbox validation was skipped by request for implementation and remains required before production use.
 
 ## Setup Checks
 
@@ -28,10 +28,10 @@ The project currently has Phase 2-8 AL objects, including grouped update executi
 - Confirm data policy `Table ID` and `Field ID` lookup fills metadata names.
 - Confirm BCDA app-owned table IDs are blocked in table lookup, correction line table validation, data policy table validation, and policy evaluation.
 - Confirm correction line `Table ID` lookup shows Business Central tables and `Field ID` lookup is filtered by the selected table.
-- Confirm correction line `Type` supports `Update`, `Rename`, `Delete`, and `Insert`, and that `Insert` keeps `Record ID` empty.
+- Confirm correction line `Type` supports `Update`, `Rename`, `Delete`, and `Insert`, that `Rename` accepts primary-key fields only and stores the renamed identity after execution, and that `Insert` keeps `Record ID` empty while staged.
 - Confirm `Record ID` is read-only app-owned storage, the `Select Record` line action opens target record lookup, and selecting a row fills the canonical identity.
 - Confirm selecting `Field ID` after `Record ID` fills `Current Value Preview` for that selected field only.
-- Confirm entering `Proposed New Value` accepts supported scalar field values, blocks disabled, non-normal, primary-key, system-managed, removed, unsupported-type, length-invalid, and scalar type-incompatible values, and does not echo sensitive proposed values in errors.
+- Confirm entering `Proposed New Value` accepts supported scalar field values, blocks disabled, non-normal, primary-key-for-update, non-primary-key-for-rename, system-managed, removed, unsupported-type, length-invalid, and scalar type-incompatible values, and does not echo sensitive proposed values in errors.
 - Confirm `Preview Data Matrix` opens from the correction lines part, shows staged correction-line data for the current request, and remains read-only.
 - Confirm `Batch Add Lines` opens same-table batch entry, can select target records, and creates normal correction lines without target mutation.
 - Confirm `Preview Request` does not mutate target data; target value reads stay limited to the selected staged lines and update app-owned line status, rollback/retention text, and audit evidence only.
@@ -48,10 +48,10 @@ The project currently has Phase 2-8 AL objects, including grouped update executi
 
 1. SUPER user creates correction request.
 2. SUPER user enters reason and ticket/reference when required or available.
-3. SUPER user selects correction type, target table, target record identity when applicable, and field metadata when applicable, reviews the selected field's current value for existing-record lines, then stages the proposed value. Mutation remains limited to supported grouped `Update` execution after all controls pass.
+3. SUPER user selects correction type, target table, target record identity when applicable, and field metadata when applicable, reviews the selected field's current value for existing-record lines, then stages the proposed value. Mutation remains limited to supported grouped `Update`, primary-key `Rename`, record-level `Delete`, and grouped `Insert` execution after all controls pass.
 4. SUPER user runs preview.
 5. SUPER user approves if approval is required. Use a different SUPER user only when approval policy requires separation; skip approval only when setup or policy explicitly says approval is not required.
-6. SUPER user executes supported grouped `Update` corrections after metadata, preview, approval/policy, and rollback snapshot checks pass.
+6. SUPER user executes supported grouped `Update`, primary-key `Rename`, record-level `Delete`, or grouped `Insert` corrections after metadata, preview, approval/policy, audit, and rollback-availability checks pass.
 7. SUPER reviewer reviews evidence.
 8. SUPER user requests supported rollback from the completed correction request if needed and while snapshots are retained, then reviews the generated rollback correction request.
 9. SUPER reviewer exports filtered audit metadata only when export is enabled and required filters are applied.
@@ -66,7 +66,7 @@ The project currently has Phase 2-8 AL objects, including grouped update executi
 | Need to modify without policy records | Use `Allow Data Policies` off only when the business accepts bypassing policy records. BCDA app-owned tables, unsupported fields, non-`SUPER` users, missing request metadata, unaudited mutation, and rollback controls still apply. |
 | Preview failed | Confirm target record exists and field type is supported. |
 | Preview Data Matrix is empty or blocked | Confirm the request is saved, has correction lines, and the user has `SUPER` access. |
-| Proposed value rejected | Confirm the line type rules: `Update` needs an existing target record and non-primary-key field, `Rename` may stage primary-key fields for future execution, `Insert` must keep Record ID empty, and all value-staging fields must be enabled, normal, not system-managed, not removed, supported for foundation staging, and type/length compatible. |
+| Proposed value rejected | Confirm the line type rules: `Update` needs an existing target record and non-primary-key field, `Rename` needs an existing target record and primary-key fields only, `Insert` must keep Record ID empty while staged and must include all primary-key fields before execution, and all value-staging fields must be enabled, normal, not system-managed, not removed, supported for foundation staging, and type/length compatible. |
 | Execution unavailable | The request is not in an executable state, metadata is missing, required preview is not complete, approval is missing, policy blocks the line, or the line type is not enabled for runtime execution. |
 | Rollback review difference | The generated rollback correction request preview shows a current target value that differs from the original executed value. Review the generated request and decide whether a separate correction is required. |
 | Rollback unavailable | Confirm the source request is completed, all source lines are executed supported `Update` lines, rollback snapshot logging was enabled, snapshots have not expired or been purged, and no rollback request already exists. |

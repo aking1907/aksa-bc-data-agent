@@ -75,7 +75,7 @@ page 88142 "BCDA Batch Line Builder"
                 {
                     ApplicationArea = All;
                     Editable = false;
-                    ToolTip = 'Specifies the target record identity for this batch entry.';
+                    ToolTip = 'Specifies the selected existing target record identity. Insert entries leave this empty until execution creates a record.';
                 }
                 field("Field ID"; Rec."Field ID")
                 {
@@ -258,7 +258,7 @@ page 88142 "BCDA Batch Line Builder"
         BatchTableSelected: Boolean;
         ClearLinesBeforeTableChangeErr: Label 'Delete the current batch entries before changing the batch table.';
         NextEntryNo: Integer;
-        RecordIdNotUsedForInsertErr: Label 'Record ID is empty for Insert batch entries.';
+        RecordIdNotUsedForInsertErr: Label 'Record ID is not selected for Insert batch entries. Execution assigns the created record identity after a successful insert.';
         RequestId: Code[20];
         RequestLinesCreatedMsg: Label '%1 request line(s) were created from the batch.', Comment = '%1 = number of created request lines';
         RequestRequiredErr: Label 'Create or save the correction request before adding batch lines.';

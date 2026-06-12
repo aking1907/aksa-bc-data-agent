@@ -6,7 +6,7 @@ Initial target: Business Central 2026 release wave 1 / version 28 sandbox matchi
 
 Production deployment is blocked until sandbox release validation passes and runtime readiness evidence is updated.
 
-Phase 8 filtered audit metadata export and governed retention cleanup are implemented locally. Sandbox validation was skipped by request for implementation and remains required before production use.
+Phase 8 filtered audit metadata export and governed retention cleanup are implemented locally. Supported grouped update, record-level delete, and grouped insert execution are implemented locally. Sandbox validation was skipped by request for implementation and remains required before production use.
 
 ## Pre-Deployment Checklist
 
@@ -39,7 +39,7 @@ Local implementation is standing-authorized under the SDD. Package deployment is
 6. Confirm non-`SUPER` users cannot open BCDA pages.
 7. Configure setup, rollback logging, retention, and data policies.
 8. Create a foundation request and verify audit evidence for foundation actions.
-9. Use RecordId target selection for sandbox request-line staging, proposed-value validation, preview, supported grouped update execution, and supported update rollback.
+9. Use RecordId target selection for sandbox request-line staging, proposed-value validation, preview, supported grouped update execution, supported record-level delete execution, supported grouped insert execution, and supported update rollback.
 10. For Phase 8 sandbox readiness, use only artificial BCDA operation records to validate audit redaction, export filters, cleanup behavior, active-record protection, and upgrade readability. Do not generate production exports or delete production operation records until release validation is complete.
 
 ## Configuration Steps

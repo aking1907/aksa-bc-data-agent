@@ -350,8 +350,12 @@ codeunit 88125 "BCDA Correction Orchestrator"
         case CurrentType of
             CurrentType::Update:
                 ValidateUpdateExecutionGroup(RequestApproved, TempGroupLine);
+            CurrentType::Rename:
+                ValidateRenameExecutionGroup(RequestApproved, TempGroupLine);
             CurrentType::Delete:
                 ValidateDeleteExecutionGroup(RequestApproved, TempGroupLine);
+            CurrentType::Insert:
+                ValidateInsertExecutionGroup(RequestApproved, TempGroupLine);
             else
                 Error(UnsupportedExecutionTypeErr, Format(CurrentType));
         end;
@@ -445,9 +449,19 @@ codeunit 88125 "BCDA Correction Orchestrator"
                     ApplyUpdateExecutionGroup(TempGroupLine);
                     MarkExecutionGroupSucceeded(CorrectionRequest, TempGroupLine, SuccessCount);
                 end;
+            CurrentType::Rename:
+                begin
+                    ApplyRenameExecutionGroup(TempGroupLine);
+                    MarkExecutionGroupSucceeded(CorrectionRequest, TempGroupLine, SuccessCount);
+                end;
             CurrentType::Delete:
                 begin
                     ApplyDeleteExecutionGroup(TempGroupLine);
+                    MarkExecutionGroupSucceeded(CorrectionRequest, TempGroupLine, SuccessCount);
+                end;
+            CurrentType::Insert:
+                begin
+                    ApplyInsertExecutionGroup(TempGroupLine);
                     MarkExecutionGroupSucceeded(CorrectionRequest, TempGroupLine, SuccessCount);
                 end;
             else
@@ -481,6 +495,129 @@ codeunit 88125 "BCDA Correction Orchestrator"
         TargetRecordRef.Close();
     end;
 
+    local procedure ApplyRenameExecutionGroup(var TempGroupLine: Record "BCDA Correction Line" temporary)
+    var
+        RenamedRecordId: RecordId;
+        TargetRecordRef: RecordRef;
+        RenameKeyValue: array[20] of Variant;
+        RenameKeyValueCount: Integer;
+    begin
+        TempGroupLine.Reset();
+        TempGroupLine.FindFirst();
+        if not TargetRecordRef.Get(TempGroupLine."Record ID") then
+            Error(LineRecordNotFoundErr, TempGroupLine."Line No.");
+
+        BuildRenameKeyValues(TempGroupLine, TargetRecordRef, RenameKeyValue, RenameKeyValueCount);
+        if not RenameTargetRecord(TargetRecordRef, RenameKeyValue, RenameKeyValueCount) then
+            Error(RenameFailedErr, TempGroupLine."Table ID", TempGroupLine."Record ID");
+
+        RenamedRecordId := TargetRecordRef.RecordId();
+        TargetRecordRef.Close();
+
+        TempGroupLine.Reset();
+        if TempGroupLine.FindSet() then
+            repeat
+                TempGroupLine."Record ID" := RenamedRecordId;
+                TempGroupLine.Modify();
+            until TempGroupLine.Next() = 0;
+    end;
+
+    local procedure BuildRenameKeyValues(var TempGroupLine: Record "BCDA Correction Line" temporary; var TargetRecordRef: RecordRef; var RenameKeyValue: array[20] of Variant; var RenameKeyValueCount: Integer)
+    var
+        FieldMetadata: Record "Field";
+        CurrentRecordId: RecordId;
+        ConversionRecordRef: RecordRef;
+        ConversionFieldRef: FieldRef;
+        CurrentFieldRef: FieldRef;
+        KeyFieldRef: FieldRef;
+        KeyRef: KeyRef;
+        KeyValue: Variant;
+        Index: Integer;
+    begin
+        Clear(RenameKeyValue);
+        RenameKeyValueCount := 0;
+        TempGroupLine.Reset();
+        TempGroupLine.FindFirst();
+        CurrentRecordId := TempGroupLine."Record ID";
+
+        ConversionRecordRef.Get(CurrentRecordId);
+        KeyRef := TargetRecordRef.KeyIndex(1);
+        for Index := 1 to KeyRef.FieldCount() do begin
+            if Index > 20 then
+                Error(RenamePrimaryKeyFieldLimitErr, KeyRef.FieldCount());
+
+            KeyFieldRef := KeyRef.FieldIndex(Index);
+            CurrentFieldRef := TargetRecordRef.Field(KeyFieldRef.Number());
+            KeyValue := CurrentFieldRef.Value();
+
+            TempGroupLine.Reset();
+            TempGroupLine.SetRange("Field ID", KeyFieldRef.Number());
+            if TempGroupLine.FindFirst() then begin
+                FieldMetadata.Get(TempGroupLine."Table ID", TempGroupLine."Field ID");
+                ConversionFieldRef := ConversionRecordRef.Field(TempGroupLine."Field ID");
+                TempGroupLine."Current Value Preview" := CopyStr(Format(CurrentFieldRef.Value()), 1, MaxStrLen(TempGroupLine."Current Value Preview"));
+                SetTargetFieldValue(ConversionFieldRef, FieldMetadata, TempGroupLine."Proposed New Value");
+                KeyValue := ConversionFieldRef.Value();
+                TempGroupLine."Sanitized Error" := CopyStr(Format(KeyValue), 1, MaxStrLen(TempGroupLine."Sanitized Error"));
+                TempGroupLine.Modify();
+            end;
+
+            RenameKeyValue[Index] := KeyValue;
+            RenameKeyValueCount += 1;
+        end;
+
+        TempGroupLine.Reset();
+        ConversionRecordRef.Close();
+    end;
+
+    local procedure RenameTargetRecord(var TargetRecordRef: RecordRef; RenameKeyValue: array[20] of Variant; RenameKeyValueCount: Integer): Boolean
+    begin
+        case RenameKeyValueCount of
+            1:
+                exit(TargetRecordRef.Rename(RenameKeyValue[1]));
+            2:
+                exit(TargetRecordRef.Rename(RenameKeyValue[1], RenameKeyValue[2]));
+            3:
+                exit(TargetRecordRef.Rename(RenameKeyValue[1], RenameKeyValue[2], RenameKeyValue[3]));
+            4:
+                exit(TargetRecordRef.Rename(RenameKeyValue[1], RenameKeyValue[2], RenameKeyValue[3], RenameKeyValue[4]));
+            5:
+                exit(TargetRecordRef.Rename(RenameKeyValue[1], RenameKeyValue[2], RenameKeyValue[3], RenameKeyValue[4], RenameKeyValue[5]));
+            6:
+                exit(TargetRecordRef.Rename(RenameKeyValue[1], RenameKeyValue[2], RenameKeyValue[3], RenameKeyValue[4], RenameKeyValue[5], RenameKeyValue[6]));
+            7:
+                exit(TargetRecordRef.Rename(RenameKeyValue[1], RenameKeyValue[2], RenameKeyValue[3], RenameKeyValue[4], RenameKeyValue[5], RenameKeyValue[6], RenameKeyValue[7]));
+            8:
+                exit(TargetRecordRef.Rename(RenameKeyValue[1], RenameKeyValue[2], RenameKeyValue[3], RenameKeyValue[4], RenameKeyValue[5], RenameKeyValue[6], RenameKeyValue[7], RenameKeyValue[8]));
+            9:
+                exit(TargetRecordRef.Rename(RenameKeyValue[1], RenameKeyValue[2], RenameKeyValue[3], RenameKeyValue[4], RenameKeyValue[5], RenameKeyValue[6], RenameKeyValue[7], RenameKeyValue[8], RenameKeyValue[9]));
+            10:
+                exit(TargetRecordRef.Rename(RenameKeyValue[1], RenameKeyValue[2], RenameKeyValue[3], RenameKeyValue[4], RenameKeyValue[5], RenameKeyValue[6], RenameKeyValue[7], RenameKeyValue[8], RenameKeyValue[9], RenameKeyValue[10]));
+            11:
+                exit(TargetRecordRef.Rename(RenameKeyValue[1], RenameKeyValue[2], RenameKeyValue[3], RenameKeyValue[4], RenameKeyValue[5], RenameKeyValue[6], RenameKeyValue[7], RenameKeyValue[8], RenameKeyValue[9], RenameKeyValue[10], RenameKeyValue[11]));
+            12:
+                exit(TargetRecordRef.Rename(RenameKeyValue[1], RenameKeyValue[2], RenameKeyValue[3], RenameKeyValue[4], RenameKeyValue[5], RenameKeyValue[6], RenameKeyValue[7], RenameKeyValue[8], RenameKeyValue[9], RenameKeyValue[10], RenameKeyValue[11], RenameKeyValue[12]));
+            13:
+                exit(TargetRecordRef.Rename(RenameKeyValue[1], RenameKeyValue[2], RenameKeyValue[3], RenameKeyValue[4], RenameKeyValue[5], RenameKeyValue[6], RenameKeyValue[7], RenameKeyValue[8], RenameKeyValue[9], RenameKeyValue[10], RenameKeyValue[11], RenameKeyValue[12], RenameKeyValue[13]));
+            14:
+                exit(TargetRecordRef.Rename(RenameKeyValue[1], RenameKeyValue[2], RenameKeyValue[3], RenameKeyValue[4], RenameKeyValue[5], RenameKeyValue[6], RenameKeyValue[7], RenameKeyValue[8], RenameKeyValue[9], RenameKeyValue[10], RenameKeyValue[11], RenameKeyValue[12], RenameKeyValue[13], RenameKeyValue[14]));
+            15:
+                exit(TargetRecordRef.Rename(RenameKeyValue[1], RenameKeyValue[2], RenameKeyValue[3], RenameKeyValue[4], RenameKeyValue[5], RenameKeyValue[6], RenameKeyValue[7], RenameKeyValue[8], RenameKeyValue[9], RenameKeyValue[10], RenameKeyValue[11], RenameKeyValue[12], RenameKeyValue[13], RenameKeyValue[14], RenameKeyValue[15]));
+            16:
+                exit(TargetRecordRef.Rename(RenameKeyValue[1], RenameKeyValue[2], RenameKeyValue[3], RenameKeyValue[4], RenameKeyValue[5], RenameKeyValue[6], RenameKeyValue[7], RenameKeyValue[8], RenameKeyValue[9], RenameKeyValue[10], RenameKeyValue[11], RenameKeyValue[12], RenameKeyValue[13], RenameKeyValue[14], RenameKeyValue[15], RenameKeyValue[16]));
+            17:
+                exit(TargetRecordRef.Rename(RenameKeyValue[1], RenameKeyValue[2], RenameKeyValue[3], RenameKeyValue[4], RenameKeyValue[5], RenameKeyValue[6], RenameKeyValue[7], RenameKeyValue[8], RenameKeyValue[9], RenameKeyValue[10], RenameKeyValue[11], RenameKeyValue[12], RenameKeyValue[13], RenameKeyValue[14], RenameKeyValue[15], RenameKeyValue[16], RenameKeyValue[17]));
+            18:
+                exit(TargetRecordRef.Rename(RenameKeyValue[1], RenameKeyValue[2], RenameKeyValue[3], RenameKeyValue[4], RenameKeyValue[5], RenameKeyValue[6], RenameKeyValue[7], RenameKeyValue[8], RenameKeyValue[9], RenameKeyValue[10], RenameKeyValue[11], RenameKeyValue[12], RenameKeyValue[13], RenameKeyValue[14], RenameKeyValue[15], RenameKeyValue[16], RenameKeyValue[17], RenameKeyValue[18]));
+            19:
+                exit(TargetRecordRef.Rename(RenameKeyValue[1], RenameKeyValue[2], RenameKeyValue[3], RenameKeyValue[4], RenameKeyValue[5], RenameKeyValue[6], RenameKeyValue[7], RenameKeyValue[8], RenameKeyValue[9], RenameKeyValue[10], RenameKeyValue[11], RenameKeyValue[12], RenameKeyValue[13], RenameKeyValue[14], RenameKeyValue[15], RenameKeyValue[16], RenameKeyValue[17], RenameKeyValue[18], RenameKeyValue[19]));
+            20:
+                exit(TargetRecordRef.Rename(RenameKeyValue[1], RenameKeyValue[2], RenameKeyValue[3], RenameKeyValue[4], RenameKeyValue[5], RenameKeyValue[6], RenameKeyValue[7], RenameKeyValue[8], RenameKeyValue[9], RenameKeyValue[10], RenameKeyValue[11], RenameKeyValue[12], RenameKeyValue[13], RenameKeyValue[14], RenameKeyValue[15], RenameKeyValue[16], RenameKeyValue[17], RenameKeyValue[18], RenameKeyValue[19], RenameKeyValue[20]));
+        end;
+
+        Error(RenamePrimaryKeyFieldLimitErr, RenameKeyValueCount);
+    end;
+
     local procedure ApplyDeleteExecutionGroup(var TempGroupLine: Record "BCDA Correction Line" temporary)
     var
         TargetRecordRef: RecordRef;
@@ -496,6 +633,63 @@ codeunit 88125 "BCDA Correction Orchestrator"
 
         TargetRecordRef.Delete(true);
         TargetRecordRef.Close();
+    end;
+
+    local procedure ApplyInsertExecutionGroup(var TempGroupLine: Record "BCDA Correction Line" temporary)
+    var
+        CreatedRecordId: RecordId;
+        TargetRecordRef: RecordRef;
+    begin
+        TempGroupLine.Reset();
+        TempGroupLine.FindFirst();
+
+        TargetRecordRef.Open(TempGroupLine."Table ID");
+        TargetRecordRef.Init();
+
+        ApplyInsertExecutionGroupFields(TempGroupLine, TargetRecordRef, true);
+        ApplyInsertExecutionGroupFields(TempGroupLine, TargetRecordRef, false);
+
+        TargetRecordRef.Insert(true);
+        CreatedRecordId := TargetRecordRef.RecordId();
+        TargetRecordRef.Close();
+
+        TempGroupLine.Reset();
+        if TempGroupLine.FindSet() then
+            repeat
+                TempGroupLine."Record ID" := CreatedRecordId;
+                TempGroupLine.Modify();
+            until TempGroupLine.Next() = 0;
+    end;
+
+    local procedure ApplyInsertExecutionGroupFields(var TempGroupLine: Record "BCDA Correction Line" temporary; var TargetRecordRef: RecordRef; ApplyPrimaryKeyFields: Boolean)
+    var
+        FieldMetadata: Record "Field";
+        TargetFieldRef: FieldRef;
+    begin
+        TempGroupLine.Reset();
+        if TempGroupLine.FindSet() then
+            repeat
+                FieldMetadata.Get(TempGroupLine."Table ID", TempGroupLine."Field ID");
+                if FieldMetadata.IsPartOfPrimaryKey = ApplyPrimaryKeyFields then begin
+                    TargetFieldRef := TargetRecordRef.Field(TempGroupLine."Field ID");
+                    Clear(TempGroupLine."Current Value Preview");
+                    SetTargetFieldValue(TargetFieldRef, FieldMetadata, TempGroupLine."Proposed New Value");
+                    TempGroupLine."Sanitized Error" := CopyStr(Format(TargetFieldRef.Value()), 1, MaxStrLen(TempGroupLine."Sanitized Error"));
+                    TempGroupLine.Modify();
+                end;
+            until TempGroupLine.Next() = 0;
+    end;
+
+    local procedure ValidateRenameExecutionGroup(RequestApproved: Boolean; var TempGroupLine: Record "BCDA Correction Line" temporary)
+    begin
+        TempGroupLine.Reset();
+        if TempGroupLine.FindSet() then
+            repeat
+                ValidateLinePreviewShape(TempGroupLine);
+                EnsureNoDuplicateFieldInExecutionGroup(TempGroupLine);
+                TempGroupLine.ValidateDataValue();
+                EnsureLinePolicyAllowsExecution(TempGroupLine, RequestApproved);
+            until TempGroupLine.Next() = 0;
     end;
 
     local procedure ValidateUpdateExecutionGroup(RequestApproved: Boolean; var TempGroupLine: Record "BCDA Correction Line" temporary)
@@ -524,6 +718,20 @@ codeunit 88125 "BCDA Correction Orchestrator"
         EnsureLinePolicyAllowsExecution(TempGroupLine, RequestApproved);
     end;
 
+    local procedure ValidateInsertExecutionGroup(RequestApproved: Boolean; var TempGroupLine: Record "BCDA Correction Line" temporary)
+    begin
+        TempGroupLine.Reset();
+        if TempGroupLine.FindSet() then
+            repeat
+                ValidateLinePreviewShape(TempGroupLine);
+                EnsureNoDuplicateFieldInExecutionGroup(TempGroupLine);
+                TempGroupLine.ValidateDataValue();
+                EnsureLinePolicyAllowsExecution(TempGroupLine, RequestApproved);
+            until TempGroupLine.Next() = 0;
+
+        EnsureInsertPrimaryKeyFieldsStaged(TempGroupLine);
+    end;
+
     local procedure EnsureNoDuplicateFieldInExecutionGroup(CorrectionLine: Record "BCDA Correction Line")
     var
         DuplicateLine: Record "BCDA Correction Line";
@@ -533,8 +741,39 @@ codeunit 88125 "BCDA Correction Orchestrator"
         DuplicateLine.SetRange("Table ID", CorrectionLine."Table ID");
         DuplicateLine.SetRange("Record ID", CorrectionLine."Record ID");
         DuplicateLine.SetRange("Field ID", CorrectionLine."Field ID");
-        if DuplicateLine.Count() > 1 then
+        if DuplicateLine.Count() > 1 then begin
+            if CorrectionLine.Type = CorrectionLine.Type::Insert then
+                Error(DuplicateInsertFieldInGroupErr, CorrectionLine."Field ID", CorrectionLine."Table ID");
+
             Error(DuplicateFieldInGroupErr, CorrectionLine."Field ID", CorrectionLine."Table ID", CorrectionLine."Record ID");
+        end;
+    end;
+
+    local procedure EnsureInsertPrimaryKeyFieldsStaged(var TempGroupLine: Record "BCDA Correction Line" temporary)
+    var
+        FieldMetadata: Record "Field";
+        TableId: Integer;
+    begin
+        TempGroupLine.Reset();
+        TempGroupLine.FindFirst();
+        TableId := TempGroupLine."Table ID";
+
+        FieldMetadata.SetRange(TableNo, TableId);
+        FieldMetadata.SetRange(IsPartOfPrimaryKey, true);
+        if not FieldMetadata.FindSet() then
+            Error(InsertPrimaryKeyMetadataMissingErr, TableId);
+
+        repeat
+            TempGroupLine.Reset();
+            TempGroupLine.SetRange("Field ID", FieldMetadata."No.");
+            if not TempGroupLine.FindFirst() then
+                Error(InsertPrimaryKeyFieldMissingErr, TableId, FieldMetadata."No.");
+
+            if TempGroupLine."Proposed New Value" = '' then
+                Error(InsertPrimaryKeyValueMissingErr, TableId, FieldMetadata."No.");
+        until FieldMetadata.Next() = 0;
+
+        TempGroupLine.Reset();
     end;
 
     local procedure EnsureLinePolicyAllowsExecution(CorrectionLine: Record "BCDA Correction Line"; RequestApproved: Boolean)
@@ -667,6 +906,7 @@ codeunit 88125 "BCDA Correction Orchestrator"
         CorrectionLine: Record "BCDA Correction Line";
         AuditWriter: Codeunit "BCDA Audit Writer";
         ValueSerializer: Codeunit "BCDA Value Serializer";
+        EmptyRecordId: RecordId;
         ExpiresAt: DateTime;
         NewValueText: Text[2048];
         OldValueText: Text[2048];
@@ -679,6 +919,8 @@ codeunit 88125 "BCDA Correction Orchestrator"
                 OldValueText := CopyStr(TempGroupLine."Current Value Preview", 1, MaxStrLen(OldValueText));
                 NewValueText := CopyStr(TempGroupLine."Sanitized Error", 1, MaxStrLen(NewValueText));
                 ValueType := ResolveValueType(TempGroupLine);
+                if (TempGroupLine.Type in [TempGroupLine.Type::Rename, TempGroupLine.Type::Insert]) and (TempGroupLine."Record ID" <> EmptyRecordId) then
+                    CorrectionLine."Record ID" := TempGroupLine."Record ID";
 
                 if ShouldCaptureRollbackSnapshot(TempGroupLine) then begin
                     ExpiresAt := CalculateSnapshotExpiresAt();
@@ -770,16 +1012,44 @@ codeunit 88125 "BCDA Correction Orchestrator"
 
     local procedure ResolvePreviewRollbackAvailability(CorrectionRequest: Record "BCDA Correction Request"; RollbackSnapshotMode: Enum "BCDA Rollback Snapshot Mode"): Text[250]
     begin
-        if RequestContainsType(CorrectionRequest, "BCDA Correction Type"::Delete) then
+        if RequestContainsType(CorrectionRequest, "BCDA Correction Type"::Rename) then
+            if RequestContainsType(CorrectionRequest, "BCDA Correction Type"::Delete) or RequestContainsType(CorrectionRequest, "BCDA Correction Type"::Insert) then
+                exit(CopyStr(NonUpdateRollbackUnavailableTxt, 1, 250));
+
+        if RequestContainsType(CorrectionRequest, "BCDA Correction Type"::Delete) then begin
+            if RequestContainsType(CorrectionRequest, "BCDA Correction Type"::Insert) then
+                exit(CopyStr(DeleteInsertRollbackUnavailableTxt, 1, 250));
+
             exit(CopyStr(DeleteRollbackUnavailableTxt, 1, 250));
+        end;
+
+        if RequestContainsType(CorrectionRequest, "BCDA Correction Type"::Insert) then
+            exit(CopyStr(InsertRollbackUnavailableTxt, 1, 250));
+
+        if RequestContainsType(CorrectionRequest, "BCDA Correction Type"::Rename) then
+            exit(CopyStr(RenameRollbackUnavailableTxt, 1, 250));
 
         exit(CopyStr(StrSubstNo(PreviewRollbackAvailabilityTxt, RollbackSnapshotMode), 1, 250));
     end;
 
     local procedure ResolveExecutionRollbackAvailability(CorrectionRequest: Record "BCDA Correction Request"): Text[250]
     begin
-        if RequestContainsType(CorrectionRequest, "BCDA Correction Type"::Delete) then
+        if RequestContainsType(CorrectionRequest, "BCDA Correction Type"::Rename) then
+            if RequestContainsType(CorrectionRequest, "BCDA Correction Type"::Delete) or RequestContainsType(CorrectionRequest, "BCDA Correction Type"::Insert) then
+                exit(CopyStr(NonUpdateRollbackUnavailableTxt, 1, 250));
+
+        if RequestContainsType(CorrectionRequest, "BCDA Correction Type"::Delete) then begin
+            if RequestContainsType(CorrectionRequest, "BCDA Correction Type"::Insert) then
+                exit(CopyStr(DeleteInsertRollbackUnavailableTxt, 1, 250));
+
             exit(CopyStr(DeleteRollbackUnavailableTxt, 1, 250));
+        end;
+
+        if RequestContainsType(CorrectionRequest, "BCDA Correction Type"::Insert) then
+            exit(CopyStr(InsertRollbackUnavailableTxt, 1, 250));
+
+        if RequestContainsType(CorrectionRequest, "BCDA Correction Type"::Rename) then
+            exit(CopyStr(RenameRollbackUnavailableTxt, 1, 250));
 
         exit(CopyStr(ExecutionRollbackAvailabilityTxt, 1, 250));
     end;
@@ -828,6 +1098,10 @@ codeunit 88125 "BCDA Correction Orchestrator"
         PreviewRollbackAvailabilityTxt: Label 'Preview only. Rollback snapshot mode is %1; execution can capture snapshots when enabled or required.', Comment = '%1 = rollback snapshot mode';
         ExecutionRollbackAvailabilityTxt: Label 'Execution captures rollback snapshots for supported update lines when rollback snapshot mode is enabled or required. The request is applied as one transaction.';
         DeleteRollbackUnavailableTxt: Label 'Delete execution is supported for governed requests, but request-level rollback staging is unavailable for Delete lines. Restore deleted records through a separately reviewed correction or backup process.';
+        DeleteInsertRollbackUnavailableTxt: Label 'Delete and Insert execution are supported for governed requests, but request-level rollback staging is unavailable for Delete or Insert lines. Use separately reviewed corrections or backup processes to restore or remove records.';
+        InsertRollbackUnavailableTxt: Label 'Insert execution is supported for governed requests, but request-level rollback staging is unavailable for Insert lines. Remove created records through a separately reviewed Delete correction or backup process.';
+        RenameRollbackUnavailableTxt: Label 'Rename execution is supported for governed requests, but request-level rollback staging is unavailable for Rename lines. Restore primary-key identity through a separately reviewed Rename correction or backup process.';
+        NonUpdateRollbackUnavailableTxt: Label 'Rename, Delete, and Insert execution are supported for governed requests, but request-level rollback staging is unavailable for non-update operation lines. Use separately reviewed corrections or backup processes to restore records.';
         ExecutionPreflightFailedRollbackAvailabilityTxt: Label 'Execution did not change target data because the request failed validation before mutation.';
         RetentionImpactTxt: Label 'Audit: %1 days; rollback snapshots: %2 days; technical logs: %3 days.', Comment = '%1 = audit retention days, %2 = snapshot retention days, %3 = technical log retention days';
         PreviewSummaryTxt: Label 'Preview checked %1 line(s): %2 failed validation, %3 blocked by policy, %4 require approval. No target data was changed.', Comment = '%1 = line count, %2 = failed count, %3 = blocked count, %4 = approval-required count';
@@ -842,6 +1116,12 @@ codeunit 88125 "BCDA Correction Orchestrator"
         LineRecordMustBeEmptyForInsertErr: Label 'Line %1 must keep Record ID empty for Insert preview.', Comment = '%1 = line number';
         DuplicateFieldInGroupErr: Label 'Field %1 on table %2 is staged more than once for record %3. Keep one proposed value per field in an execution group.', Comment = '%1 = field ID, %2 = table ID, %3 = record ID';
         DuplicateDeleteInGroupErr: Label 'Delete is staged more than once for table %1 record %2. Keep one Delete line per target record.', Comment = '%1 = table ID, %2 = record ID';
+        DuplicateInsertFieldInGroupErr: Label 'Field %1 on table %2 is staged more than once for the same Insert group. Keep one proposed value per field.', Comment = '%1 = field ID, %2 = table ID';
+        InsertPrimaryKeyFieldMissingErr: Label 'Insert execution for table %1 must stage primary-key field %2 before mutation.', Comment = '%1 = table ID, %2 = field ID';
+        InsertPrimaryKeyMetadataMissingErr: Label 'Insert execution for table %1 could not find primary-key metadata.', Comment = '%1 = table ID';
+        InsertPrimaryKeyValueMissingErr: Label 'Insert execution for table %1 field %2 must stage a nonblank primary-key value before mutation.', Comment = '%1 = table ID, %2 = field ID';
+        RenameFailedErr: Label 'Rename execution for table %1 record %2 did not complete. Verify the proposed primary-key value is unique and valid for the target table.', Comment = '%1 = table ID, %2 = record ID';
+        RenamePrimaryKeyFieldLimitErr: Label 'Rename execution supports primary keys with up to 20 fields. The target primary key has %1 fields.', Comment = '%1 = primary-key field count';
         DeleteExecutedValueTxt: Label 'Deleted';
         FieldTypeNotSupportedForExecutionErr: Label 'Field %1 on table %2 has unsupported type %3 for execution.', Comment = '%1 = field ID, %2 = table ID, %3 = field type';
         LineBlockedByPolicyErr: Label 'Line %1 is blocked by data policy: %2', Comment = '%1 = line number, %2 = policy reason';

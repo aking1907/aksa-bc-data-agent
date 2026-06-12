@@ -132,7 +132,7 @@ table 88108 "BCDA Batch Line Buffer"
 
     var
         FieldNotUsedForDeleteErr: Label 'Field ID is not used for Delete batch entries.';
-        RecordIdMustBeEmptyForInsertErr: Label 'Record ID must be empty for Insert correction lines.';
+        RecordIdMustBeEmptyForInsertErr: Label 'Record ID must be empty while staging Insert correction lines. Execution assigns the created record identity after a successful insert.';
         RecordIdTableMismatchErr: Label 'Record ID %1 does not belong to table %2.', Comment = '%1 = record ID, %2 = table ID';
         TableRequiredBeforeRecordErr: Label 'Select a table before selecting a record.';
 }
