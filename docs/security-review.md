@@ -2,7 +2,7 @@
 
 ## Review Status
 
-Draft. Phase 8 filtered audit metadata export, governed retention cleanup, Phase 7 request-level rollback staging, Phase 6 grouped update execution, and `Allow Data Policies` are implemented locally. Local code development is under standing authorization, while non-update operation execution, non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, external APIs, and production enablement remain runtime-gated by controls, sandbox validation, and readiness evidence.
+Draft. Phase 8 filtered audit metadata export, governed retention cleanup, Phase 7 request-level rollback staging, Phase 6 grouped update execution, supported record-level delete execution, and `Allow Data Policies` are implemented locally. Local code development is under standing authorization, while rename/insert execution, delete rollback, other non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, external APIs, and production enablement remain runtime-gated by controls, sandbox validation, and readiness evidence.
 
 ## Security Objectives
 
@@ -41,7 +41,7 @@ Draft. Phase 8 filtered audit metadata export, governed retention cleanup, Phase
 | THR-011 | Batch entry makes it easier to stage many risky changes at once | Batch entry creates only standard correction lines; preview, policy, approval when configured, execution, audit, rollback, and runtime validation controls still apply before any mutation. |
 | THR-012 | A user mistypes or ambiguously serializes a composite record key | Planned target selection uses canonical `RecordId` plus company context and a matrix-style selector instead of hand-entered composite keys. |
 | THR-013 | Current value preview exposes sensitive selected-field values | Preview is available only through `SUPER`-gated pages, is limited to the selected record and field, and remains excluded from export/generic telemetry. Sandbox validation must confirm sensitive-value handling before production use. |
-| THR-014 | Operation type labels imply rename, delete, or insert is ready before operation-specific contracts exist | Current runtime behavior audits `Rename`, `Delete`, and `Insert` execution as blocked; future local code may be built behind disabled/runtime-gated controls until operation-specific mutation validation, audit, and rollback controls exist. |
+| THR-014 | Operation type labels imply rename, delete, or insert is ready before operation-specific contracts exist | Current runtime behavior supports governed `Delete` execution with rollback unavailable; `Rename` and `Insert` execution remain blocked until operation-specific mutation validation, audit, and rollback/unavailable controls exist. |
 | THR-015 | A setup switch that disables data policy enforcement turns BCDA into a broad table editor | `Allow Data Policies` is enabled by default. When disabled, execution still blocks BCDA app-owned tables, unsupported fields, and any operation lacking `SUPER`, required request metadata, audit, rollback snapshot controls, and sandbox validation. |
 | THR-016 | BCDA app-owned operation tables are selected as correction targets | Foundation metadata validation, table lookup, and policy evaluation permanently block BCDA app-owned tables in the object range 88100..88149 from correction and policy targets. |
 | THR-017 | Standing implementation authorization is mistaken for approval to enable unsafe runtime behavior | Local code development is separated from runtime/production enablement; runtime behavior still requires user review, policies, `SUPER`, audit, redaction, rollback controls, tests, and sandbox validation evidence. |
@@ -87,7 +87,7 @@ Workflow responsibilities below are audit and process responsibilities, not cust
 - Logging full sensitive values in generic telemetry.
 - Exporting target values, target record identity text, or rollback snapshot payloads through the Phase 8 CSV export.
 - Production enablement before sandbox validation.
-- Runtime execution of staged `Rename`, `Delete`, or `Insert` operation types before operation-specific execution contracts, user review, policy, audit, rollback/unavailable-state handling, and sandbox validation explicitly allow those operations.
+- Runtime execution of staged `Rename` or `Insert` operation types, or delete rollback, before operation-specific execution contracts, user review, policy, audit, rollback/unavailable-state handling, and sandbox validation explicitly allow those operations.
 - Disabling data policies in a way that permits unguarded target writes, BCDA app-owned table edits, system/protected table edits, unsupported field writes, or unaudited mutation.
 - Creating policies or correction lines that target BC Data Agent app-owned tables.
 

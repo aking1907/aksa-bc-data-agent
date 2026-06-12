@@ -18,6 +18,7 @@ Changing hidden or posted data is powerful and risky. This project treats those 
 - Foundation AL code exists under `src/` and compiles against Business Central 28.0 symbols.
 - A `BC Data Agent` Business Central profile and Role Center provide convenient access to the available foundation tools.
 - Supported grouped `Update` execution is implemented with `SUPER`, required request metadata, configurable approval/policy, audit, and rollback snapshot controls.
+- Supported record-level `Delete` execution is implemented with `SUPER`, required request metadata, configurable approval/policy, audit, transaction controls, and rollback-unavailable status.
 - Supported rollback creates a new correction request from a completed `Update` request when retained before-image snapshots exist for every executed supported line.
 - Filtered audit metadata export is implemented with `SUPER`, `Export Enabled`, required filters, and omission of target values, target record identity text, and snapshot payloads.
 - Retention cleanup is implemented for expired eligible BCDA-owned operation records with active request and retained rollback dependency protection.
@@ -25,8 +26,8 @@ Changing hidden or posted data is powerful and risky. This project treats those 
 
 ## Current Boundaries
 
-- `Rename`, `Delete`, and `Insert` execution are not enabled at runtime until their operation-specific contracts, user review, policy, audit, rollback/unavailable-state handling, and validation evidence exist.
-- `Rename`, `Delete`, `Insert`, conflict override, and snapshot-missing rollback may be developed locally, but runtime availability remains blocked until their controls are implemented and validated.
+- `Rename` and `Insert` execution are not enabled at runtime until their operation-specific contracts, user review, policy, audit, rollback/unavailable-state handling, and validation evidence exist.
+- `Rename`, `Insert`, delete rollback, conflict override, and snapshot-missing rollback may be developed locally, but runtime availability remains blocked until their controls are implemented and validated.
 - No arbitrary target value preview, unfiltered export, unredacted export, snapshot payload export, external API, or target business-data cleanup behavior has been implemented.
 - No BCDA-specific permission sets should be created; access is for existing Business Central `SUPER` users only.
 - Approval is configurable: dual-control companies can require a different `SUPER` approver, while one-person companies can explicitly disable approval for standard requests or allow self-approval.

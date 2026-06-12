@@ -31,7 +31,7 @@ The app is not a casual table editor. It is a break-glass workflow for authorize
 8. Audit metadata is mandatory.
 9. Rollback snapshot logging is configurable, but if snapshots are disabled, rollback will be unavailable.
 10. Retention settings control how long app-owned operation records remain available.
-11. In the current build, only grouped `Update` execution and request-level rollback staging for completed `Update` requests are enabled; `Rename`, `Delete`, and `Insert` execution and rollback are audited or blocked.
+11. In the current build, grouped `Update` execution, supported record-level `Delete` execution, and request-level rollback staging for completed `Update` requests are enabled; `Rename`, `Insert`, and delete rollback are audited or blocked.
 12. Audit export is filtered metadata only. It omits target values, target record identity text, and rollback snapshot payloads.
 13. Retention cleanup must be run only after reviewing retention settings because expired eligible BCDA-owned operation records can be purged or deleted.
 
@@ -53,11 +53,11 @@ The app is not a casual table editor. It is a break-glass workflow for authorize
 | Access control | Yes | Open BCDA pages only as a `SUPER` user. | Non-`SUPER` access must be denied by runtime checks. |
 | Setup | Yes | Configure default policy, preview, rollback, retention, export flag, retention registration, and cleanup. | Run cleanup only after reviewing retention settings. |
 | Data policies | Yes | Maintain table and field policy records and configure whether policy records participate through `Allow Data Policies`. | When `Allow Data Policies` is off, policy records are bypassed, but BCDA app-owned tables, unsupported fields, non-`SUPER` access, metadata, audit, and rollback controls still apply. |
-| Correction requests | Yes | Create request headers, apply setup defaults, preview staged lines, execute supported grouped updates, and manage request state. | Preview is non-mutating; execution is limited to supported grouped `Update` lines. |
-| Correction lines | Partial | Stage a correction type, use lookup suggestions for target table and field, use `Select Record` to select a target record ID when applicable, review the selected field's current value, enter proposed value text, and open `Preview Data Matrix` to review staged line data. | Current value preview and the matrix use stored correction-line data only; `Insert` keeps `Record ID` empty; `Rename`, `Delete`, and `Insert` execution are still blocked. |
+| Correction requests | Yes | Create request headers, apply setup defaults, preview staged lines, execute supported grouped updates and record deletes, and manage request state. | Preview is non-mutating; `Rename` and `Insert` execution remain blocked. |
+| Correction lines | Partial | Stage a correction type, use lookup suggestions for target table and field, use `Select Record` to select a target record ID when applicable, review the selected field's current value, enter proposed value text for updates, and open `Preview Data Matrix` to review staged line data. | Current value preview and the matrix use stored correction-line data only; `Insert` keeps `Record ID` empty; `Delete` uses a target `Record ID` without field or proposed value and is rollback-unavailable. |
 | Batch line builder | Yes | Create same-table correction lines from selected target records, fields, proposed values, and rollback/validation settings. | No target data is changed by batch creation; unsupported runtime operation types still follow the normal execution gates. |
 | Approval | Yes | Submit and approve requests only when approval is required, with configurable separate-approver or self-approval behavior. | Full policy-driven approval workflow is still future hardening. |
-| Execution | Yes, limited | Execute supported grouped `Update` corrections after metadata, preview, approval/policy, and rollback snapshot checks pass. | The request is applied as one transaction; unsupported operation types are blocked before mutation. |
+| Execution | Yes, limited | Execute supported grouped `Update` corrections and supported record-level `Delete` corrections after metadata, preview, approval/policy, audit, and rollback-availability checks pass. | The request is applied as one transaction; `Delete` rollback is unavailable, and unsupported operation types are blocked before mutation. |
 | Audit entries | Yes | Review append-only audit evidence and export filtered metadata when export is enabled and filters are applied. | Export omits target values, target record identity text, and rollback snapshot payloads. |
 | Retention logs | Yes | Review retention log records and cleanup evidence. | Cleanup touches only expired eligible BCDA-owned operation records, not target Business Central business data. |
 | Rollback | Yes, limited | Create a new rollback correction request from a completed `Update` request when retained before-image snapshots exist for every executed supported line. | The rollback action itself does not change target data; the generated request must be previewed, approved if required, and executed. |
@@ -346,21 +346,21 @@ Set `Type` to `Update`, `Rename`, `Delete`, or `Insert`. `Update`, `Rename`, and
 
 Current builds expose `Record ID` as read-only app-owned storage when an existing target record is applicable. It is not typed manually. After selecting `Table ID`, use either the `Record ID` assist edit button or the line action `Select Record` to open `BCDA Target Record Lookup`, choose a record by its primary-key display values, and populate the canonical `RecordId`.
 
-The foundation lookup reads the selected table's primary-key fields for selection. After both `Record ID` and `Field ID` are selected on an existing-record line, the app reads that selected field and fills `Current Value Preview`. When you enter `Proposed New Value`, the app checks that the field is an enabled normal stored field, is not system-managed or removed, uses a supported foundation scalar type, and that the text can be parsed for that field type. Primary-key values are blocked for `Update`, but may be staged for future `Rename` and `Insert` execution. Execution changes Business Central data only for supported grouped `Update` lines. The richer matrix-style selector, similar to Business Central's Dimension Matrix pattern, is still planned for staging multiple field changes for the selected record.
+The foundation lookup reads the selected table's primary-key fields for selection. After both `Record ID` and `Field ID` are selected on an existing-record line, the app reads that selected field and fills `Current Value Preview`. When you enter `Proposed New Value`, the app checks that the field is an enabled normal stored field, is not system-managed or removed, uses a supported foundation scalar type, and that the text can be parsed for that field type. Primary-key values are blocked for `Update`, but may be staged for future `Rename` and `Insert` execution. Execution changes Business Central data only for supported grouped `Update` lines and supported record-level `Delete` lines. The richer matrix-style selector, similar to Business Central's Dimension Matrix pattern, is still planned for staging multiple field changes for the selected record.
 
 Use `Preview Data Matrix` on the correction lines part to open a read-only temporary matrix of the staged lines for the current request. For each correction type and table, the matrix shows a heading row with the unique fields staged for that table, then one `Current` row and one `New` row for each target record. It does not read additional target data and does not execute a full dry-run.
 
 | Field | Meaning |
 | --- | --- |
 | Line No. | Line identifier, automatically assigned in increments. |
-| Type | Staged operation type: `Update`, `Rename`, `Delete`, or `Insert`. Phase 6 executes grouped `Update` lines and audits other operation types as blocked. |
+| Type | Staged operation type: `Update`, `Rename`, `Delete`, or `Insert`. Phase 6 executes grouped `Update` lines and supported record-level `Delete` lines, and audits unsupported operation types as blocked. |
 | Table ID | Target table number. Use lookup to select a Business Central table from metadata. |
 | Table Name | Target table name or caption. Filled from the selected table metadata. |
 | Record ID | Canonical target record identity for existing-record operations. Read-only; use the field assist edit button or the `Select Record` line action to select a record from the current table. This remains empty for `Insert`. |
 | Field ID | Target field number. Use lookup after selecting `Table ID`; the list is filtered to enabled normal fields for that table. |
 | Field Name | Target field name or caption. Filled from the selected field metadata. |
-| Proposed New Value | New value text to apply for supported `Update` execution or to stage for a future operation type. The current build validates required record/field selection, field staging eligibility, text/code length, and supported scalar type compatibility before saving the line value. |
-| Current Value Preview | Current value for the selected `Record ID` and `Field ID`. Filled automatically when both are selected. |
+| Proposed New Value | New value text to apply for supported `Update` execution or to stage for a future operation type. `Delete` lines must keep this blank. The current build validates required record/field selection, field staging eligibility, text/code length, and supported scalar type compatibility before saving the line value. |
+| Current Value Preview | Current value for the selected `Record ID` and `Field ID`. Filled automatically when both are selected; `Delete` lines use the selected record identity and do not show a field value. |
 | Rollback Snapshot Mode | Line-level rollback snapshot mode. |
 | Validation Mode | Line-level validation behavior. |
 | Line Status | Current line state. |
@@ -454,7 +454,7 @@ Use this workflow to validate the current build in a sandbox.
 15. Use `Submit For Approval` if approval is required.
 16. If `Require Separate Approver` is enabled, sign in or switch to a different `SUPER` user.
 17. If approval is required, open the request and use `Approve`.
-18. Use `Execute` for supported grouped `Update` lines only.
+18. Use `Execute` for supported grouped `Update` lines or supported record-level `Delete` lines.
 19. Open `BCDA Audit Entries`.
 20. Confirm audit entries exist for request creation, preview, approval where applicable, and execution.
 21. If the completed request needs reversal and rollback snapshots are retained, use `Rollback` from the completed correction request only on artificial sandbox data.
@@ -462,7 +462,7 @@ Use this workflow to validate the current build in a sandbox.
 23. Open `BCDA Rollback Operations` and confirm the generated rollback request is linked to the completed source request.
 24. Open `BCDA Retention Logs` if retention registration or cleanup validation produced log entries.
 
-If any line uses `Rename`, `Delete`, or `Insert`, execution is blocked before mutation and target Business Central data remains unchanged for the request.
+If any line uses `Rename` or `Insert`, execution is blocked before mutation and target Business Central data remains unchanged for the request. `Delete` lines execute only when the selected target record, policy, approval when required, audit, and transaction controls pass; rollback for deleted records is unavailable in the current build.
 
 ## Planned Full Correction Workflow
 
@@ -712,7 +712,7 @@ Do not use BC Data Agent to:
 | Current Value Preview is blank | `Record ID` or `Field ID` is blank, the selected record no longer exists, or the selected field cannot be formatted for preview. | Use `Record ID` assist edit or `Select Record`, choose `Field ID` again, then review any error shown by the line. |
 | Proposed New Value is rejected | The target record or field is missing, the field is disabled, non-normal, primary-key, system-managed, removed, unsupported for staging/execution, too long for the field, or the text cannot be parsed as the field type. | Select a valid target record and enabled normal non-primary-key field, then enter a value formatted for that field type. |
 | Rollback action is unavailable | The request is not completed, rollback snapshots are unavailable, or a rollback request already exists for the completed source request. | Open the completed correction request and review rollback availability, line statuses, and existing rollback operations. |
-| Rollback request creation is blocked | Snapshot logging is disabled, expired, purged, a source line is not an executed `Update`, or retained before-images are missing for part of the request. | Review rollback operation evidence, snapshot retention, and whether the completed request is fully eligible for request-level rollback staging. |
+| Rollback request creation is blocked | Snapshot logging is disabled, expired, purged, a source line is not an executed `Update`, the source request includes `Delete`, or retained before-images are missing for part of the request. | Review rollback operation evidence, snapshot retention, and whether the completed request is fully eligible for request-level rollback staging. |
 | Audit export is blocked | Export is disabled or no required filter is applied. | Turn on `Export Enabled` only when approved, then filter by request, company, occurred-at date/time, operation, or result. |
 | Audit export omits target values | Phase 8 export is metadata-only by design. | Review audit metadata and use authorized BCDA pages for privileged value review. Do not expect snapshot payloads in CSV export. |
 | Policy blocks the request | No matching allow policy exists, policy is disabled, or decision is Block. | Review table-level and field-level policies. |

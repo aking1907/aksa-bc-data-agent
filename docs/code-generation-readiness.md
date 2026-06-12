@@ -10,6 +10,7 @@ Implemented local runtime slices include:
 
 - non-mutating target selection and request preview,
 - supported grouped `Update` execution with request-wide validation and all-or-nothing transaction behavior,
+- supported record-level `Delete` execution with rollback-unavailable status,
 - request-level rollback staging from completed supported `Update` requests,
 - filtered audit metadata export,
 - governed retention cleanup for expired BCDA-owned operation records.
@@ -61,8 +62,8 @@ Do not implement or enable:
 
 The following may be developed locally, but must remain disabled, blocked, or guarded until operation-specific controls and sandbox validation exist:
 
-- `Rename`, `Delete`, and `Insert` execution.
-- Non-update rollback and conflict override.
+- `Rename` and `Insert` execution.
+- Delete rollback, non-update rollback, and conflict override.
 - Validate-trigger dry-run or target write rehearsal.
 - Full target record matrix selector or arbitrary target filtering/search.
 - Unfiltered, unredacted, snapshot-payload, or external API export.

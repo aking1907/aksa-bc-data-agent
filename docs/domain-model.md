@@ -95,4 +95,4 @@ BC Data Agent owns only its setup, policy, request, snapshot, audit, and rollbac
 - Default and minimum retention periods for audit metadata and rollback snapshots.
 - External approval workflow integration, if ever needed beyond configurable one-person or separate-approver approval.
 - Which posted tables are blocked by default.
-- Operation-aware execution and rollback behavior for `Rename`, `Delete`, and `Insert`.
+- Operation-aware execution for `Rename` and `Insert`, plus operation-aware rollback behavior for `Rename`, `Delete`, and `Insert`.

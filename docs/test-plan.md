@@ -48,9 +48,10 @@
 | TST-030 | Selected-line current value preview fills only after `Record ID` and `Field ID` are selected and does not mutate target data | AC-004, AC-016 |
 | TST-031 | Correction line proposed-value validation accepts supported scalar values and blocks disabled, non-normal, primary-key, system-managed, removed, unsupported-type, length-invalid, or scalar type-incompatible values without mutating target data | AC-003, AC-012, AC-016 |
 | TST-032 | Preview Data Matrix opens from correction lines, shows staged request line data grouped by request, correction type, table, record, and field, and does not mutate target data or run full dry-run validation | AC-003, AC-004, AC-016, AC-020 |
-| TST-033 | Correction line type staging stores `Update`, `Rename`, `Delete`, and `Insert`; `Insert` keeps `Record ID` empty and target record selection blocked; Phase 6 executes `Update` groups and audits other operation types as blocked | AC-030 |
+| TST-033 | Correction line type staging stores `Update`, `Rename`, `Delete`, and `Insert`; `Insert` keeps `Record ID` empty and target record selection blocked; Phase 6 executes `Update` and supported `Delete` groups and audits unsupported operation types as blocked | AC-030, AC-033 |
 | TST-034 | When `Allow Data Policies` is disabled, execution bypasses policy records for non-BCDA supported targets and still blocks non-`SUPER`, unaudited, rollback-unready, request-metadata-incomplete, app-owned, and unsupported execution paths | AC-031 |
 | TST-035 | `Require Ticket Reference` setup snapshots to new requests; reason-only requests can proceed when off, and blank ticket/reference is blocked when on | AC-032 |
+| TST-036 | Supported `Delete` execution deletes the selected target record only after request metadata, policy, approval when required, preview when required, audit, and transaction controls pass, and shows rollback unavailable | AC-006, AC-008, AC-021, AC-033 |
 
 ## Local Build Validation
 
@@ -108,7 +109,8 @@ These scenarios are the final Phase 6 validation set after `ExecuteRequest` is i
 | P6-TST-006 | Posted/protected targets remain blocked unless sandbox validation and explicit allow-list policy are added later | AC-005, AC-007, AC-012 / TST-005, TST-007 | Sandbox posted/protected validation |
 | P6-TST-007 | Required or enabled rollback snapshot mode captures a retained before-image with expiration metadata | AC-008, AC-022 / TST-008, TST-018 | Sandbox snapshot validation |
 | P6-TST-008 | Request-wide validation failure leaves target data unchanged and writes sanitized audit evidence before mutation; runtime mutation failure rolls back the request transaction | AC-006, AC-008, AC-015, AC-016 / TST-006, TST-008 | Sandbox failure validation |
-| P6-TST-009 | `Rename`, `Delete`, and `Insert` execution remain blocked or disabled at runtime until their operation-specific controls are implemented; `Allow Data Policies` bypasses policy records only while preserving permanent runtime controls | AC-012, AC-030, AC-031 / TST-033, TST-034 | Final validation |
+| P6-TST-009 | `Rename` and `Insert` execution remain blocked or disabled at runtime until their operation-specific controls are implemented; `Allow Data Policies` bypasses policy records only while preserving permanent runtime controls | AC-012, AC-030, AC-031 / TST-033, TST-034 | Final validation |
+| P6-TST-010 | Allowed `Delete` of one artificial normal-table record succeeds as one execution group, writes audit evidence, leaves rollback snapshots empty, and marks delete rollback unavailable | AC-006, AC-008, AC-021, AC-033 / TST-036 | Sandbox delete execution validation |
 
 ## Rollback Readiness Validation
 
@@ -136,7 +138,7 @@ These scenarios define the final validation set for supported request-level `Upd
 | P7-TST-006 | Non-SUPER users cannot invoke rollback services or rollback-capable pages | AC-002, AC-009 / TST-001, TST-009 | Sandbox rollback access validation |
 | P7-TST-007 | Data policy is re-checked when the generated rollback correction request is previewed and executed | AC-012 / TST-002 | Sandbox rollback policy validation |
 | P7-TST-008 | Generated rollback correction request execution follows the all-or-nothing request transaction model | AC-006, AC-008, AC-015, AC-016 / TST-006, TST-008 | Sandbox rollback failure validation |
-| P7-TST-009 | Rename, Delete, and Insert rollback are either implemented with explicit operation-aware controls or remain runtime-blocked until those controls exist | AC-012, AC-030 / TST-033 | Sandbox rollback gate validation |
+| P7-TST-009 | Rename, Delete, and Insert rollback are either implemented with explicit operation-aware controls or remain runtime-blocked or unavailable until those controls exist | AC-012, AC-030, AC-033 / TST-033, TST-036 | Sandbox rollback gate validation |
 | P7-TST-010 | Rollback request creation appends audit evidence and does not modify the original execution audit entries | AC-008, AC-009 / TST-009 | Sandbox append-only audit validation |
 
 ## Audit, Retention, And Export Readiness Validation

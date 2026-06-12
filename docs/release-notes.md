@@ -60,7 +60,7 @@ Status: Phase 9 local hardening complete for the current Phase 8 build; local im
 - `app.json` now references the project logo in `media/BCDataAgent-logo.png`.
 - Local launch configuration now starts on the BCDA Role Center page object 88118.
 - `app.json` publisher changed from an email address to `AKSA` to satisfy analyzer guidance.
-- Code-generation readiness now allows continuous local implementation for future slices while keeping delete, rename, insert execution, non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, and external APIs runtime-gated until controls and validation evidence exist.
+- Code-generation readiness now allows continuous local implementation for future slices while keeping rename/insert execution, delete rollback, non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, and external APIs runtime-gated until controls and validation evidence exist.
 - Preview Request now validates staged line shape, refreshes selected current values, evaluates policy, updates line statuses/sanitized messages, updates preview rollback/retention text, and writes preview audit evidence without changing target data.
 - Correction line edits now reset preview state to `Open`, delete-line preview confirms the target record can be read, and preview-required approval is blocked until every line is previewed.
 - Approval flow changed from hard-coded second-`SUPER` approval to setup-driven separate-approver behavior.
@@ -72,7 +72,7 @@ Status: Phase 9 local hardening complete for the current Phase 8 build; local im
 - BCDA app-owned tables are now blocked from table lookup, correction line targets, data policy targets, and policy evaluation.
 - Approval actions now enforce the submit-before-approve sequence, and the request card enables Execute only for supported executable request states.
 - Correction lines now calculate `Current Value Preview` from the selected record and field; Phase 6 grouped update execution refreshes the displayed current value after success.
-- Execution groups correction lines by correction type, table, and canonical target identity; insert execution remains blocked until an app-owned insert grouping identity is decided.
+- Execution groups correction lines by correction type, table, and canonical target identity; supported record-level delete execution is enabled with rollback unavailable, and insert execution remains blocked until an app-owned insert grouping identity is decided.
 - Setup-controlled data policy enforcement bypass is now implemented as `Allow Data Policies`.
 - Execution and rollback target writes no longer run inside AL `[TryFunction]` wrappers; validation remains guarded before the write.
 - `Export Enabled` now controls filtered audit metadata export instead of acting only as a future flag.
@@ -82,11 +82,12 @@ Status: Phase 9 local hardening complete for the current Phase 8 build; local im
 
 - Foundation AL code exists and compiles.
 - Grouped `Update` target correction behavior exists and compiles.
+- Supported record-level `Delete` correction behavior exists and compiles with rollback unavailable.
 - Supported rollback staging for completed `Update` correction requests exists and compiles.
 - Filtered audit metadata export exists and compiles.
 - Governed retention cleanup exists and compiles.
 - Phase 9 local hardening passed build, analyzer, config, object-range, access-model, and docs consistency checks.
-- `Rename`, `Delete`, and `Insert` execution are not enabled at runtime without operation-specific controls and validation evidence; non-update rollback, conflict override, and rollback without retained snapshots remain runtime-gated.
+- `Rename` and `Insert` execution are not enabled at runtime without operation-specific controls and validation evidence; delete rollback, non-update rollback, conflict override, and rollback without retained snapshots remain runtime-gated.
 - Unfiltered export, unredacted export, snapshot payload export, and external APIs remain runtime-gated.
 - `Allow Data Policies` can bypass policy records when disabled; permanent runtime blocks remain.
 - No external API exists.

@@ -4,13 +4,13 @@
 
 Track Phase 6 correction workflow execution implementation and final sandbox validation.
 
-Phase 2-5 foundation and non-mutating objects exist for app-owned setup, policy, request, line, audit, snapshot, rollback-state, retention-log, SUPER-gated shell pages, target selection, and request preview. Phase 6 local implementation adds grouped `Update` execution, `Allow Data Policies`, execution audit evidence, and rollback snapshot capture when enabled or required.
+Phase 2-5 foundation and non-mutating objects exist for app-owned setup, policy, request, line, audit, snapshot, rollback-state, retention-log, SUPER-gated shell pages, target selection, and request preview. Phase 6 local implementation adds grouped `Update` execution, supported record-level `Delete` execution, `Allow Data Policies`, execution audit evidence, rollback snapshot capture for supported update lines when enabled or required, and rollback-unavailable status for delete lines.
 
 ## Current Start Decision
 
 Execution readiness work is complete for local implementation and has moved to sandbox validation.
 
-AL mutation code is implemented for supported grouped `Update` lines. The current execution gate still blocks `Rename`, `Delete`, and `Insert`; Phase 8 export and retention cleanup are tracked separately.
+AL mutation code is implemented for supported grouped `Update` lines and supported record-level `Delete` lines. The current execution gate still blocks `Rename` and `Insert`; Phase 8 export and retention cleanup are tracked separately.
 
 OD-018 insert grouping remains deferred until insert execution behavior is needed. OD-019 setup-controlled data policy enforcement is implemented as `Allow Data Policies`.
 

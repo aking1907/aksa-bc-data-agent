@@ -47,7 +47,7 @@ Rollback behavior should:
 - Append audit evidence for rollback request creation and generated request execution.
 - Never delete or modify the original execution audit entry.
 - Store only sanitized errors outside protected value storage.
-- Keep `Rename`, `Delete`, `Insert`, conflict override, posted/protected rollback, and policy bypass blocked unless explicitly implemented with operation-aware controls.
+- Keep `Rename`, `Insert`, delete rollback, conflict override, posted/protected rollback, and policy bypass blocked unless explicitly implemented with operation-aware controls.
 
 The local implementation exposes rollback from completed correction requests. It writes a `BCDA Rollback Operation`, creates a new correction request with inverse `Update` lines, opens that request for review, and appends rollback audit evidence. Snapshot validation failures block rollback request creation before any target data changes.
 

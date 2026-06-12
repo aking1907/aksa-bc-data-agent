@@ -97,7 +97,7 @@ codeunit 88125 "BCDA Correction Orchestrator"
         end;
 
         CorrectionRequest.Status := CorrectionRequest.Status::Executing;
-        CorrectionRequest."Rollback Availability" := ExecutionRollbackAvailabilityTxt;
+        CorrectionRequest."Rollback Availability" := ResolveExecutionRollbackAvailability(CorrectionRequest);
         CorrectionRequest.Modify(true);
 
         ProcessExecutionGroups(CorrectionRequest, SuccessCount);
@@ -205,7 +205,7 @@ codeunit 88125 "BCDA Correction Orchestrator"
         ApprovalRequiredCount: Integer;
     begin
         SetupMgt.GetSetup(Setup);
-        CorrectionRequest."Rollback Availability" := StrSubstNo(PreviewRollbackAvailabilityTxt, Setup."Rollback Snapshot Default");
+        CorrectionRequest."Rollback Availability" := ResolvePreviewRollbackAvailability(CorrectionRequest, Setup."Rollback Snapshot Default");
         CorrectionRequest."Retention Impact" := StrSubstNo(RetentionImpactTxt, Setup."Audit Retention Days", Setup."Snapshot Retention Days", Setup."Technical Log Retention Days");
 
         CorrectionLine.SetRange("Request ID", CorrectionRequest."Request ID");
@@ -350,6 +350,8 @@ codeunit 88125 "BCDA Correction Orchestrator"
         case CurrentType of
             CurrentType::Update:
                 ValidateUpdateExecutionGroup(RequestApproved, TempGroupLine);
+            CurrentType::Delete:
+                ValidateDeleteExecutionGroup(RequestApproved, TempGroupLine);
             else
                 Error(UnsupportedExecutionTypeErr, Format(CurrentType));
         end;
@@ -443,6 +445,11 @@ codeunit 88125 "BCDA Correction Orchestrator"
                     ApplyUpdateExecutionGroup(TempGroupLine);
                     MarkExecutionGroupSucceeded(CorrectionRequest, TempGroupLine, SuccessCount);
                 end;
+            CurrentType::Delete:
+                begin
+                    ApplyDeleteExecutionGroup(TempGroupLine);
+                    MarkExecutionGroupSucceeded(CorrectionRequest, TempGroupLine, SuccessCount);
+                end;
             else
                 Error(UnsupportedExecutionTypeErr, Format(CurrentType));
         end;
@@ -474,6 +481,23 @@ codeunit 88125 "BCDA Correction Orchestrator"
         TargetRecordRef.Close();
     end;
 
+    local procedure ApplyDeleteExecutionGroup(var TempGroupLine: Record "BCDA Correction Line" temporary)
+    var
+        TargetRecordRef: RecordRef;
+    begin
+        TempGroupLine.Reset();
+        TempGroupLine.FindFirst();
+        if not TargetRecordRef.Get(TempGroupLine."Record ID") then
+            Error(LineRecordNotFoundErr, TempGroupLine."Line No.");
+
+        TempGroupLine."Current Value Preview" := CopyStr(Format(TempGroupLine."Record ID"), 1, MaxStrLen(TempGroupLine."Current Value Preview"));
+        TempGroupLine."Sanitized Error" := DeleteExecutedValueTxt;
+        TempGroupLine.Modify();
+
+        TargetRecordRef.Delete(true);
+        TargetRecordRef.Close();
+    end;
+
     local procedure ValidateUpdateExecutionGroup(RequestApproved: Boolean; var TempGroupLine: Record "BCDA Correction Line" temporary)
     begin
         TempGroupLine.Reset();
@@ -484,6 +508,20 @@ codeunit 88125 "BCDA Correction Orchestrator"
                 TempGroupLine.ValidateDataValue();
                 EnsureLinePolicyAllowsExecution(TempGroupLine, RequestApproved);
             until TempGroupLine.Next() = 0;
+    end;
+
+    local procedure ValidateDeleteExecutionGroup(RequestApproved: Boolean; var TempGroupLine: Record "BCDA Correction Line" temporary)
+    begin
+        TempGroupLine.Reset();
+        if TempGroupLine.Count() <> 1 then begin
+            TempGroupLine.FindFirst();
+            Error(DuplicateDeleteInGroupErr, TempGroupLine."Table ID", TempGroupLine."Record ID");
+        end;
+
+        TempGroupLine.FindFirst();
+        ValidateLinePreviewShape(TempGroupLine);
+        TempGroupLine.ValidateDataValue();
+        EnsureLinePolicyAllowsExecution(TempGroupLine, RequestApproved);
     end;
 
     local procedure EnsureNoDuplicateFieldInExecutionGroup(CorrectionLine: Record "BCDA Correction Line")
@@ -690,6 +728,9 @@ codeunit 88125 "BCDA Correction Orchestrator"
     var
         RollbackSnapshotMode: Enum "BCDA Rollback Snapshot Mode";
     begin
+        if CorrectionLine.Type <> CorrectionLine.Type::Update then
+            exit(false);
+
         RollbackSnapshotMode := ResolveRollbackSnapshotMode(CorrectionLine);
         exit(RollbackSnapshotMode in [RollbackSnapshotMode::Enabled, RollbackSnapshotMode::Required]);
     end;
@@ -727,6 +768,31 @@ codeunit 88125 "BCDA Correction Orchestrator"
         exit(DataPolicy.FindFirst());
     end;
 
+    local procedure ResolvePreviewRollbackAvailability(CorrectionRequest: Record "BCDA Correction Request"; RollbackSnapshotMode: Enum "BCDA Rollback Snapshot Mode"): Text[250]
+    begin
+        if RequestContainsType(CorrectionRequest, "BCDA Correction Type"::Delete) then
+            exit(CopyStr(DeleteRollbackUnavailableTxt, 1, 250));
+
+        exit(CopyStr(StrSubstNo(PreviewRollbackAvailabilityTxt, RollbackSnapshotMode), 1, 250));
+    end;
+
+    local procedure ResolveExecutionRollbackAvailability(CorrectionRequest: Record "BCDA Correction Request"): Text[250]
+    begin
+        if RequestContainsType(CorrectionRequest, "BCDA Correction Type"::Delete) then
+            exit(CopyStr(DeleteRollbackUnavailableTxt, 1, 250));
+
+        exit(CopyStr(ExecutionRollbackAvailabilityTxt, 1, 250));
+    end;
+
+    local procedure RequestContainsType(CorrectionRequest: Record "BCDA Correction Request"; CorrectionType: Enum "BCDA Correction Type"): Boolean
+    var
+        CorrectionLine: Record "BCDA Correction Line";
+    begin
+        CorrectionLine.SetRange("Request ID", CorrectionRequest."Request ID");
+        CorrectionLine.SetRange(Type, CorrectionType);
+        exit(not CorrectionLine.IsEmpty());
+    end;
+
     local procedure CalculateSnapshotExpiresAt(): DateTime
     var
         Setup: Record "BCDA Setup";
@@ -761,6 +827,7 @@ codeunit 88125 "BCDA Correction Orchestrator"
         NoLinesForExecutionErr: Label 'Request %1 must have at least one correction line before execution.', Comment = '%1 = request ID';
         PreviewRollbackAvailabilityTxt: Label 'Preview only. Rollback snapshot mode is %1; execution can capture snapshots when enabled or required.', Comment = '%1 = rollback snapshot mode';
         ExecutionRollbackAvailabilityTxt: Label 'Execution captures rollback snapshots for supported update lines when rollback snapshot mode is enabled or required. The request is applied as one transaction.';
+        DeleteRollbackUnavailableTxt: Label 'Delete execution is supported for governed requests, but request-level rollback staging is unavailable for Delete lines. Restore deleted records through a separately reviewed correction or backup process.';
         ExecutionPreflightFailedRollbackAvailabilityTxt: Label 'Execution did not change target data because the request failed validation before mutation.';
         RetentionImpactTxt: Label 'Audit: %1 days; rollback snapshots: %2 days; technical logs: %3 days.', Comment = '%1 = audit retention days, %2 = snapshot retention days, %3 = technical log retention days';
         PreviewSummaryTxt: Label 'Preview checked %1 line(s): %2 failed validation, %3 blocked by policy, %4 require approval. No target data was changed.', Comment = '%1 = line count, %2 = failed count, %3 = blocked count, %4 = approval-required count';
@@ -774,6 +841,8 @@ codeunit 88125 "BCDA Correction Orchestrator"
         LineRecordTableMismatchErr: Label 'Line %1 Record ID %2 does not belong to table %3.', Comment = '%1 = line number, %2 = record ID, %3 = table ID';
         LineRecordMustBeEmptyForInsertErr: Label 'Line %1 must keep Record ID empty for Insert preview.', Comment = '%1 = line number';
         DuplicateFieldInGroupErr: Label 'Field %1 on table %2 is staged more than once for record %3. Keep one proposed value per field in an execution group.', Comment = '%1 = field ID, %2 = table ID, %3 = record ID';
+        DuplicateDeleteInGroupErr: Label 'Delete is staged more than once for table %1 record %2. Keep one Delete line per target record.', Comment = '%1 = table ID, %2 = record ID';
+        DeleteExecutedValueTxt: Label 'Deleted';
         FieldTypeNotSupportedForExecutionErr: Label 'Field %1 on table %2 has unsupported type %3 for execution.', Comment = '%1 = field ID, %2 = table ID, %3 = field type';
         LineBlockedByPolicyErr: Label 'Line %1 is blocked by data policy: %2', Comment = '%1 = line number, %2 = policy reason';
         LineRequiresApprovalErr: Label 'Line %1 requires an approved request before execution: %2', Comment = '%1 = line number, %2 = policy reason';

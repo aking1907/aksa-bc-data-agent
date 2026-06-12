@@ -177,7 +177,7 @@ table 88103 "BCDA Correction Line"
         field(15; "Line Status"; Enum "BCDA Line Status")
         {
             Caption = 'Line Status';
-            Editable = false;
+            // Editable = false;
             InitValue = Open;
         }
         field(16; "Sanitized Error"; Text[2048])
@@ -362,8 +362,8 @@ table 88103 "BCDA Correction Line"
                 if DataValue = '' then
                     exit
                 else
-                if not Evaluate(DateFormulaValue, DataValue) then
-                    Error(ProposedValueTypeMismatchErr, FieldMetadata."No.", FieldMetadata.TableNo, Format(FieldMetadata.Type));
+                    if not Evaluate(DateFormulaValue, DataValue) then
+                        Error(ProposedValueTypeMismatchErr, FieldMetadata."No.", FieldMetadata.TableNo, Format(FieldMetadata.Type));
             FieldMetadata.Type::Boolean:
                 if not Evaluate(BooleanValue, DataValue) then
                     Error(ProposedValueTypeMismatchErr, FieldMetadata."No.", FieldMetadata.TableNo, Format(FieldMetadata.Type));
@@ -380,26 +380,26 @@ table 88103 "BCDA Correction Line"
                 if DataValue = '' then
                     exit
                 else
-                if not Evaluate(DateValue, DataValue) then
-                    Error(ProposedValueTypeMismatchErr, FieldMetadata."No.", FieldMetadata.TableNo, Format(FieldMetadata.Type));
+                    if not Evaluate(DateValue, DataValue) then
+                        Error(ProposedValueTypeMismatchErr, FieldMetadata."No.", FieldMetadata.TableNo, Format(FieldMetadata.Type));
             FieldMetadata.Type::Time:
                 if DataValue = '' then
                     exit
                 else
-                if not Evaluate(TimeValue, DataValue) then
-                    Error(ProposedValueTypeMismatchErr, FieldMetadata."No.", FieldMetadata.TableNo, Format(FieldMetadata.Type));
+                    if not Evaluate(TimeValue, DataValue) then
+                        Error(ProposedValueTypeMismatchErr, FieldMetadata."No.", FieldMetadata.TableNo, Format(FieldMetadata.Type));
             FieldMetadata.Type::DateTime:
                 if DataValue = '' then
                     exit
                 else
-                if not Evaluate(DateTimeValue, DataValue) then
-                    Error(ProposedValueTypeMismatchErr, FieldMetadata."No.", FieldMetadata.TableNo, Format(FieldMetadata.Type));
+                    if not Evaluate(DateTimeValue, DataValue) then
+                        Error(ProposedValueTypeMismatchErr, FieldMetadata."No.", FieldMetadata.TableNo, Format(FieldMetadata.Type));
             FieldMetadata.Type::GUID:
                 if DataValue = '' then
                     exit
                 else
-                if not Evaluate(GuidValue, DataValue) then
-                    Error(ProposedValueTypeMismatchErr, FieldMetadata."No.", FieldMetadata.TableNo, Format(FieldMetadata.Type));
+                    if not Evaluate(GuidValue, DataValue) then
+                        Error(ProposedValueTypeMismatchErr, FieldMetadata."No.", FieldMetadata.TableNo, Format(FieldMetadata.Type));
             FieldMetadata.Type::Duration:
                 if not Evaluate(DurationValue, DataValue) then
                     Error(ProposedValueTypeMismatchErr, FieldMetadata."No.", FieldMetadata.TableNo, Format(FieldMetadata.Type));
