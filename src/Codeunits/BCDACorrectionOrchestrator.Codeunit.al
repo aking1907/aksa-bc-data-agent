@@ -332,41 +332,17 @@ codeunit 88125 "BCDA Correction Orchestrator"
 
     local procedure ValidateExecutionGroups(CorrectionRequest: Record "BCDA Correction Request"; RequestApproved: Boolean)
     var
-        CorrectionLine: Record "BCDA Correction Line";
+        TempExecutionGroup: Record "BCDA Correction Line" temporary;
         TempGroupLine: Record "BCDA Correction Line" temporary;
-        CurrentRecordId: RecordId;
-        CurrentTableId: Integer;
-        CurrentType: Enum "BCDA Correction Type";
-        HasGroup: Boolean;
     begin
-        CorrectionLine.SetCurrentKey("Request ID", Type, "Table ID", "Record ID");
-        CorrectionLine.SetRange("Request ID", CorrectionRequest."Request ID");
-        if not CorrectionLine.FindSet() then
-            Error(NoLinesForExecutionErr, CorrectionRequest."Request ID");
+        BuildExecutionGroups(CorrectionRequest, TempExecutionGroup);
 
-        CurrentTableId := 0;
-        Clear(CurrentRecordId);
-        repeat
-            if (not HasGroup) or
-               (CorrectionLine.Type <> CurrentType) or
-               (CorrectionLine."Table ID" <> CurrentTableId) or
-               (CorrectionLine."Record ID" <> CurrentRecordId)
-            then begin
-                if HasGroup then
-                    ValidateExecutionGroup(RequestApproved, TempGroupLine, CurrentType);
-
-                ClearExecutionGroup(TempGroupLine);
-                CurrentType := CorrectionLine.Type;
-                CurrentTableId := CorrectionLine."Table ID";
-                CurrentRecordId := CorrectionLine."Record ID";
-                HasGroup := true;
-            end;
-
-            AddLineToExecutionGroup(TempGroupLine, CorrectionLine);
-        until CorrectionLine.Next() = 0;
-
-        if HasGroup then
-            ValidateExecutionGroup(RequestApproved, TempGroupLine, CurrentType);
+        TempExecutionGroup.Reset();
+        if TempExecutionGroup.FindSet() then
+            repeat
+                LoadExecutionGroupLines(TempExecutionGroup, TempGroupLine);
+                ValidateExecutionGroup(RequestApproved, TempGroupLine, TempExecutionGroup.Type);
+            until TempExecutionGroup.Next() = 0;
     end;
 
     local procedure ValidateExecutionGroup(RequestApproved: Boolean; var TempGroupLine: Record "BCDA Correction Line" temporary; CurrentType: Enum "BCDA Correction Type")
@@ -381,41 +357,70 @@ codeunit 88125 "BCDA Correction Orchestrator"
 
     local procedure ProcessExecutionGroups(var CorrectionRequest: Record "BCDA Correction Request"; var SuccessCount: Integer)
     var
-        CorrectionLine: Record "BCDA Correction Line";
+        TempExecutionGroup: Record "BCDA Correction Line" temporary;
         TempGroupLine: Record "BCDA Correction Line" temporary;
-        CurrentRecordId: RecordId;
-        CurrentTableId: Integer;
-        CurrentType: Enum "BCDA Correction Type";
-        HasGroup: Boolean;
     begin
+        BuildExecutionGroups(CorrectionRequest, TempExecutionGroup);
+
+        TempExecutionGroup.Reset();
+        if TempExecutionGroup.FindSet() then
+            repeat
+                LoadExecutionGroupLines(TempExecutionGroup, TempGroupLine);
+                ProcessExecutionGroup(CorrectionRequest, TempGroupLine, TempExecutionGroup.Type, SuccessCount);
+            until TempExecutionGroup.Next() = 0;
+    end;
+
+    local procedure BuildExecutionGroups(CorrectionRequest: Record "BCDA Correction Request"; var TempExecutionGroup: Record "BCDA Correction Line" temporary)
+    var
+        CorrectionLine: Record "BCDA Correction Line";
+    begin
+        TempExecutionGroup.Reset();
+        TempExecutionGroup.DeleteAll();
+
         CorrectionLine.SetCurrentKey("Request ID", Type, "Table ID", "Record ID");
         CorrectionLine.SetRange("Request ID", CorrectionRequest."Request ID");
         if not CorrectionLine.FindSet() then
             Error(NoLinesForExecutionErr, CorrectionRequest."Request ID");
 
-        CurrentTableId := 0;
-        Clear(CurrentRecordId);
         repeat
-            if (not HasGroup) or
-               (CorrectionLine.Type <> CurrentType) or
-               (CorrectionLine."Table ID" <> CurrentTableId) or
-               (CorrectionLine."Record ID" <> CurrentRecordId)
-            then begin
-                if HasGroup then
-                    ProcessExecutionGroup(CorrectionRequest, TempGroupLine, CurrentType, SuccessCount);
+            AddExecutionGroupIfMissing(TempExecutionGroup, CorrectionLine);
+        until CorrectionLine.Next() = 0;
+    end;
 
-                ClearExecutionGroup(TempGroupLine);
-                CurrentType := CorrectionLine.Type;
-                CurrentTableId := CorrectionLine."Table ID";
-                CurrentRecordId := CorrectionLine."Record ID";
-                HasGroup := true;
-            end;
+    local procedure AddExecutionGroupIfMissing(var TempExecutionGroup: Record "BCDA Correction Line" temporary; CorrectionLine: Record "BCDA Correction Line")
+    begin
+        TempExecutionGroup.Reset();
+        TempExecutionGroup.SetRange("Request ID", CorrectionLine."Request ID");
+        TempExecutionGroup.SetRange(Type, CorrectionLine.Type);
+        TempExecutionGroup.SetRange("Table ID", CorrectionLine."Table ID");
+        TempExecutionGroup.SetRange("Record ID", CorrectionLine."Record ID");
+        if not TempExecutionGroup.IsEmpty() then begin
+            TempExecutionGroup.Reset();
+            exit;
+        end;
 
+        TempExecutionGroup.Reset();
+        TempExecutionGroup := CorrectionLine;
+        TempExecutionGroup.Insert();
+    end;
+
+    local procedure LoadExecutionGroupLines(GroupLine: Record "BCDA Correction Line"; var TempGroupLine: Record "BCDA Correction Line" temporary)
+    var
+        CorrectionLine: Record "BCDA Correction Line";
+    begin
+        ClearExecutionGroup(TempGroupLine);
+
+        CorrectionLine.SetCurrentKey("Request ID", Type, "Table ID", "Record ID");
+        CorrectionLine.SetRange("Request ID", GroupLine."Request ID");
+        CorrectionLine.SetRange(Type, GroupLine.Type);
+        CorrectionLine.SetRange("Table ID", GroupLine."Table ID");
+        CorrectionLine.SetRange("Record ID", GroupLine."Record ID");
+        if not CorrectionLine.FindSet() then
+            Error(NoLinesForExecutionErr, GroupLine."Request ID");
+
+        repeat
             AddLineToExecutionGroup(TempGroupLine, CorrectionLine);
         until CorrectionLine.Next() = 0;
-
-        if HasGroup then
-            ProcessExecutionGroup(CorrectionRequest, TempGroupLine, CurrentType, SuccessCount);
     end;
 
     local procedure ClearExecutionGroup(var TempGroupLine: Record "BCDA Correction Line" temporary)

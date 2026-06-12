@@ -25,7 +25,7 @@
 | TST-003 | Request creation stores required reason and setup- or policy-required ticket/reference without mutation | AC-003 |
 | TST-004 | Preview shows old/new values and warnings without mutation, updates line statuses, and blocks preview-required approval until all lines are previewed | AC-004 |
 | TST-005 | Posted table execution is blocked before approval | AC-005 |
-| TST-006 | Policy-allowed normal field correction succeeds with or without approval according to setup | AC-006 |
+| TST-006 | Policy-allowed normal field correction succeeds with or without approval according to setup, including multiple fields on the same target record in one request group | AC-006 |
 | TST-007 | Approved posted field correction succeeds in sandbox when platform allows | AC-007 |
 | TST-008 | Failed execution writes sanitized audit evidence | AC-008, AC-015 |
 | TST-009 | Rollback from a completed request creates a new inverse correction request when retained snapshots exist for all executed supported lines | AC-009 |
@@ -101,7 +101,7 @@ These scenarios are the final Phase 6 validation set after `ExecuteRequest` is i
 | Scenario ID | Scenario | Acceptance/Test Links | Evidence Source |
 | --- | --- | --- | --- |
 | P6-TST-001 | Non-SUPER user cannot open execution-capable pages or invoke execution services | AC-002, AC-005 / TST-001, TST-005 | Sandbox access validation |
-| P6-TST-002 | Allowed update of one scalar non-primary-key field succeeds on an artificial normal table, with approval required only when setup or policy requires it | AC-006, AC-008, AC-027 / TST-006, TST-008, TST-027 | Sandbox execution validation |
+| P6-TST-002 | Allowed update of one or more scalar non-primary-key fields on the same artificial normal-table record succeeds as one execution group, with approval required only when setup or policy requires it | AC-006, AC-008, AC-027 / TST-006, TST-008, TST-027 | Sandbox execution validation |
 | P6-TST-003 | Data policy is re-checked immediately before execution and blocks disallowed targets before mutation | AC-012 / TST-002, TST-031 | Sandbox policy validation |
 | P6-TST-004 | Unsupported, primary-key, system-managed, FlowField, BLOB, and Media fields are blocked before mutation | AC-012, AC-016 / TST-031 | Sandbox field-boundary validation |
 | P6-TST-005 | BCDA app-owned tables cannot be selected, policy-allowed, previewed as targets, or executed | AC-012 / TST-002 | Sandbox app-owned target validation |
