@@ -39,7 +39,7 @@
 | Grouped `Update` execution | Implemented | Sandbox validation pending before reliance |
 | Primary-key `Rename` execution | Implemented | Sandbox validation pending before reliance; rollback unavailable |
 | Record-level `Delete` execution | Implemented | Sandbox validation pending before reliance; rollback unavailable |
-| Grouped `Insert` execution | Implemented | Sandbox validation pending before reliance; rollback unavailable; one new record per request/table insert group |
+| Grouped `Insert` execution | Implemented | Sandbox validation pending before reliance; rollback unavailable; one new record per request/table/Insert Group No. |
 | Request-level rollback staging | Implemented | Sandbox validation pending before reliance |
 | Filtered audit metadata export | Implemented | Sandbox validation pending before reliance |
 | Retention cleanup | Implemented | Sandbox validation pending before reliance |

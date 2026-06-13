@@ -43,6 +43,7 @@ The bounded domain is controlled Business Central data correction. The app owns 
 | Record Identity | Company, table id/name, canonical `RecordId`, formatted record id, and display key. |
 | Field Identity | Field id/name, data type, caption, sensitivity classification. |
 | Correction Value | Serialized value, display value, hash, redaction state. |
+| Insert Group | App-owned group number that ties staged `Insert` fields together as one created target record. |
 | Approval Decision | Approver, date/time, outcome, comment. |
 | Risk Classification | Normal, hidden, posted, financial, sensitive, blocked. |
 | Rollback Logging Mode | Enabled, disabled, or policy controlled. |
@@ -66,8 +67,8 @@ The bounded domain is controlled Business Central data correction. The app owns 
 - Blocked tables and fields cannot be changed.
 - BCDA app-owned, system, protected, unsupported, unaudited, rollback-unready, and non-`SUPER` mutation paths remain blocked even if a future setup setting disables data policy record enforcement.
 - Sensitive values cannot be exposed to users without `SUPER` access or through unauthorized logs, exports, or support channels.
-- Correction lines identify target records by a canonical platform `RecordId` plus company context. In the foundation build the value is read-only app-owned storage populated by the `Select Record` primary-key lookup; hand-entered serialized keys are not part of the workflow.
-- Insert correction lines keep `RecordId` empty while staged, execute as one new record per request/table insert group, require staged nonblank primary-key fields, and store the created `RecordId` after successful execution for audit/review.
+- Correction lines identify target records by a canonical platform `RecordId` plus company context. In the foundation build the value is read-only app-owned storage populated by the `Select Existing Record` primary-key lookup, which shows all simple or composite key values before selection; hand-entered serialized keys are not part of the workflow.
+- Insert correction lines keep `RecordId` empty while staged, use `Insert Group No.` to tie fields together for one created record, execute as one new record per request/table/insert-group, require staged nonblank primary-key fields for each group, and store the created `RecordId` after successful execution for audit/review.
 
 ## Domain Events
 
@@ -96,4 +97,4 @@ BC Data Agent owns only its setup, policy, request, snapshot, audit, and rollbac
 - Default and minimum retention periods for audit metadata and rollback snapshots.
 - External approval workflow integration, if ever needed beyond configurable one-person or separate-approver approval.
 - Which posted tables are blocked by default.
-- Richer insert grouping and operation-aware rollback behavior for `Rename`, `Delete`, and `Insert`.
+- Operation-aware rollback behavior for `Rename`, `Delete`, and `Insert`.

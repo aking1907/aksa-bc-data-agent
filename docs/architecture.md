@@ -30,8 +30,8 @@
 | Setup Management | Global defaults, retention, and environment safety settings. |
 | Metadata Explorer | Discover tables, fields, keys, captions, and risk hints. |
 | Record Identity Manager | Planned service to centralize target `RecordId` identity formatting, validation, and display-key policy after sandbox validation passes. |
-| Target Record Lookup | Foundation line-action lookup that lets SUPER users select a target record by primary-key display values and populate correction-line `Record ID`. |
-| Current Value Manager | Foundation selected-line reader that fills `Current Value Preview` only for the selected `Record ID` and `Field ID`. |
+| Target Record Lookup | Foundation line-action lookup that lets SUPER users select a target record by simple or composite primary-key display values and populate correction-line target record identity. |
+| Current Value Manager | Foundation selected-line reader that fills `Current Value Preview` only for the selected target record identity and `Field ID`. |
 | Preview Data Matrix | Foundation read-only matrix page that displays stored correction-line data for one request grouped by request, correction type, table, record, and field without target mutation or full dry-run validation. |
 | Target Record Matrix | Planned richer selector/editor to maintain field correction lines for a selected record without hand-entering composite keys. |
 | Batch Line Builder | Same-table helper that uses target record lookup to populate canonical `RecordId` identities and create standard correction lines without target mutation. |
@@ -46,7 +46,7 @@
 
 ## Object And Module Map
 
-Foundation objects are implemented for setup, policy, request, audit, snapshot, rollback-state, retention-log, SUPER-gated shells, supporting services, grouped update execution, supported record-level delete execution, supported grouped insert execution, supported update rollback, filtered audit metadata export, and retention cleanup. Objects marked future remain gated by readiness.
+Foundation objects are implemented for setup, policy, request, audit, snapshot, rollback-state, retention-log, SUPER-gated shells, supporting services, grouped update execution, supported primary-key rename execution, supported record-level delete execution, supported grouped insert execution, supported update rollback, filtered audit metadata export, and retention cleanup. Objects marked future remain gated by readiness.
 
 | Object Area | Names |
 | --- | --- |
@@ -60,12 +60,12 @@ Foundation objects are implemented for setup, policy, request, audit, snapshot, 
 
 1. User opens correction request page.
 2. User selects target company and table.
-3. User runs `Select Record`. The foundation lookup resolves the target `RecordId` from primary-key display values; the future matrix-style selector will add available fields and existing correction lines for the selected record.
-4. Metadata Explorer resolves captions, keys, field type, and risk hints. When both `Record ID` and `Field ID` are selected, Current Value Manager reads the selected field value for line preview.
+3. User runs `Select Existing Record`. The foundation lookup resolves the target `RecordId` from simple or composite primary-key display values; the future matrix-style selector will add available fields and existing correction lines for the selected record.
+4. Metadata Explorer resolves captions, keys, field type, and risk hints. When both target record identity and `Field ID` are selected, Current Value Manager reads the selected field value for line preview.
 5. Policy Guard evaluates `SUPER` access, table policy, field policy, approval need, and any future reviewed policy-enforcement exception.
 6. Correction Orchestrator performs the current non-mutating staged-line preview and reports warnings, rollback logging mode, retention period, and rollback availability. Full validate-trigger dry-run remains gated.
 7. SUPER approver approves when required by policy.
-8. Correction Orchestrator executes line changes by grouping staged lines by correction type and canonical target identity when applicable. `Insert` execution must not use an input `RecordId`; the current implementation groups insert lines by request/table, creates one record per group, and stores the created `RecordId` after success.
+8. Correction Orchestrator executes line changes by grouping staged lines by correction type and canonical target identity when applicable. `Insert` execution must not use an input `RecordId`; the current implementation groups insert lines by request/table/`Insert Group No.`, creates one record per group, and stores the created `RecordId` after success.
 9. Audit Writer records mandatory attempt, outcome, target, user, reason, and ticket metadata.
 10. Snapshot Store keeps rollback material only when rollback snapshot logging is enabled by setup and policy.
 11. Rollback Service can create a new governed correction request from a completed supported `Update` request when retained before-images exist for the whole request.

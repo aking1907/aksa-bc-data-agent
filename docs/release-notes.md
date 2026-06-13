@@ -39,14 +39,15 @@ Status: Phase 9 local hardening complete for the current Phase 8 build; local im
 - Foundation setup, policy, request, line, audit, and retention pages.
 - BC Data Agent profile and BCDA Role Center page for convenient access to available foundation tools.
 - Correction line table and field lookup pages backed by Business Central metadata.
-- Foundation target record lookup that opens from the correction-line `Select Record` action, displays primary-key values, and stores the selected canonical `RecordId`.
-- Selected-line current value preview that fills after both `Record ID` and `Field ID` are selected.
-- Correction line operation type staging with `Update`, `Rename`, `Delete`, and `Insert`; `Insert` keeps `Record ID` empty while staged and records the created identity after successful execution.
+- Foundation target record lookup that opens from the correction-line `Select Existing Record` action, displays simple and composite primary-key values, and stores the selected canonical `RecordId`.
+- Selected-line current value preview that fills after both target record identity and `Field ID` are selected.
+- Correction line operation type staging with `Update`, `Rename`, `Delete`, and `Insert`; `Rename` is shown as an existing-record primary-key operation, and `Insert` keeps target record identity empty while staged and records the created identity after successful execution.
 - Supported primary-key `Rename` execution for one existing target record group, with primary-key-only field staging, policy/approval/audit controls, renamed-record identity capture, transaction controls, and rollback unavailable.
-- Supported grouped `Insert` execution for one new record per request/table insert group, with required staged primary-key fields, policy/approval/audit controls, created-record identity capture, transaction controls, and rollback unavailable.
+- Supported grouped `Insert` execution for one new record per request/table/Insert Group No., with required staged primary-key fields, policy/approval/audit controls, created-record identity capture, transaction controls, and rollback unavailable.
+- `Insert Group No.` on correction lines and batch entries, allowing multiple same-table inserted records in one request by assigning distinct insert groups.
 - Correction-line proposed-value staging validation for field eligibility, supported scalar field types, text/code length, and type-compatible value text without target mutation.
 - Read-only Preview Data Matrix action and temporary matrix page for reviewing staged correction-line data by request, correction type, table, record, and field.
-- Same-table batch line builder with RecordId-backed target selection and correction-line creation.
+- Same-table batch line builder with RecordId-backed simple/composite primary-key target selection, insert grouping, and correction-line creation.
 - Foundation service codeunits for setup, access, policy, audit, serialization, orchestration, retention registration, and metadata gating.
 - `ruleset.json` with documented `PTE0004` exception for the no-BCDA-permission-set decision.
 - Detailed `UserGuide.md` covering foundation behavior, safe setup, policies, correction requests, audit review, retention, troubleshooting, and planned full workflows.
@@ -74,7 +75,7 @@ Status: Phase 9 local hardening complete for the current Phase 8 build; local im
 - BCDA app-owned tables are now blocked from table lookup, correction line targets, data policy targets, and policy evaluation.
 - Approval actions now enforce the submit-before-approve sequence, and the request card enables Execute only for supported executable request states.
 - Correction lines now calculate `Current Value Preview` from the selected record and field; Phase 6 grouped update execution refreshes the displayed current value after success.
-- Execution groups correction lines by correction type, table, and canonical target identity when applicable; supported primary-key rename execution is enabled with rollback unavailable, supported record-level delete execution is enabled with rollback unavailable, and supported grouped insert execution uses one request/table insert group until a richer app-owned insert grouping identity is added.
+- Execution groups correction lines by correction type, table, and canonical target identity when applicable; supported primary-key rename execution is enabled with rollback unavailable, supported record-level delete execution is enabled with rollback unavailable, and supported grouped insert execution uses request/table/Insert Group No. as the created-record grouping identity.
 - Setup-controlled data policy enforcement bypass is now implemented as `Allow Data Policies`.
 - Execution and rollback target writes no longer run inside AL `[TryFunction]` wrappers; validation remains guarded before the write.
 - `Export Enabled` now controls filtered audit metadata export instead of acting only as a future flag.
@@ -86,7 +87,7 @@ Status: Phase 9 local hardening complete for the current Phase 8 build; local im
 - Grouped `Update` target correction behavior exists and compiles.
 - Supported primary-key `Rename` correction behavior exists and compiles with rollback unavailable.
 - Supported record-level `Delete` correction behavior exists and compiles with rollback unavailable.
-- Supported grouped `Insert` correction behavior exists and compiles with rollback unavailable and one new record per request/table insert group.
+- Supported grouped `Insert` correction behavior exists and compiles with rollback unavailable and one new record per request/table/Insert Group No.
 - Supported rollback staging for completed `Update` correction requests exists and compiles.
 - Filtered audit metadata export exists and compiles.
 - Governed retention cleanup exists and compiles.
@@ -103,7 +104,7 @@ Status: Phase 9 local hardening complete for the current Phase 8 build; local im
 
 - Deploy current package to sandbox.
 - Verify SUPER/non-SUPER page access behavior.
-- Verify target table/field behavior for preview and grouped update execution before production/runtime enablement.
+- Verify target table/field behavior for preview and supported grouped update, primary-key rename, record-level delete, and grouped insert execution before production/runtime enablement.
 - Verify foundation RecordId lookup behavior for simple and composite keys in sandbox before production use, and before implementing the richer target record matrix selector.
 - Validate supported update rollback request creation, generated rollback request preview/execution, snapshot-unavailable, policy-blocked, and non-`SUPER` behavior in sandbox.
 - Validate filtered audit export redaction, required filters, setup enablement, and non-`SUPER` blocking in sandbox.

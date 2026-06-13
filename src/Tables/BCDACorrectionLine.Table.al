@@ -31,6 +31,21 @@ table 88103 "BCDA Correction Line"
                     ValidateDataValue();
             end;
         }
+        field(18; "Insert Group No."; Integer)
+        {
+            Caption = 'Insert Group No.';
+
+            trigger OnValidate()
+            begin
+                if "Insert Group No." < 0 then
+                    Error(InsertGroupNoMustBePositiveErr);
+
+                if (Type <> Type::Insert) and ("Insert Group No." <> 0) then
+                    Error(InsertGroupOnlyForInsertErr);
+
+                ResetPreviewState();
+            end;
+        }
         field(3; "Table ID"; Integer)
         {
             Caption = 'Table ID';
@@ -196,7 +211,7 @@ table 88103 "BCDA Correction Line"
         key(Target; "Table ID", "Field ID")
         {
         }
-        key(TargetChange; "Request ID", Type, "Table ID", "Record ID")
+        key(TargetChange; "Request ID", Type, "Table ID", "Record ID", "Insert Group No.")
         {
         }
     }
@@ -208,6 +223,9 @@ table 88103 "BCDA Correction Line"
 
         if "Line No." = 0 then
             "Line No." := GetNextLineNo();
+
+        if (Type = Type::Insert) and ("Insert Group No." = 0) then
+            "Insert Group No." := 1;
     end;
 
     local procedure GetNextLineNo(): Integer
@@ -223,11 +241,16 @@ table 88103 "BCDA Correction Line"
 
     local procedure ApplyTypeDefaults()
     begin
+        if Type <> Type::Insert then
+            "Insert Group No." := 0;
+
         case Type of
             Type::Insert:
                 begin
                     Clear("Record ID");
                     Clear("Current Value Preview");
+                    if "Insert Group No." = 0 then
+                        "Insert Group No." := 1;
                 end;
             Type::Delete:
                 begin
@@ -480,21 +503,23 @@ table 88103 "BCDA Correction Line"
 
     var
         FieldDisabledErr: Label 'Field %1 on table %2 is disabled and cannot be selected for a correction line.', Comment = '%1 = field ID, %2 = table ID';
-        FieldIdNotInitializedErr: Label 'Field ID is not initialized.';
+        FieldIdNotInitializedErr: Label 'Select a field before entering the proposed value. Rename lines must select a primary-key field.';
         FieldNotUsedForDeleteErr: Label 'Field ID is not used for Delete correction lines.';
-        FieldMustBePrimaryKeyForRenameErr: Label 'Field %1 on table %2 must be part of the primary key for Rename correction lines.', Comment = '%1 = field ID, %2 = table ID';
+        FieldMustBePrimaryKeyForRenameErr: Label 'Field %1 on table %2 must be part of the primary key for Rename correction lines. Choose a primary-key field or change Type to Update.', Comment = '%1 = field ID, %2 = table ID';
         FieldNotFoundErr: Label 'Field %1 was not found for table %2.', Comment = '%1 = field ID, %2 = table ID';
         FieldNotNormalErr: Label 'Field %1 on table %2 is not a normal stored field and cannot be selected for a correction line.', Comment = '%1 = field ID, %2 = table ID';
-        FieldPrimaryKeyNotModifiableErr: Label 'Field %1 on table %2 is part of the primary key and cannot be modified by BC Data Agent.', Comment = '%1 = field ID, %2 = table ID';
+        FieldPrimaryKeyNotModifiableErr: Label 'Field %1 on table %2 is part of the primary key and cannot be modified by Update. Use Rename for controlled primary-key changes.', Comment = '%1 = field ID, %2 = table ID';
         FieldRemovedErr: Label 'Field %1 on table %2 is removed and cannot be selected for a correction line.', Comment = '%1 = field ID, %2 = table ID';
         FieldTypeNotSupportedErr: Label 'Field %1 on table %2 has unsupported type %3 for foundation correction value staging.', Comment = '%1 = field ID, %2 = table ID, %3 = field type';
         FlowFieldNotSupportedErr: Label 'Field %1 on table %2 is a FlowField, such as a lookup or calculated field, and cannot be selected for a correction line.', Comment = '%1 = field ID, %2 = table ID';
         FlowFilterNotSupportedErr: Label 'Field %1 on table %2 is a FlowFilter and cannot be selected for a correction line.', Comment = '%1 = field ID, %2 = table ID';
+        InsertGroupNoMustBePositiveErr: Label 'Insert Group No. cannot be negative.';
+        InsertGroupOnlyForInsertErr: Label 'Insert Group No. is only used for Insert correction lines.';
         ProposedValueNotAllowedForDeleteErr: Label 'Proposed new value is not used for Delete correction lines.';
         ProposedValueFieldTooLongErr: Label 'Proposed new value for field %1 on table %2 cannot be longer than %3 characters.', Comment = '%1 = field ID, %2 = table ID, %3 = maximum field length';
-        RecordIdTableMismatchErr: Label 'Record ID %1 does not belong to table %2.', Comment = '%1 = record ID, %2 = table ID';
-        RecordIdMustBeEmptyForInsertErr: Label 'Record ID must be empty while staging Insert correction lines. Execution assigns the created record identity after a successful insert.';
-        RecordIdNotInitializedErr: Label 'Record ID is not initialized.';
+        RecordIdTableMismatchErr: Label 'Target record identity %1 does not belong to table %2.', Comment = '%1 = record ID, %2 = table ID';
+        RecordIdMustBeEmptyForInsertErr: Label 'Target record identity must be empty while staging Insert correction lines. Use Insert Group No. to group fields for each new record; execution stores the created identity after a successful insert.';
+        RecordIdNotInitializedErr: Label 'Select an existing target record before entering the proposed value. Use Select Existing Record; the lookup shows simple and composite primary-key values.';
         ProposedValueTypeMismatchErr: Label 'Proposed new value is not compatible with field %1 on table %2 type %3.', Comment = '%1 = field ID, %2 = table ID, %3 = field type';
         RequestRequiredErr: Label 'A correction line must belong to a saved correction request.';
         SystemFieldNotModifiableErr: Label 'Field %1 on table %2 is system-managed and cannot be modified by BC Data Agent.', Comment = '%1 = field ID, %2 = table ID';

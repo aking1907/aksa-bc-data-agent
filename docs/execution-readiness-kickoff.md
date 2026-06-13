@@ -12,7 +12,7 @@ Execution readiness work is complete for local implementation and has moved to s
 
 AL mutation code is implemented for supported grouped `Update` lines, supported primary-key `Rename` lines, supported record-level `Delete` lines, and supported grouped `Insert` lines. Phase 8 export and retention cleanup are tracked separately.
 
-OD-018 insert grouping is implemented for the current local slice as one insert group per request/table with empty staged `Record ID` and created-record identity capture after execution. Richer multiple-record insert grouping remains deferred until an app-owned insert group identity or matrix workflow exists. OD-019 setup-controlled data policy enforcement is implemented as `Allow Data Policies`.
+OD-018 insert grouping is implemented with app-owned `Insert Group No.`: staged `Insert` lines keep `Record ID` empty, one request/table/insert-group creates one record, and each created-record identity is captured after execution. OD-019 setup-controlled data policy enforcement is implemented as `Allow Data Policies`.
 
 Phase 7 rollback readiness is tracked separately in `docs/rollback-readiness-kickoff.md`. Supported update rollback is implemented locally and remains subject to sandbox validation before production use.
 

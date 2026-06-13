@@ -2,7 +2,7 @@
 
 ## Current Support Boundary
 
-The project currently has Phase 2-8 AL objects, including grouped update execution, supported record-level delete execution, supported grouped insert execution, supported update rollback, filtered audit metadata export, and governed retention cleanup. Phase 8 sandbox validation was skipped by request for implementation and remains required before production use.
+The project currently has Phase 2-8 AL objects, including grouped update execution, supported primary-key rename execution, supported record-level delete execution, supported grouped insert execution, supported update rollback, filtered audit metadata export, and governed retention cleanup. Phase 8 sandbox validation was skipped by request for implementation and remains required before production use.
 
 ## Setup Checks
 
@@ -28,12 +28,12 @@ The project currently has Phase 2-8 AL objects, including grouped update executi
 - Confirm data policy `Table ID` and `Field ID` lookup fills metadata names.
 - Confirm BCDA app-owned table IDs are blocked in table lookup, correction line table validation, data policy table validation, and policy evaluation.
 - Confirm correction line `Table ID` lookup shows Business Central tables and `Field ID` lookup is filtered by the selected table.
-- Confirm correction line `Type` supports `Update`, `Rename`, `Delete`, and `Insert`, that `Rename` accepts primary-key fields only and stores the renamed identity after execution, and that `Insert` keeps `Record ID` empty while staged.
-- Confirm `Record ID` is read-only app-owned storage, the `Select Record` line action opens target record lookup, and selecting a row fills the canonical identity.
-- Confirm selecting `Field ID` after `Record ID` fills `Current Value Preview` for that selected field only.
+- Confirm correction line `Type` supports `Update`, `Rename`, `Delete`, and `Insert`, that `Rename` accepts primary-key fields only and stores the renamed identity after execution, and that `Insert` keeps target record identity empty while staged.
+- Confirm target record identity is read-only app-owned storage, the `Select Existing Record` line action opens target record lookup, simple and composite primary-key values are visible, and selecting a row fills the canonical identity.
+- Confirm selecting `Field ID` after target record identity fills `Current Value Preview` for that selected field only.
 - Confirm entering `Proposed New Value` accepts supported scalar field values, blocks disabled, non-normal, primary-key-for-update, non-primary-key-for-rename, system-managed, removed, unsupported-type, length-invalid, and scalar type-incompatible values, and does not echo sensitive proposed values in errors.
 - Confirm `Preview Data Matrix` opens from the correction lines part, shows staged correction-line data for the current request, and remains read-only.
-- Confirm `Batch Add Lines` opens same-table batch entry, can select target records, and creates normal correction lines without target mutation.
+- Confirm `Batch Add Lines` opens same-table batch entry, can select simple-key and composite-key target records for existing-record operations, uses Insert Group No. for new records, and creates normal correction lines without target mutation.
 - Confirm `Preview Request` does not mutate target data; target value reads stay limited to the selected staged lines and update app-owned line status, rollback/retention text, and audit evidence only.
 - Confirm setup defaults show rollback logging mode, retention period, and rollback availability text.
 - Confirm audit entry is written for preview or blocked attempt when expected.
@@ -66,7 +66,7 @@ The project currently has Phase 2-8 AL objects, including grouped update executi
 | Need to modify without policy records | Use `Allow Data Policies` off only when the business accepts bypassing policy records. BCDA app-owned tables, unsupported fields, non-`SUPER` users, missing request metadata, unaudited mutation, and rollback controls still apply. |
 | Preview failed | Confirm target record exists and field type is supported. |
 | Preview Data Matrix is empty or blocked | Confirm the request is saved, has correction lines, and the user has `SUPER` access. |
-| Proposed value rejected | Confirm the line type rules: `Update` needs an existing target record and non-primary-key field, `Rename` needs an existing target record and primary-key fields only, `Insert` must keep Record ID empty while staged and must include all primary-key fields before execution, and all value-staging fields must be enabled, normal, not system-managed, not removed, supported for foundation staging, and type/length compatible. |
+| Proposed value rejected | Confirm the line type rules: `Update` needs an existing target record and non-primary-key field, `Rename` needs an existing target record and primary-key fields only, `Insert` must keep target record identity empty while staged and must include all primary-key fields before execution, and all value-staging fields must be enabled, normal, not system-managed, not removed, supported for foundation staging, and type/length compatible. |
 | Execution unavailable | The request is not in an executable state, metadata is missing, required preview is not complete, approval is missing, policy blocks the line, or the line type is not enabled for runtime execution. |
 | Rollback review difference | The generated rollback correction request preview shows a current target value that differs from the original executed value. Review the generated request and decide whether a separate correction is required. |
 | Rollback unavailable | Confirm the source request is completed, all source lines are executed supported `Update` lines, rollback snapshot logging was enabled, snapshots have not expired or been purged, and no rollback request already exists. |

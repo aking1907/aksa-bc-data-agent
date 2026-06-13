@@ -87,7 +87,7 @@ Workflow responsibilities below are audit and process responsibilities, not cust
 - Logging full sensitive values in generic telemetry.
 - Exporting target values, target record identity text, or rollback snapshot payloads through the Phase 8 CSV export.
 - Production enablement before sandbox validation.
-- Rename rollback, delete rollback, insert rollback, or multiple same-table inserted records in one request before operation-specific execution contracts, user review, policy, audit, rollback/unavailable-state handling, and sandbox validation explicitly allow those operations.
+- Rename rollback, delete rollback, or insert rollback before operation-specific execution contracts, user review, policy, audit, rollback/unavailable-state handling, and sandbox validation explicitly allow those operations.
 - Disabling data policies in a way that permits unguarded target writes, BCDA app-owned table edits, system/protected table edits, unsupported field writes, or unaudited mutation.
 - Creating policies or correction lines that target BC Data Agent app-owned tables.
 

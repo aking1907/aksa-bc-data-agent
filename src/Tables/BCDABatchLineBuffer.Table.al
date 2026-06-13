@@ -22,9 +22,16 @@ table 88108 "BCDA Batch Line Buffer"
 
             trigger OnValidate()
             begin
+                if Type <> Type::Insert then
+                    "Insert Group No." := 0;
+
                 case Type of
                     Type::Insert:
-                        Clear("Record ID");
+                        begin
+                            Clear("Record ID");
+                            if "Insert Group No." = 0 then
+                                "Insert Group No." := 1;
+                        end;
                     Type::Delete:
                         begin
                             "Field ID" := 0;
@@ -32,6 +39,19 @@ table 88108 "BCDA Batch Line Buffer"
                             Clear("Proposed New Value");
                         end;
                 end;
+            end;
+        }
+        field(11; "Insert Group No."; Integer)
+        {
+            Caption = 'Insert Group No.';
+
+            trigger OnValidate()
+            begin
+                if "Insert Group No." < 0 then
+                    Error(InsertGroupNoMustBePositiveErr);
+
+                if (Type <> Type::Insert) and ("Insert Group No." <> 0) then
+                    Error(InsertGroupOnlyForInsertErr);
             end;
         }
         field(2; "Table ID"; Integer)
@@ -132,7 +152,9 @@ table 88108 "BCDA Batch Line Buffer"
 
     var
         FieldNotUsedForDeleteErr: Label 'Field ID is not used for Delete batch entries.';
-        RecordIdMustBeEmptyForInsertErr: Label 'Record ID must be empty while staging Insert correction lines. Execution assigns the created record identity after a successful insert.';
-        RecordIdTableMismatchErr: Label 'Record ID %1 does not belong to table %2.', Comment = '%1 = record ID, %2 = table ID';
+        InsertGroupNoMustBePositiveErr: Label 'Insert Group No. cannot be negative.';
+        InsertGroupOnlyForInsertErr: Label 'Insert Group No. is only used for Insert batch entries.';
+        RecordIdMustBeEmptyForInsertErr: Label 'Target record identity must be empty while staging Insert correction lines. Use Insert Group No. to group fields for each new record; execution stores the created identity after a successful insert.';
+        RecordIdTableMismatchErr: Label 'Target record identity %1 does not belong to table %2.', Comment = '%1 = record ID, %2 = table ID';
         TableRequiredBeforeRecordErr: Label 'Select a table before selecting a record.';
 }

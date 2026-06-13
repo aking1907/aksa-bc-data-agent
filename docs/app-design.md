@@ -31,6 +31,8 @@ References:
 - Make retention visible on setup, request preview, audit entries, and rollback pages.
 - Warn clearly when rollback snapshots are disabled or expired.
 - Avoid showing raw sensitive values unless policy and channel allow it.
+- Let users select existing target records by primary-key display values instead of typing serialized `RecordId` or composite-key text.
+- Make `Rename` visibly different from `Update`: it must show as an existing-record primary-key operation and accept only primary-key field values.
 - Use Business Central-native pages, actions, FastTabs, FactBoxes, confirmation dialogs, and wizards.
 
 ## Planned Pages
@@ -45,8 +47,8 @@ References:
 | BCDA Correction Request Card | Card with ListPart and FactBoxes | Main request workspace for target, reason, lines, preview, approval, execution, and audit summary. |
 | BCDA Correction Lines | ListPart | Staged correction lines for a request, showing operation type, target table, read-only formatted target record identity when applicable, selected field when applicable, and proposed value when applicable. |
 | BCDA Preview Data Matrix | List | Read-only temporary matrix opened from correction lines to review staged correction-line data as correction-type/table sections with unique field columns and `Current`/`New` rows per target record. It uses stored BCDA line data only and does not run full dry-run validation. |
-| BCDA Batch Line Builder | Worksheet | Same-table batch entry page that collects RecordId-backed target identities, fields, proposed values, and line controls, then creates standard correction lines. |
-| BCDA Target Record Lookup | List | Foundation line-action lookup that displays primary-key values for the selected table and returns the selected canonical `RecordId`. |
+| BCDA Batch Line Builder | Worksheet | Same-table batch entry page that collects existing target identities through simple/composite primary-key lookup, grouped insert field rows through `Insert Group No.`, fields, proposed values, and line controls, then creates standard correction lines. |
+| BCDA Target Record Lookup | List | Foundation line-action lookup that displays primary-key values for the selected table, including every key part for composite keys, and returns the selected canonical `RecordId`. |
 | BCDA Target Record Matrix | Worksheet or StandardDialog | Dimension Matrix-style selector/editor that opens from target record selection, resolves a target `RecordId`, and shows available field correction lines for that selected record. |
 | BCDA Table Lookup | List | Helper lookup for selecting a target Business Central table from metadata. |
 | BCDA Field Lookup | List | Helper lookup for selecting an enabled normal field for the selected table. |
@@ -64,8 +66,8 @@ FastTabs:
 - General: status, company, reason, optional or required ticket/reference, requested by, approval state.
 - Target: table, record identity, field summary, risk.
 - Lines: proposed operation-typed changes.
-- Line target fields: table ID lookup should suggest Business Central tables; target record identity is a read-only `RecordId` value populated through the `Select Record` primary-key lookup; future field selection should be managed through a matrix-style selector filtered to enabled normal fields and policy-visible fields for the selected table and record.
-- Batch line builder: uses RecordId-backed target lookup to populate canonical target identities for same-table batch entries.
+- Line target fields: table ID lookup should suggest Business Central tables; target record identity is a read-only `RecordId` value populated through the `Select Existing Record` primary-key lookup; future field selection should be managed through a matrix-style selector filtered to enabled normal fields and policy-visible fields for the selected table and record.
+- Batch line builder: uses RecordId-backed target lookup to populate canonical target identities for same-table existing-record entries, shows whether each row targets an existing record or insert group, and keeps `Rename` focused on primary-key fields.
 - Target record matrix: for a selected table and record, show available field lines in a matrix similar to the standard Dimension Matrix pattern, with existing correction lines, proposed values, validation mode, rollback snapshot mode, and policy/risk hints.
 - Preview data matrix: from the lines part, show a temporary read-only matrix grouped into correction type and table sections, field columns, and `Current`/`New` rows per target record without changing target records.
 - Preview: old/new display values, warnings, validation mode.

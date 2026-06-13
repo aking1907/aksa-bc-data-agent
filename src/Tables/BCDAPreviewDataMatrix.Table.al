@@ -14,6 +14,7 @@ table 88130 "BCDA Preview Data Matrix"
         field(3; "Table ID"; Integer) { Editable = false; }
         field(4; "Record ID"; RecordId) { Editable = false; }
         field(5; "Correction Type"; Enum "BCDA Correction Type") { Editable = false; }
+        field(6; "Insert Group No."; Integer) { Editable = false; }
 
         field(101010; "Field 1 Id"; Integer) { Caption = 'Field 1'; }
         field(101011; "Field 1 Value"; Text[2048]) { Caption = 'Field 1'; }
@@ -219,11 +220,11 @@ table 88130 "BCDA Preview Data Matrix"
 
     keys
     {
-        key(PK; "Type", "Request ID", "Correction Type", "Table ID", "Record ID")
+        key(PK; "Type", "Request ID", "Correction Type", "Table ID", "Record ID", "Insert Group No.")
         {
             Clustered = true;
         }
-        key(Grouping; "Correction Type", "Table ID", "Record ID")
+        key(Grouping; "Correction Type", "Table ID", "Record ID", "Insert Group No.")
         {
         }
     }

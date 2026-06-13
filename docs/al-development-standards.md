@@ -1,6 +1,6 @@
 # AL Development Standards
 
-Phase 2-7 foundation, preview, grouped update execution, and supported update rollback AL code exists. Continue using this as the development quality bar for every new implementation slice.
+Phase 2-8 foundation, preview, grouped update execution, supported primary-key rename execution, supported record-level delete execution, supported grouped insert execution, supported update rollback, filtered export, and retention cleanup AL code exists. Continue using this as the development quality bar for every new implementation slice.
 
 ## Microsoft Guidance Alignment
 

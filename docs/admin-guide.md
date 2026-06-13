@@ -35,7 +35,7 @@ Administrators can support runtime readiness by deploying the current package to
 11. Confirm requester, approver, and reviewer responsibilities among `SUPER` users when approval policy requires separation. For one-person companies, document why no-approval or self-approval is accepted.
 12. Create a foundation request and use lookup suggestions to select a table and an enabled normal non-primary-key field on the correction line.
 13. Confirm correction line `Type` supports `Update`, `Rename`, `Delete`, and `Insert`.
-14. Confirm `Record ID` is read-only, the `Select Record` line action opens target record lookup for existing-record operation types, selecting a row fills the canonical identity, and `Insert` keeps `Record ID` empty while staged.
+14. Confirm target record identity is read-only, the `Select Existing Record` line action opens target record lookup for existing-record operation types, simple and composite primary-key values are visible before selection, selecting a row fills the canonical identity, and `Insert` keeps target record identity empty while staged.
 15. Enter supported scalar `Proposed New Value` examples and confirm incompatible values are blocked without writing target data or echoing the proposed value in errors.
 16. Open `Preview Data Matrix` from the correction lines part and confirm it shows staged line data for the request without changing target data.
 17. Use `Batch Add Lines` only on artificial sandbox data to confirm same-table batch entries can select target records and create normal correction lines without mutation.

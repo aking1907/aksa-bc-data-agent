@@ -2,7 +2,7 @@
 
 BC Data Agent is a Business Central AL project for a governed data correction extension. The main idea is to let authorized users correct normally hidden or posted Business Central data when standard correction workflows are not enough, while tracking every change and supporting rollback if something goes wrong.
 
-Phase 9 local hardening is complete for the current Phase 8 build, and local implementation now has standing authorization under the SDD. The project includes supported grouped `Update` corrections, supported primary-key `Rename` execution, supported record-level `Delete` execution, supported grouped `Insert` execution for one new record per request/table insert group, request-level rollback staging from completed update requests, filtered audit metadata export, governed retention cleanup, and local build/analyzer/config/security/docs hardening evidence. Sandbox validation remains required before production use.
+Phase 9 local hardening is complete for the current Phase 8 build, and local implementation now has standing authorization under the SDD. The project includes supported grouped `Update` corrections, supported primary-key `Rename` execution, supported record-level `Delete` execution, supported grouped `Insert` execution for one new record per request/table/insert-group, request-level rollback staging from completed update requests, filtered audit metadata export, governed retention cleanup, and local build/analyzer/config/security/docs hardening evidence. Sandbox validation remains required before production use.
 
 ## Why It Matters
 
@@ -30,7 +30,7 @@ Changing hidden or posted data is powerful and risky. This project treats those 
 
 - Rename, insert, and delete rollback are unavailable until operation-aware rollback controls and validation evidence exist.
 - Conflict override and snapshot-missing rollback may be developed locally, but runtime availability remains blocked until their controls are implemented and validated.
-- Insert execution currently creates one new record per request/table insert group; staging multiple new records for the same table in one request remains blocked until an app-owned insert group identity or matrix workflow exists.
+- Insert execution creates one new record per request/table/Insert Group No.; use distinct insert groups to stage multiple new records for the same table in one request.
 - No arbitrary target value preview, unfiltered export, unredacted export, snapshot payload export, external API, or target business-data cleanup behavior has been implemented.
 - No BCDA-specific permission sets should be created; access is for existing Business Central `SUPER` users only.
 - Approval is configurable: dual-control companies can require a different `SUPER` approver, while one-person companies can explicitly disable approval for standard requests or allow self-approval.

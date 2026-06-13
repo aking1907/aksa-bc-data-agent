@@ -54,10 +54,10 @@ The app is not a casual table editor. It is a break-glass workflow for authorize
 | Setup | Yes | Configure default policy, preview, rollback, retention, export flag, retention registration, and cleanup. | Run cleanup only after reviewing retention settings. |
 | Data policies | Yes | Maintain table and field policy records and configure whether policy records participate through `Allow Data Policies`. | When `Allow Data Policies` is off, policy records are bypassed, but BCDA app-owned tables, unsupported fields, non-`SUPER` access, metadata, audit, and rollback controls still apply. |
 | Correction requests | Yes | Create request headers, apply setup defaults, preview staged lines, execute supported grouped updates, primary-key renames, record deletes, and grouped inserts, and manage request state. | Preview is non-mutating; non-update rollback is unavailable. |
-| Correction lines | Partial | Stage a correction type, use lookup suggestions for target table and field, use `Select Record` to select a target record ID when applicable, review the selected field's current value, enter proposed value text for updates, renames, and inserts, and open `Preview Data Matrix` to review staged line data. | Current value preview and the matrix use stored correction-line data only; `Rename` accepts primary-key fields only and stores the renamed identity after execution; `Insert` keeps `Record ID` empty while staged and stores the created record identity after successful execution; `Delete` uses a target `Record ID` without field or proposed value and is rollback-unavailable. |
+| Correction lines | Partial | Stage a correction type, use lookup suggestions for target table and field, use `Select Existing Record` to select the target record identity when applicable, review the selected field's current value, enter proposed value text for updates, renames, and inserts, and open `Preview Data Matrix` to review staged line data. | Current value preview and the matrix use stored correction-line data only; `Rename` accepts primary-key fields only and stores the renamed identity after execution; `Insert` keeps target record identity empty while staged and stores the created record identity after successful execution; `Delete` uses a target record identity without field or proposed value and is rollback-unavailable. |
 | Batch line builder | Yes | Create same-table correction lines from selected target records, fields, proposed values, and rollback/validation settings. | No target data is changed by batch creation; unsupported runtime operation types still follow the normal execution gates. |
 | Approval | Yes | Submit and approve requests only when approval is required, with configurable separate-approver or self-approval behavior. | Full policy-driven approval workflow is still future hardening. |
-| Execution | Yes, limited | Execute supported grouped `Update` corrections, supported primary-key `Rename` corrections, supported record-level `Delete` corrections, and supported grouped `Insert` corrections after metadata, preview, approval/policy, audit, and rollback-availability checks pass. | The request is applied as one transaction; `Rename`, `Delete`, and `Insert` rollback are unavailable, `Insert` creates one record per request/table insert group, and unsupported operation types are blocked before mutation. |
+| Execution | Yes, limited | Execute supported grouped `Update` corrections, supported primary-key `Rename` corrections, supported record-level `Delete` corrections, and supported grouped `Insert` corrections after metadata, preview, approval/policy, audit, and rollback-availability checks pass. | The request is applied as one transaction; `Rename`, `Delete`, and `Insert` rollback are unavailable, `Insert` creates one record per request/table/Insert Group No., and unsupported operation types are blocked before mutation. |
 | Audit entries | Yes | Review append-only audit evidence and export filtered metadata when export is enabled and filters are applied. | Export omits target values, target record identity text, and rollback snapshot payloads. |
 | Retention logs | Yes | Review retention log records and cleanup evidence. | Cleanup touches only expired eligible BCDA-owned operation records, not target Business Central business data. |
 | Rollback | Yes, limited | Create a new rollback correction request from a completed `Update` request when retained before-image snapshots exist for every executed supported line. | The rollback action itself does not change target data; the generated request must be previewed, approved if required, and executed. |
@@ -97,7 +97,7 @@ Perform first-time setup in a sandbox environment only.
 12. Select `Register Retention Tables` to register BCDA operation tables with Business Central retention policy support.
 13. Open `BCDA Data Policies` and create only safe sandbox policies.
 14. Create a foundation correction request and verify that audit entries are written.
-15. Run `Execute` only on artificial sandbox data for supported grouped `Update`, record-level `Delete`, or grouped `Insert` lines.
+15. Run `Execute` only on artificial sandbox data for supported grouped `Update`, primary-key `Rename`, record-level `Delete`, or grouped `Insert` lines.
 16. Enable audit export only for artificial sandbox data, apply a required audit filter, and verify the CSV omits protected value content.
 17. Run retention cleanup only on artificial sandbox BCDA operation records and verify active requests and retained rollback dependencies are protected.
 
@@ -175,7 +175,7 @@ The action is safe to run during setup validation. It does not modify target Bus
 
 Data policies define which target tables and fields are blocked, allowed, or require approval.
 
-Policy records can be maintained, non-mutating request preview evaluates policy for staged lines, and supported grouped update execution re-checks policy immediately before mutation unless `Allow Data Policies` is off.
+Policy records can be maintained, non-mutating request preview evaluates policy for staged lines, and supported grouped update, primary-key rename, record-level delete, and grouped insert execution re-check policy immediately before mutation unless `Allow Data Policies` is off.
 
 BC Data Agent app-owned tables are permanently blocked as correction targets and data policy targets. This prevents the tool from editing its own setup, policy, audit, snapshot, rollback, retention, or request records through the correction workflow.
 
@@ -284,7 +284,7 @@ Blocked sensitive field policy:
 
 Correction requests are the main work container. A request describes why a correction is needed, who requested it, whether approval is required, and which correction lines are included.
 
-In the current build, you can create and move requests through workflow states, preview staged target values without mutation, and execute supported grouped `Update`, record-level `Delete`, and grouped `Insert` corrections after required controls pass.
+In the current build, you can create and move requests through workflow states, preview staged target values without mutation, and execute supported grouped `Update`, primary-key `Rename`, record-level `Delete`, and grouped `Insert` corrections after required controls pass.
 
 ### Request List
 
@@ -342,25 +342,26 @@ Rollback And Retention:
 
 Each correction line represents one staged correction operation or operation field value.
 
-Set `Type` to `Update`, `Rename`, `Delete`, or `Insert`. `Update`, `Rename`, and `Delete` use a canonical existing `Record ID`. `Insert` keeps `Record ID` empty while staged, and the target record lookup is blocked for insert lines because there is no existing target record yet. After successful rename or insert execution, the renamed or created `RecordId` is stored on the executed lines for audit and support review.
+Set `Type` to `Update`, `Rename`, `Delete`, or `Insert`. `Update`, `Rename`, and `Delete` use a canonical existing target record identity. `Insert` keeps target record identity empty while staged, and the target record lookup is blocked for insert lines because there is no existing target record yet. `Insert Group No.` ties the fields for one new record together: use the same group number for all fields on one inserted record, and a different group number for each additional inserted record in the same request/table. After successful rename or insert execution, the renamed or created `RecordId` is stored on the executed lines for audit and support review.
 
-Current builds expose `Record ID` as read-only app-owned storage when an existing target record is applicable. It is not typed manually. After selecting `Table ID`, use either the `Record ID` assist edit button or the line action `Select Record` to open `BCDA Target Record Lookup`, choose a record by its primary-key display values, and populate the canonical `RecordId`.
+Current builds expose `Target Record Identity` as read-only app-owned storage when an existing target record is applicable. It is not typed manually. After selecting `Table ID`, use either the target record identity assist edit button or the line action `Select Existing Record` to open `BCDA Target Record Lookup`, choose a record by its primary-key display values, and populate the canonical `RecordId`. A simple primary key is shown as one key value. A composite primary key is shown as each key part in one row, for example document type, document number, and line number together.
 
-The foundation lookup reads the selected table's primary-key fields for selection. After both `Record ID` and `Field ID` are selected on an existing-record line, the app reads that selected field and fills `Current Value Preview`. When you enter `Proposed New Value`, the app checks that the field is an enabled normal stored field, is not system-managed or removed, uses a supported foundation scalar type, and that the text can be parsed for that field type. Primary-key values are blocked for `Update`; `Rename` accepts only primary-key fields and preserves unstaged key fields during execution; `Insert` may stage primary-key and non-primary-key fields. Execution changes Business Central data only for supported grouped `Update` lines, supported primary-key `Rename` lines, supported record-level `Delete` lines, and supported grouped `Insert` lines. Rename execution stores the renamed `RecordId` and marks rollback unavailable. Insert execution creates one new record per request/table insert group, requires staged nonblank primary-key fields before mutation, and marks rollback unavailable. The richer matrix-style selector, similar to Business Central's Dimension Matrix pattern, is still planned for staging multiple field changes for the selected record.
+The foundation lookup reads the selected table's primary-key fields for selection. After both target record identity and `Field ID` are selected on an existing-record line, the app reads that selected field and fills `Current Value Preview`. When you enter `Proposed New Value`, the app checks that the field is an enabled normal stored field, is not system-managed or removed, uses a supported foundation scalar type, and that the text can be parsed for that field type. Primary-key values are blocked for `Update`; `Rename` accepts only primary-key fields and preserves unstaged key fields during execution; `Insert` may stage primary-key and non-primary-key fields. Execution changes Business Central data only for supported grouped `Update` lines, supported primary-key `Rename` lines, supported record-level `Delete` lines, and supported grouped `Insert` lines. Rename execution stores the renamed `RecordId` and marks rollback unavailable. Insert execution creates one new record per request/table/Insert Group No., requires staged nonblank primary-key fields before mutation, and marks rollback unavailable. The richer matrix-style selector, similar to Business Central's Dimension Matrix pattern, is still planned for denser field staging.
 
-Use `Preview Data Matrix` on the correction lines part to open a read-only temporary matrix of the staged lines for the current request. For each correction type and table, the matrix shows a heading row with the unique fields staged for that table, then one `Current` row and one `New` row for each target record. It does not read additional target data and does not execute a full dry-run.
+Use `Preview Data Matrix` on the correction lines part to open a read-only temporary matrix of the staged lines for the current request. For each correction type and table, the matrix shows a heading row with the unique fields staged for that table, then one `Current` row and one `New` row for each target record or insert group. It does not read additional target data and does not execute a full dry-run.
 
 | Field | Meaning |
 | --- | --- |
 | Line No. | Line identifier, automatically assigned in increments. |
 | Type | Staged operation type: `Update`, `Rename`, `Delete`, or `Insert`. Phase 6 executes grouped `Update` lines, supported primary-key `Rename` lines, supported record-level `Delete` lines, and supported grouped `Insert` lines, and audits unsupported operation types as blocked. |
+| Insert Group No. | Insert-only grouping value. Lines with the same request, table, and insert group create one new record together. Use group 1 for the first inserted record, group 2 for the second, and so on. |
 | Table ID | Target table number. Use lookup to select a Business Central table from metadata. |
 | Table Name | Target table name or caption. Filled from the selected table metadata. |
-| Record ID | Canonical target record identity for existing-record operations. Read-only; use the field assist edit button or the `Select Record` line action to select a record from the current table. This remains empty while `Insert` is staged. It is filled with the renamed identity after successful rename execution and with the created identity after successful insert execution. |
+| Target Record Identity | Canonical target record identity for existing-record operations. Read-only; use the field assist edit button or the `Select Existing Record` line action to select a record from the current table by primary-key values. This remains empty while `Insert` is staged. It is filled with the renamed identity after successful rename execution and with the created identity after successful insert execution. |
 | Field ID | Target field number. Use lookup after selecting `Table ID`; the list is filtered to enabled normal fields for that table. |
 | Field Name | Target field name or caption. Filled from the selected field metadata. |
 | Proposed New Value | New value text to apply for supported `Update`, `Rename`, and `Insert` execution. `Delete` lines must keep this blank. The current build validates required record/field selection, field staging eligibility, text/code length, and supported scalar type compatibility before saving the line value. |
-| Current Value Preview | Current value for the selected `Record ID` and `Field ID`. Filled automatically when both are selected; `Delete` lines use the selected record identity and do not show a field value; `Insert` lines show the inserted field value after successful execution. |
+| Current Value Preview | Current value for the selected target record identity and `Field ID`. Filled automatically when both are selected; `Delete` lines use the selected record identity and do not show a field value; `Insert` lines show the inserted field value after successful execution. |
 | Rollback Snapshot Mode | Line-level rollback snapshot mode. |
 | Validation Mode | Line-level validation behavior. |
 | Line Status | Current line state. |
@@ -374,10 +375,17 @@ Use it when several lines belong to the same target table:
 
 1. Select one `Table ID` for the batch.
 2. Add one batch entry per requested field change or record-level delete staging row.
-3. For `Update`, `Rename`, or `Delete`, use `Select Record` to populate the target `Record ID`.
-4. For `Update`, `Rename`, or `Insert`, use field lookup and enter the proposed value.
-5. Choose rollback snapshot mode and validation mode when needed.
-6. Choose `Create Request Lines`.
+3. For `Update`, `Rename`, or `Delete`, use `Select Existing Record` to populate the target record identity.
+4. For `Insert`, assign `Insert Group No.` so all fields for one new record share the same group, and different new records use different groups.
+5. For `Update`, `Rename`, or `Insert`, use field lookup and enter the proposed value.
+6. Choose rollback snapshot mode and validation mode when needed.
+7. Choose `Create Request Lines`.
+
+For an existing record with a simple primary key, pick the target record from the lookup row that shows the single key value. For an existing record with a composite primary key, pick the lookup row that shows all key parts together. In both cases the batch entry stores one canonical target record identity; users do not type serialized keys or build key strings by hand.
+
+For `Rename`, create one batch entry for each primary-key field that needs a new value. Select the current existing record first, then select the primary-key `Field ID`, then enter the new key value in `Proposed New Value`. If the table has a composite primary key, stage only the key parts that are changing; execution preserves unstaged key parts.
+
+For `Insert`, do not select an existing record. Use the same `Insert Group No.` for all fields that belong to one new record. To insert two records in the same table, use group `1` for the first record's field rows and group `2` for the second record's field rows. If the table has a composite primary key, every required primary-key field must be staged inside each insert group before execution.
 
 The app creates normal `BCDA Correction Line` records. The batch builder does not introduce a separate execution path.
 
@@ -399,7 +407,7 @@ Reason is required before this action. Ticket/reference is required only when th
 | Action | Available Now | What It Does |
 | --- | --- | --- |
 | Initialize | Yes | Applies setup defaults, saves the request, and writes request-created audit evidence. |
-| Batch Add Lines | Yes for open or previewed requests | Opens same-table batch entry and creates normal correction lines from selected records and fields. |
+| Batch Add Lines | Yes for open or previewed requests | Opens same-table batch entry and creates normal correction lines from selected existing records, insert groups, and fields. |
 | Preview Data Matrix | Yes from correction lines | Opens a read-only temporary matrix with field columns and `Current`/`New` rows for each staged target record in the current request. |
 | Preview Request | Yes while the request is open or previewed | Runs non-mutating preview, refreshes selected current values, validates staged line shape and proposed values, evaluates policy, updates line statuses/sanitized messages, updates rollback/retention text, and writes preview audit evidence. |
 | Submit For Approval | Yes when approval is required and the request is not already pending or approved | Sets status to `Pending Approval` after required metadata exists and required preview lines are previewed. |
@@ -447,9 +455,9 @@ Use this workflow to validate the current build in a sandbox.
 8. Create a new request.
 9. Enter `Reason`, `Company Name`, and `Risk Level`; enter `Ticket Reference` when the request requires it or when you want that evidence retained.
 10. Use `Initialize`.
-11. Add one correction line, choose `Type`, select the target table, use `Record ID` assist edit or `Select Record` on the line to choose the target record when the type is not `Insert`, and use field lookup to select field metadata when applicable.
+11. Add one correction line, choose `Type`, select the target table, use target record identity assist edit or `Select Existing Record` on the line to choose the target record when the type is not `Insert`, set `Insert Group No.` when staging inserts, and use field lookup to select field metadata when applicable.
 12. Use `Preview Data Matrix` on the lines part to review the staged line data for the request.
-13. Optionally use `Batch Add Lines` to create multiple same-table correction lines from selected records and fields.
+13. Optionally use `Batch Add Lines` to create multiple same-table correction lines from selected existing records, insert groups, and fields.
 14. Use `Preview Request`.
 15. Use `Submit For Approval` if approval is required.
 16. If `Require Separate Approver` is enabled, sign in or switch to a different `SUPER` user.
@@ -466,7 +474,7 @@ Use this workflow to validate the current build in a sandbox.
 
 ## Planned Full Correction Workflow
 
-This section describes the intended user experience after future implementation and validation enable richer target-matrix preview and broader non-update operation behavior at runtime. Execution is currently available for grouped `Update`, record-level `Delete`, and grouped `Insert` requests, rollback currently creates a new correction request only from a completed supported `Update` request, and export is filtered audit metadata only.
+This section describes the intended user experience after future implementation and validation enable richer target-matrix preview and broader non-update operation behavior at runtime. Execution is currently available for grouped `Update`, primary-key `Rename`, record-level `Delete`, and grouped `Insert` requests, rollback currently creates a new correction request only from a completed supported `Update` request, and export is filtered audit metadata only.
 
 1. A `SUPER` support user creates a correction request.
 2. The user enters reason, any setup- or policy-required ticket/reference, company, and target table.
@@ -707,10 +715,11 @@ Do not use BC Data Agent to:
 | Execute action is disabled | The request is not in an executable state, required preview is missing, approval is missing, or execution already completed/failed. | Review request status, preview requirement, approval settings, and line statuses. |
 | Field ID lookup is empty | No table is selected, or the selected table has no enabled normal fields available through metadata. | Select `Table ID` first and confirm the target field is an enabled normal stored field. |
 | Table ID is rejected | The table is owned by BC Data Agent or is otherwise outside the current foundation target rules. | Choose a Business Central business table that is not part of the BCDA app-owned operation data. |
-| Batch line creation fails | A batch table is missing, no batch entries exist, a non-insert entry has no target record, or a non-delete entry has no field. | Select a batch table, use `Select Record` for existing-record line types, select field metadata where applicable, and then create request lines. |
-| Record ID is blank | No target record has been selected, or the selected table has no records available in the foundation lookup. | Select `Table ID`, then use `Record ID` assist edit or the `Select Record` line action. |
-| Record ID lookup is blocked | The line type is `Insert`. | Leave `Record ID` empty for insert staging. Insert execution creates the record without using an input target `RecordId` and then stores the created identity after success. |
-| Current Value Preview is blank | `Record ID` or `Field ID` is blank, the selected record no longer exists, or the selected field cannot be formatted for preview. | Use `Record ID` assist edit or `Select Record`, choose `Field ID` again, then review any error shown by the line. |
+| Batch line creation fails | A batch table is missing, no batch entries exist, a non-insert entry has no target record identity, an insert entry has no Insert Group No., or a non-delete entry has no field. | Select a batch table, use `Select Existing Record` for existing-record line types, assign Insert Group No. for insert entries, select field metadata where applicable, and then create request lines. |
+| Target record identity is blank | No target record has been selected, or the selected table has no records available in the foundation lookup. | Select `Table ID`, then use target record identity assist edit or the `Select Existing Record` line action. |
+| Target record lookup is blocked | The line type is `Insert`. | Leave target record identity empty for insert staging. Insert execution creates the record without using an input target `RecordId` and then stores the created identity after success. |
+| Insert preview or execution says a field is staged more than once | Multiple insert lines for the same table use the same `Insert Group No.` and `Field ID`. | Keep one value per field inside each insert group. To insert two records, put each record's primary-key and related field lines in a different insert group. |
+| Current Value Preview is blank | Target record identity or `Field ID` is blank, the selected record no longer exists, or the selected field cannot be formatted for preview. | Use target record identity assist edit or `Select Existing Record`, choose `Field ID` again, then review any error shown by the line. |
 | Proposed New Value is rejected | The target record or field is missing, the field is disabled, non-normal, primary-key-for-update, non-primary-key-for-rename, system-managed, removed, unsupported for staging/execution, too long for the field, or the text cannot be parsed as the field type. | Select a valid target record and enabled normal field that matches the line type, then enter a value formatted for that field type. |
 | Rollback action is unavailable | The request is not completed, rollback snapshots are unavailable, or a rollback request already exists for the completed source request. | Open the completed correction request and review rollback availability, line statuses, and existing rollback operations. |
 | Rollback request creation is blocked | Snapshot logging is disabled, expired, purged, a source line is not an executed `Update`, the source request includes `Rename`, `Delete`, or `Insert`, or retained before-images are missing for part of the request. | Review rollback operation evidence, snapshot retention, and whether the completed request is fully eligible for request-level rollback staging. |
@@ -765,12 +774,12 @@ Use this checklist before enabling any later runtime behavior.
 | Data policy can be created | Table/field lookup fills metadata names and review stamps are populated. |
 | Request can be created and initialized | Request has defaults and audit entry exists. |
 | Correction line table lookup is used | `Table Name` is filled from metadata. |
-| Record ID assist edit or Select Record is used | Target record lookup opens, primary-key display values are shown, selecting a row fills `Record ID`, selecting `Field ID` fills `Current Value Preview`, and no target data is changed. |
+| Target record identity assist edit or Select Existing Record is used | Target record lookup opens, primary-key display values are shown for simple and composite keys, selecting a row fills target record identity, selecting `Field ID` fills `Current Value Preview`, and no target data is changed. |
 | Planned RecordId matrix selector is evaluated in sandbox | Simple and composite primary keys resolve to a canonical target record identity without hand-entered key parsing, and target value reads stay limited to the approved non-mutating preview scope. |
 | Correction line field lookup is used after table selection | The field list is filtered by table and `Field Name` is filled from metadata. |
 | Proposed New Value is entered | Supported scalar values are accepted, unsupported field types and non-modifiable foundation fields are blocked, type mismatch errors do not echo the proposed value, and no target data is changed. |
 | Preview Data Matrix is opened | A read-only temporary matrix opens for the current request, shows one table section at a time with unique field columns and `Current`/`New` rows per record, and no target data is changed. |
-| Batch Add Lines is checked | Same-table batch entries select canonical target RecordIds, create standard correction lines, and do not mutate target data. |
+| Batch Add Lines is checked | Same-table batch entries select canonical target RecordIds for simple-key and composite-key existing records, use Insert Group No. for new records, create standard correction lines, and do not mutate target data. |
 | Request without a reason, or without a configured-required ticket/reference, is submitted | Action is blocked. |
 | Request preview is run | Status changes to `Previewed`, correction lines are marked `Previewed` or `Failed`, and preview audit entry exists. |
 | Request is submitted for approval | Status becomes `Pending Approval`. |
@@ -779,7 +788,7 @@ Use this checklist before enabling any later runtime behavior.
 | Same user tries to approve while separate approver is required | Approval is blocked. |
 | Same user tries to approve while separate approver is not required | Status becomes `Approved`. |
 | Different `SUPER` approves | Status becomes `Approved`. |
-| Execute action is checked | Action is enabled only for supported executable request states; grouped `Update`, record-level `Delete`, and grouped `Insert` execution write audit evidence, update line statuses, and apply the request as one transaction. |
+| Execute action is checked | Action is enabled only for supported executable request states; grouped `Update`, primary-key `Rename`, record-level `Delete`, and grouped `Insert` execution write audit evidence, update line statuses, and apply the request as one transaction. |
 | Audit entries page opens read-only | Entries are visible and not editable. |
 | Supported rollback is created from a completed request | A completed `Update` request creates a new rollback correction request only when retained before-image snapshots exist for every executed supported line; rollback audit evidence and a rollback operation record are written. |
 | Generated rollback request is previewed | The generated rollback correction request shows current target values and proposed retained before-images before any target mutation. |
@@ -799,7 +808,7 @@ Use this checklist before enabling any later runtime behavior.
 | Create request | BCDA Correction Requests | New |
 | Apply request defaults | BCDA Correction Request Card | Initialize |
 | Add target field change | BCDA Correction Request Card | Lines part, using Table ID and Field ID lookup suggestions |
-| Add multiple same-table changes | BCDA Correction Request Card | Use `Batch Add Lines` for same-table entries; use future matrix editing for richer field staging. |
+| Add multiple same-table changes | BCDA Correction Request Card | Use `Batch Add Lines` for same-table entries; for existing records, use `Select Existing Record`; for inserts, set distinct `Insert Group No.` values for distinct new records. |
 | Run request preview | BCDA Correction Request Card | Preview Request |
 | Submit approval request | BCDA Correction Request Card | Submit For Approval |
 | Approve request | BCDA Correction Request Card | Approve |
@@ -821,7 +830,7 @@ Use this checklist before enabling any later runtime behavior.
 | Data policy | Rule that blocks, allows, or requires approval for a table or field. |
 | Foundation build | Earlier implementation stage that supported app-owned records and pages before grouped update execution and supported update rollback. |
 | Posted data | Business Central data related to posted documents or posting outcomes. Treat as high-risk. |
-| Record ID | Canonical target record identity. In the current build it is populated from field assist edit or the `Select Record` lookup; future matrix selection will build richer field staging around it. |
+| Target Record Identity | Canonical target record identity. In the current build it is populated from field assist edit or the `Select Existing Record` lookup; future matrix selection will build richer field staging around it. |
 | Retention | Rules controlling how long app-owned audit, snapshot, and technical records are kept. |
 | Rollback | Governed action that creates a new correction request with suggested inverse values from retained snapshots for a completed supported `Update` request. |
 | Rollback snapshot | Stored before-image or value data used to stage rollback correction lines. |

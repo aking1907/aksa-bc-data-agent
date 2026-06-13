@@ -20,7 +20,7 @@ BCDA will model target record identity with:
 - a formatted read-only record identity for display,
 - a display key for support and audit review.
 
-The correction request experience should not ask users to hand-type composite keys. The target record field should be read-only. In the foundation build, users populate it through a `Select Record` line action. A future matrix-style selector/editor, similar in spirit to the standard Dimension Matrix pattern, will expand this into multi-field staging for the selected record.
+The correction request experience should not ask users to hand-type composite keys. The target record field should be read-only. In the foundation build, users populate it through a `Select Existing Record` line action that displays simple or composite primary-key values before selection. A future matrix-style selector/editor, similar in spirit to the standard Dimension Matrix pattern, will expand this into multi-field staging for the selected record.
 
 The planned target record matrix will:
 

@@ -289,6 +289,7 @@ codeunit 88125 "BCDA Correction Orchestrator"
             CorrectionLine.Type::Insert:
                 begin
                     EnsureLineRecordIdEmpty(CorrectionLine);
+                    EnsureLineHasInsertGroupNo(CorrectionLine);
                     if CorrectionLine."Field ID" = 0 then
                         Error(LineFieldRequiredErr, CorrectionLine."Line No.");
                 end;
@@ -322,6 +323,12 @@ codeunit 88125 "BCDA Correction Orchestrator"
     begin
         if CorrectionLine."Record ID" <> EmptyRecordId then
             Error(LineRecordMustBeEmptyForInsertErr, CorrectionLine."Line No.");
+    end;
+
+    local procedure EnsureLineHasInsertGroupNo(CorrectionLine: Record "BCDA Correction Line")
+    begin
+        if CorrectionLine."Insert Group No." <= 0 then
+            Error(LineInsertGroupRequiredErr, CorrectionLine."Line No.");
     end;
 
     [TryFunction]
@@ -383,7 +390,7 @@ codeunit 88125 "BCDA Correction Orchestrator"
         TempExecutionGroup.Reset();
         TempExecutionGroup.DeleteAll();
 
-        CorrectionLine.SetCurrentKey("Request ID", Type, "Table ID", "Record ID");
+        CorrectionLine.SetCurrentKey("Request ID", Type, "Table ID", "Record ID", "Insert Group No.");
         CorrectionLine.SetRange("Request ID", CorrectionRequest."Request ID");
         if not CorrectionLine.FindSet() then
             Error(NoLinesForExecutionErr, CorrectionRequest."Request ID");
@@ -400,6 +407,7 @@ codeunit 88125 "BCDA Correction Orchestrator"
         TempExecutionGroup.SetRange(Type, CorrectionLine.Type);
         TempExecutionGroup.SetRange("Table ID", CorrectionLine."Table ID");
         TempExecutionGroup.SetRange("Record ID", CorrectionLine."Record ID");
+        TempExecutionGroup.SetRange("Insert Group No.", CorrectionLine."Insert Group No.");
         if not TempExecutionGroup.IsEmpty() then begin
             TempExecutionGroup.Reset();
             exit;
@@ -416,11 +424,12 @@ codeunit 88125 "BCDA Correction Orchestrator"
     begin
         ClearExecutionGroup(TempGroupLine);
 
-        CorrectionLine.SetCurrentKey("Request ID", Type, "Table ID", "Record ID");
+        CorrectionLine.SetCurrentKey("Request ID", Type, "Table ID", "Record ID", "Insert Group No.");
         CorrectionLine.SetRange("Request ID", GroupLine."Request ID");
         CorrectionLine.SetRange(Type, GroupLine.Type);
         CorrectionLine.SetRange("Table ID", GroupLine."Table ID");
         CorrectionLine.SetRange("Record ID", GroupLine."Record ID");
+        CorrectionLine.SetRange("Insert Group No.", GroupLine."Insert Group No.");
         if not CorrectionLine.FindSet() then
             Error(NoLinesForExecutionErr, GroupLine."Request ID");
 
@@ -740,10 +749,11 @@ codeunit 88125 "BCDA Correction Orchestrator"
         DuplicateLine.SetRange(Type, CorrectionLine.Type);
         DuplicateLine.SetRange("Table ID", CorrectionLine."Table ID");
         DuplicateLine.SetRange("Record ID", CorrectionLine."Record ID");
+        DuplicateLine.SetRange("Insert Group No.", CorrectionLine."Insert Group No.");
         DuplicateLine.SetRange("Field ID", CorrectionLine."Field ID");
         if DuplicateLine.Count() > 1 then begin
             if CorrectionLine.Type = CorrectionLine.Type::Insert then
-                Error(DuplicateInsertFieldInGroupErr, CorrectionLine."Field ID", CorrectionLine."Table ID");
+                Error(DuplicateInsertFieldInGroupErr, CorrectionLine."Field ID", CorrectionLine."Table ID", CorrectionLine."Insert Group No.");
 
             Error(DuplicateFieldInGroupErr, CorrectionLine."Field ID", CorrectionLine."Table ID", CorrectionLine."Record ID");
         end;
@@ -752,25 +762,27 @@ codeunit 88125 "BCDA Correction Orchestrator"
     local procedure EnsureInsertPrimaryKeyFieldsStaged(var TempGroupLine: Record "BCDA Correction Line" temporary)
     var
         FieldMetadata: Record "Field";
+        InsertGroupNo: Integer;
         TableId: Integer;
     begin
         TempGroupLine.Reset();
         TempGroupLine.FindFirst();
         TableId := TempGroupLine."Table ID";
+        InsertGroupNo := TempGroupLine."Insert Group No.";
 
         FieldMetadata.SetRange(TableNo, TableId);
         FieldMetadata.SetRange(IsPartOfPrimaryKey, true);
         if not FieldMetadata.FindSet() then
-            Error(InsertPrimaryKeyMetadataMissingErr, TableId);
+            Error(InsertPrimaryKeyMetadataMissingErr, TableId, InsertGroupNo);
 
         repeat
             TempGroupLine.Reset();
             TempGroupLine.SetRange("Field ID", FieldMetadata."No.");
             if not TempGroupLine.FindFirst() then
-                Error(InsertPrimaryKeyFieldMissingErr, TableId, FieldMetadata."No.");
+                Error(InsertPrimaryKeyFieldMissingErr, TableId, InsertGroupNo, FieldMetadata."No.");
 
             if TempGroupLine."Proposed New Value" = '' then
-                Error(InsertPrimaryKeyValueMissingErr, TableId, FieldMetadata."No.");
+                Error(InsertPrimaryKeyValueMissingErr, TableId, InsertGroupNo, FieldMetadata."No.");
         until FieldMetadata.Next() = 0;
 
         TempGroupLine.Reset();
@@ -1114,12 +1126,13 @@ codeunit 88125 "BCDA Correction Orchestrator"
         LineRecordRequiredErr: Label 'Line %1 must have a target Record ID before preview.', Comment = '%1 = line number';
         LineRecordTableMismatchErr: Label 'Line %1 Record ID %2 does not belong to table %3.', Comment = '%1 = line number, %2 = record ID, %3 = table ID';
         LineRecordMustBeEmptyForInsertErr: Label 'Line %1 must keep Record ID empty for Insert preview.', Comment = '%1 = line number';
+        LineInsertGroupRequiredErr: Label 'Line %1 must have an Insert Group No. greater than zero for Insert preview.', Comment = '%1 = line number';
         DuplicateFieldInGroupErr: Label 'Field %1 on table %2 is staged more than once for record %3. Keep one proposed value per field in an execution group.', Comment = '%1 = field ID, %2 = table ID, %3 = record ID';
         DuplicateDeleteInGroupErr: Label 'Delete is staged more than once for table %1 record %2. Keep one Delete line per target record.', Comment = '%1 = table ID, %2 = record ID';
-        DuplicateInsertFieldInGroupErr: Label 'Field %1 on table %2 is staged more than once for the same Insert group. Keep one proposed value per field.', Comment = '%1 = field ID, %2 = table ID';
-        InsertPrimaryKeyFieldMissingErr: Label 'Insert execution for table %1 must stage primary-key field %2 before mutation.', Comment = '%1 = table ID, %2 = field ID';
-        InsertPrimaryKeyMetadataMissingErr: Label 'Insert execution for table %1 could not find primary-key metadata.', Comment = '%1 = table ID';
-        InsertPrimaryKeyValueMissingErr: Label 'Insert execution for table %1 field %2 must stage a nonblank primary-key value before mutation.', Comment = '%1 = table ID, %2 = field ID';
+        DuplicateInsertFieldInGroupErr: Label 'Field %1 on table %2 is staged more than once for Insert group %3. Keep one proposed value per field in each Insert group.', Comment = '%1 = field ID, %2 = table ID, %3 = insert group number';
+        InsertPrimaryKeyFieldMissingErr: Label 'Insert execution for table %1 group %2 must stage primary-key field %3 before mutation.', Comment = '%1 = table ID, %2 = insert group number, %3 = field ID';
+        InsertPrimaryKeyMetadataMissingErr: Label 'Insert execution for table %1 group %2 could not find primary-key metadata.', Comment = '%1 = table ID, %2 = insert group number';
+        InsertPrimaryKeyValueMissingErr: Label 'Insert execution for table %1 group %2 field %3 must stage a nonblank primary-key value before mutation.', Comment = '%1 = table ID, %2 = insert group number, %3 = field ID';
         RenameFailedErr: Label 'Rename execution for table %1 record %2 did not complete. Verify the proposed primary-key value is unique and valid for the target table.', Comment = '%1 = table ID, %2 = record ID';
         RenamePrimaryKeyFieldLimitErr: Label 'Rename execution supports primary keys with up to 20 fields. The target primary key has %1 fields.', Comment = '%1 = primary-key field count';
         DeleteExecutedValueTxt: Label 'Deleted';

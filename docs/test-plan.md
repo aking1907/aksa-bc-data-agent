@@ -43,17 +43,17 @@
 | TST-021 | Retention cleanup removes expired operation records and preserves active requests | AC-025 |
 | TST-022 | Required AL analyzers run and blocking diagnostics are resolved or documented | AC-026 |
 | TST-027 | Approval configuration skips approval when disabled, blocks approval before submission, blocks requester approval when separate approval is required, and allows self-approval when configured | AC-027 |
-| TST-028 | Same-table batch entry selects canonical target record IDs and creates standard correction lines without target preview or mutation | AC-028 |
-| TST-029 | Foundation RecordId line-action lookup and later matrix entry support simple and composite primary keys without hand-entered key parsing | AC-029 |
-| TST-030 | Selected-line current value preview fills only after `Record ID` and `Field ID` are selected and does not mutate target data | AC-004, AC-016 |
+| TST-028 | Same-table batch entry clearly distinguishes existing-record entries from insert groups, selects canonical target record IDs for simple and composite primary keys, and creates standard correction lines without target preview or mutation | AC-028 |
+| TST-029 | Foundation RecordId line-action lookup and later matrix entry support simple and composite primary keys without hand-entered key parsing, showing all composite key parts before selection | AC-029 |
+| TST-030 | Selected-line current value preview fills only after target record identity and `Field ID` are selected and does not mutate target data | AC-004, AC-016 |
 | TST-031 | Correction line proposed-value validation accepts supported scalar values and blocks disabled, non-normal, primary-key-for-update, non-primary-key-for-rename, system-managed, removed, unsupported-type, length-invalid, or scalar type-incompatible values without mutating target data | AC-003, AC-012, AC-016 |
-| TST-032 | Preview Data Matrix opens from correction lines, shows staged request line data grouped by request, correction type, table, record, and field, and does not mutate target data or run full dry-run validation | AC-003, AC-004, AC-016, AC-020 |
-| TST-033 | Correction line type staging stores `Update`, `Rename`, `Delete`, and `Insert`; `Insert` keeps `Record ID` empty while staged, blocks target record selection, and stores the created `RecordId` after successful insert execution | AC-030, AC-034 |
+| TST-032 | Preview Data Matrix opens from correction lines, shows staged request line data grouped by request, correction type, table, record or insert group, and field, and does not mutate target data or run full dry-run validation | AC-003, AC-004, AC-016, AC-020 |
+| TST-033 | Correction line type staging stores `Update`, `Rename`, `Delete`, and `Insert`; the line and batch pages make each operation target clear; `Insert` keeps target record identity empty while staged, blocks target record selection, uses `Insert Group No.` for created-record grouping, and stores the created `RecordId` after successful insert execution | AC-030, AC-034 |
 | TST-034 | When `Allow Data Policies` is disabled, execution bypasses policy records for non-BCDA supported targets and still blocks non-`SUPER`, unaudited, rollback-unready, request-metadata-incomplete, app-owned, and unsupported execution paths | AC-031 |
 | TST-035 | `Require Ticket Reference` setup snapshots to new requests; reason-only requests can proceed when off, and blank ticket/reference is blocked when on | AC-032 |
 | TST-036 | Supported `Delete` execution deletes the selected target record only after request metadata, policy, approval when required, preview when required, audit, and transaction controls pass, and shows rollback unavailable | AC-006, AC-008, AC-021, AC-033 |
-| TST-037 | Supported `Insert` execution creates one target record per request/table insert group only after required primary-key fields, request metadata, policy, approval when required, preview when required, audit, and transaction controls pass, stores the created `RecordId`, and shows rollback unavailable | AC-006, AC-008, AC-021, AC-034 |
-| TST-038 | Supported `Rename` execution renames the selected target record only after primary-key field staging, request metadata, policy, approval when required, preview when required, audit, and transaction controls pass, stores the renamed `RecordId`, and shows rollback unavailable | AC-006, AC-008, AC-021, AC-035 |
+| TST-037 | Supported `Insert` execution creates one target record per request/table/`Insert Group No.` only after required primary-key fields, request metadata, policy, approval when required, preview when required, audit, and transaction controls pass; distinct insert groups for the same table create distinct records, duplicate fields are blocked only within the same insert group, created `RecordId` values are stored, and rollback shows unavailable | AC-006, AC-008, AC-021, AC-034 |
+| TST-038 | Supported `Rename` execution renames the selected target record only after primary-key field staging, request metadata, policy, approval when required, preview when required, audit, and transaction controls pass, stores the renamed `RecordId`, shows rollback unavailable, and preserves unstaged composite-key fields | AC-006, AC-008, AC-021, AC-035 |
 
 ## Local Build Validation
 
@@ -71,12 +71,12 @@ Ongoing local validation should include:
 - Rebuild/package the extension after each AL change.
 - Run CodeCop, UICop, and PerTenantExtensionCop with `ruleset.json`.
 - Add automated test codeunits when the relevant behavior is available.
-- Validate foundation RecordId lookup in sandbox for representative simple and composite primary keys; add richer matrix selector validation before runtime or production enablement.
+- Validate foundation RecordId lookup in sandbox for representative simple and composite primary keys, including the `Primary Key Values` display and `Select Existing Record` action; add richer matrix selector validation before runtime or production enablement.
 - Validate selected-line current value preview in sandbox for representative scalar field types and confirm sensitive values are not exposed outside `SUPER`-gated pages.
 - Validate proposed-value staging for Text, Code, Decimal, Date, DateTime, Boolean, GUID, Option, and unsupported types, confirming errors do not echo the proposed value.
 - Validate Preview Data Matrix opens only for `SUPER` users and displays stored correction-line values for one request without changing target data.
 - Validate `Preview Request` updates line statuses/sanitized messages, confirms delete target records exist, resets line status to `Open` after line edits, and blocks preview-required submit/approve until every line is previewed.
-- Validate correction line type staging for Update, Rename, Delete, and Insert, including Rename's primary-key-only field rule and renamed RecordId capture, Insert's empty-while-staged RecordId rule, created RecordId capture after successful execution, and non-insert RecordId validation.
+- Validate correction line and batch line type staging for Update, Rename, Delete, and Insert, including the operation target display, Rename's primary-key-only field rule and renamed RecordId capture, Insert's empty-while-staged target identity rule, Insert Group No. grouping across one or more inserted records, created RecordId capture after successful execution, and non-insert RecordId validation.
 - Validate `Allow Data Policies` in sandbox, including permanent blocks for BCDA app-owned, system-managed, unsupported, unaudited, and non-`SUPER` mutation paths.
 - Deploy only to sandbox until release gates pass; local code development can continue while sandbox validation evidence is being collected.
 
@@ -95,7 +95,7 @@ The ASAP execution-readiness track is defined in `docs/execution-readiness-kicko
 - Normal, hidden, posted, and protected table write results with sanitized errors.
 - Audit, rollback snapshot, and all-or-nothing transaction expectations for execution.
 - Standard-update behavior when approval and ticket/reference evidence are not required by setup or policy.
-- supported rename execution behavior for primary-key field staging, supported insert execution behavior for one request/table insert group, and `Allow Data Policies` behavior when policy records are bypassed.
+- supported rename execution behavior for primary-key field staging, supported insert execution behavior for one or more request/table/insert groups, and `Allow Data Policies` behavior when policy records are bypassed.
 
 ### Phase 6 Final Execution Validation Scenarios
 
@@ -113,7 +113,7 @@ These scenarios are the final Phase 6 validation set after `ExecuteRequest` is i
 | P6-TST-008 | Request-wide validation failure leaves target data unchanged and writes sanitized audit evidence before mutation; runtime mutation failure rolls back the request transaction | AC-006, AC-008, AC-015, AC-016 / TST-006, TST-008 | Sandbox failure validation |
 | P6-TST-009 | `Allow Data Policies` bypasses policy records only while preserving permanent runtime controls for supported operation types | AC-012, AC-030, AC-031 / TST-033, TST-034 | Final validation |
 | P6-TST-010 | Allowed `Delete` of one artificial normal-table record succeeds as one execution group, writes audit evidence, leaves rollback snapshots empty, and marks delete rollback unavailable | AC-006, AC-008, AC-021, AC-033 / TST-036 | Sandbox delete execution validation |
-| P6-TST-011 | Allowed `Insert` of one artificial normal-table record succeeds as one request/table insert group after all primary-key fields are staged, writes audit evidence with the created record identity, leaves rollback snapshots empty, and marks insert rollback unavailable | AC-006, AC-008, AC-021, AC-034 / TST-037 | Sandbox insert execution validation |
+| P6-TST-011 | Allowed `Insert` of one or more artificial normal-table records succeeds as distinct request/table/insert groups after all primary-key fields are staged for each group, writes audit evidence with each created record identity, leaves rollback snapshots empty, and marks insert rollback unavailable | AC-006, AC-008, AC-021, AC-034 / TST-037 | Sandbox insert execution validation |
 | P6-TST-012 | Allowed `Rename` of one artificial normal-table record succeeds as one execution group after primary-key fields are staged, writes audit evidence with the renamed record identity, leaves rollback snapshots empty, and marks rename rollback unavailable | AC-006, AC-008, AC-021, AC-035 / TST-038 | Sandbox rename execution validation |
 
 ## Rollback Readiness Validation

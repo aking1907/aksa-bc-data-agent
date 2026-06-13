@@ -20,13 +20,13 @@ page 88142 "BCDA Batch Line Builder"
         {
             group(BatchTarget)
             {
-                Caption = 'Batch Target';
+                Caption = 'Batch Target Table';
 
                 field(BatchTableId; BatchTableId)
                 {
                     ApplicationArea = All;
                     Caption = 'Table ID';
-                    ToolTip = 'Specifies the target table used for all batch entries.';
+                    ToolTip = 'Specifies the target table used for all batch entries. Existing-record entries use this table for primary-key lookup; Insert entries use it for new-record field staging.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
@@ -69,19 +69,45 @@ page 88142 "BCDA Batch Line Builder"
                 {
                     ApplicationArea = All;
                     Editable = BatchTableSelected;
-                    ToolTip = 'Specifies whether this batch entry stages an update, rename, delete, or insert operation.';
+                    ToolTip = 'Specifies whether this batch entry stages an update, rename, delete, or insert operation. Rename selects an existing record and stages primary-key fields; Insert uses Insert Group No. instead of an existing target record.';
+
+                    trigger OnValidate()
+                    begin
+                        UpdateLineContext();
+                        CurrPage.Update(false);
+                    end;
                 }
-                field("Record ID"; Rec."Record ID")
+                field(OperationTarget; OperationTarget)
                 {
                     ApplicationArea = All;
+                    Caption = 'Operation Target';
                     Editable = false;
-                    ToolTip = 'Specifies the selected existing target record identity. Insert entries leave this empty until execution creates a record.';
+                    ToolTip = 'Shows whether this entry targets an existing record selected by primary-key lookup or a new record grouped by Insert Group No.';
+                }
+                field("Insert Group No."; Rec."Insert Group No.")
+                {
+                    ApplicationArea = All;
+                    Editable = IsInsertLine;
+                    ToolTip = 'Specifies which Insert batch entries create the same new record. Use the same group number for fields on one inserted record, and a different group number for each additional inserted record.';
+                }
+                field(TargetRecordIdentity; Format(Rec."Record ID"))
+                {
+                    AssistEdit = true;
+                    ApplicationArea = All;
+                    Caption = 'Target Record Identity';
+                    Editable = false;
+                    ToolTip = 'Specifies the selected existing target record. Use the assist edit button or Select Existing Record; the lookup shows simple and composite primary-key values. Insert entries leave this empty until execution creates a record.';
+
+                    trigger OnAssistEdit()
+                    begin
+                        SelectTargetRecord();
+                    end;
                 }
                 field("Field ID"; Rec."Field ID")
                 {
                     ApplicationArea = All;
                     Editable = BatchTableSelected;
-                    ToolTip = 'Specifies the target field ID for this batch entry.';
+                    ToolTip = 'Specifies the target field ID for this batch entry. Rename entries must select a primary-key field; Insert and Update entries select the field value to write.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
@@ -113,7 +139,7 @@ page 88142 "BCDA Batch Line Builder"
                 {
                     ApplicationArea = All;
                     Editable = BatchTableSelected;
-                    ToolTip = 'Specifies the proposed new value text for this batch entry.';
+                    ToolTip = 'Specifies the proposed new value text for this batch entry. For Rename, this is the new primary-key value for the selected key field.';
                 }
                 field("Rollback Snapshot Mode"; Rec."Rollback Snapshot Mode")
                 {
@@ -159,10 +185,10 @@ page 88142 "BCDA Batch Line Builder"
             action(SelectRecord)
             {
                 ApplicationArea = All;
-                Caption = 'Select Record';
+                Caption = 'Select Existing Record';
                 Enabled = BatchTableSelected;
                 Image = View;
-                ToolTip = 'Opens target record lookup and fills Record ID for the selected batch entry.';
+                ToolTip = 'Opens target record lookup and fills the target record identity for the selected Update, Rename, or Delete batch entry.';
 
                 trigger OnAction()
                 begin
@@ -186,6 +212,12 @@ page 88142 "BCDA Batch Line Builder"
         Rec."Entry No." := NextEntryNo;
         if BatchTableSelected then
             ApplyBatchTableToLine();
+        UpdateLineContext();
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        UpdateLineContext();
     end;
 
     procedure SetRequest(CorrectionRequest: Record "BCDA Correction Request")
@@ -251,16 +283,42 @@ page 88142 "BCDA Batch Line Builder"
         BatchTableSelected := BatchTableId <> 0;
     end;
 
+    local procedure UpdateLineContext()
+    begin
+        IsInsertLine := Rec.Type = Rec.Type::Insert;
+        OperationTarget := ResolveOperationTarget();
+    end;
+
+    local procedure ResolveOperationTarget(): Text[80]
+    begin
+        case Rec.Type of
+            Rec.Type::Rename:
+                exit(RenameOperationTargetTxt);
+            Rec.Type::Delete:
+                exit(DeleteOperationTargetTxt);
+            Rec.Type::Insert:
+                exit(InsertOperationTargetTxt);
+        end;
+
+        exit(UpdateOperationTargetTxt);
+    end;
+
     var
         BatchEntryRequiredErr: Label 'Select or create a batch entry before choosing a target record.';
         BatchTableId: Integer;
         BatchTableName: Text[250];
         BatchTableSelected: Boolean;
         ClearLinesBeforeTableChangeErr: Label 'Delete the current batch entries before changing the batch table.';
+        DeleteOperationTargetTxt: Label 'Existing record delete';
+        IsInsertLine: Boolean;
+        InsertOperationTargetTxt: Label 'New record insert group';
         NextEntryNo: Integer;
-        RecordIdNotUsedForInsertErr: Label 'Record ID is not selected for Insert batch entries. Execution assigns the created record identity after a successful insert.';
+        OperationTarget: Text[80];
+        RecordIdNotUsedForInsertErr: Label 'Target record identity is not selected for Insert batch entries. Use Insert Group No. to group fields for each new record; execution stores the created identity after a successful insert.';
+        RenameOperationTargetTxt: Label 'Existing record primary-key rename';
         RequestId: Code[20];
         RequestLinesCreatedMsg: Label '%1 request line(s) were created from the batch.', Comment = '%1 = number of created request lines';
         RequestRequiredErr: Label 'Create or save the correction request before adding batch lines.';
         TableRequiredErr: Label 'Select a table before adding batch lines.';
+        UpdateOperationTargetTxt: Label 'Existing record field update';
 }

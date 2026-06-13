@@ -2,9 +2,9 @@
 
 ## Audit Status
 
-Current result: Phase 9 local hardening is complete for the current Phase 8 build, and the SDD now allows continuous local implementation without per-phase paper confirmation. Local compile/analyzer/config/security/docs evidence exists for foundation RecordId lookup, selected-line current value preview, request-level staged-line preview, correction operation type staging, preview-required approval gating, BCDA app-owned target blocking, `Allow Data Policies` setup behavior, grouped update mutation, record-level delete mutation, grouped insert mutation, audit evidence, rollback snapshot capture, request-level rollback staging, generated rollback request current-value review, rollback operation records, append-only rollback audit evidence, filtered audit metadata export, audit export evidence, governed retention cleanup, object-range alignment, and the no-BCDA-permission-set rule.
+Current result: Phase 9 local hardening is complete for the current Phase 8 build, and the SDD now allows continuous local implementation without per-phase paper confirmation. Local compile/analyzer/config/security/docs evidence exists for foundation RecordId lookup, selected-line current value preview, request-level staged-line preview, correction operation type staging, preview-required approval gating, BCDA app-owned target blocking, `Allow Data Policies` setup behavior, grouped update mutation, primary-key rename mutation, record-level delete mutation, grouped insert mutation, audit evidence, rollback snapshot capture, request-level rollback staging, generated rollback request current-value review, rollback operation records, append-only rollback audit evidence, filtered audit metadata export, audit export evidence, governed retention cleanup, object-range alignment, and the no-BCDA-permission-set rule.
 
-OD-018 insert grouping is implemented for the current local slice as one request/table insert group with empty staged `RecordId`, required staged primary-key fields, rollback-unavailable status, and created-record identity capture after successful execution. Richer multiple-record insert grouping remains deferred. OD-019 setup-controlled data policy enforcement is implemented through `Allow Data Policies`.
+OD-018 insert grouping is implemented with app-owned `Insert Group No.`: staged `Insert` lines keep `RecordId` empty, each request/table/insert-group requires staged primary-key fields, rollback remains unavailable, and each created-record identity is captured after successful execution. OD-019 setup-controlled data policy enforcement is implemented through `Allow Data Policies`.
 
 The ASAP execution-readiness track in `docs/execution-readiness-kickoff.md` now tracks final sandbox validation for Phase 6 execution.
 
@@ -14,7 +14,7 @@ The Phase 7 rollback implementation is recorded in `docs/rollback-readiness-kick
 
 The Phase 8 audit, retention, and export implementation is recorded in `docs/audit-retention-export-readiness-kickoff.md`. Sandbox validation was skipped by request for implementation and remains required before production use.
 
-The SDD package is structurally complete. The project moved from Phase 4 setup, retention, and UX shell work through Phase 5 target selection into Phase 6 grouped update execution, Phase 7 supported update rollback, Phase 8 export/cleanup, and Phase 9 local hardening. Additional code development may proceed under the standing authorization, while mutation, rollback, export, and cleanup sandbox validation still need to be completed before production use.
+The SDD package is structurally complete. The project moved from Phase 4 setup, retention, and UX shell work through Phase 5 target selection into Phase 6 supported grouped update, primary-key rename, record-level delete, and grouped insert execution, Phase 7 supported update rollback, Phase 8 export/cleanup, and Phase 9 local hardening. Additional code development may proceed under the standing authorization, while mutation, rollback, export, and cleanup sandbox validation still need to be completed before production use.
 
 ## What Is Ready
 
@@ -65,8 +65,8 @@ The SDD package is structurally complete. The project moved from Phase 4 setup, 
 | Requirement and acceptance alignment | Passed for current documentation. |
 | Acceptance-to-test coverage | Passed for current documentation. |
 | Execution readiness kickoff | Complete for local implementation; final sandbox validation remains. |
-| Phase 6 implementation | Passed local compile for grouped update execution. |
-| OD-018/OD-019 decision blocker | Passed; current insert grouping and policy-bypass behavior are implemented locally, while richer multiple-record insert grouping remains deferred until needed. |
+| Phase 6 implementation | Passed local compile for grouped update, primary-key rename, record-level delete, and grouped insert execution. |
+| OD-018/OD-019 decision blocker | Passed; app-owned insert grouping and policy-bypass behavior are implemented locally. |
 | Phase 7 implementation | Passed local compile/analyzer validation for supported update rollback. |
 | Rollback readiness kickoff | Complete locally in `docs/rollback-readiness-kickoff.md`; production use remains blocked until sandbox rollback success, conflict, snapshot, access, and policy validation are complete. |
 | Phase 8 implementation | Passed local compile/analyzer validation for filtered audit export and retention cleanup. |
@@ -90,4 +90,4 @@ The SDD package is structurally complete. The project moved from Phase 4 setup, 
 
 ## Recommendation
 
-Continue with sandbox validation for Phase 6 grouped update execution, supported primary-key rename execution, supported record-level delete execution, supported grouped insert execution, Phase 7 supported update rollback, and Phase 8 export/cleanup. Rename/delete/insert rollback, broader non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, validate-trigger dry-run, external APIs, richer insert grouping, and broader target matrix editing may be implemented locally, but runtime/production use remains blocked until their applicable implementation contracts, controls, sandbox validation, and runtime readiness evidence are complete.
+Continue with sandbox validation for Phase 6 grouped update execution, supported primary-key rename execution, supported record-level delete execution, supported grouped insert execution, Phase 7 supported update rollback, and Phase 8 export/cleanup. Rename/delete/insert rollback, broader non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, validate-trigger dry-run, external APIs, and broader target matrix editing may be implemented locally, but runtime/production use remains blocked until their applicable implementation contracts, controls, sandbox validation, and runtime readiness evidence are complete.

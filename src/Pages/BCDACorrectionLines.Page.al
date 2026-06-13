@@ -19,12 +19,24 @@ page 88115 "BCDA Correction Lines"
                 }
                 field(Type; Rec.Type)
                 {
-                    ToolTip = 'Specifies whether this line stages an update, rename, delete, or insert operation.';
+                    ToolTip = 'Specifies whether this line stages an update, rename, delete, or insert operation. Rename selects an existing record and stages primary-key fields; Insert uses Insert Group No. instead of an existing target record.';
 
                     trigger OnValidate()
                     begin
+                        UpdateLineContext();
                         CurrPage.Update(false);
                     end;
+                }
+                field(OperationTarget; OperationTarget)
+                {
+                    Caption = 'Operation Target';
+                    Editable = false;
+                    ToolTip = 'Shows whether this line targets an existing record selected by primary-key lookup or a new record grouped by Insert Group No.';
+                }
+                field("Insert Group No."; Rec."Insert Group No.")
+                {
+                    Editable = IsInsertLine;
+                    ToolTip = 'Specifies which Insert lines create the same new record. Use the same group number for fields on one inserted record, and a different group number for each additional inserted record.';
                 }
                 field("Table ID"; Rec."Table ID")
                 {
@@ -37,9 +49,9 @@ page 88115 "BCDA Correction Lines"
                 field("Record ID"; format(Rec."Record ID"))
                 {
                     AssistEdit = true;
-                    Caption = 'Record ID';
+                    Caption = 'Target Record Identity';
                     Editable = false;
-                    ToolTip = 'Specifies the target record identity selected for existing-record lines, or the created record identity after successful Insert execution.';
+                    ToolTip = 'Specifies the target record identity selected for existing-record lines. Use the assist edit button or Select Existing Record; the lookup shows simple and composite primary-key values. Insert lines leave this empty while staged and show the created identity after successful execution.';
 
                     trigger OnAssistEdit()
                     begin
@@ -48,7 +60,7 @@ page 88115 "BCDA Correction Lines"
                 }
                 field("Field ID"; Rec."Field ID")
                 {
-                    ToolTip = 'Specifies the target field ID.';
+                    ToolTip = 'Specifies the target field ID. Rename lines must select a primary-key field; Insert and Update lines select the field value to write.';
 
                     trigger OnValidate()
                     begin
@@ -66,7 +78,7 @@ page 88115 "BCDA Correction Lines"
                 }
                 field("Proposed New Value"; Rec."Proposed New Value")
                 {
-                    ToolTip = 'Specifies the proposed new value text.';
+                    ToolTip = 'Specifies the proposed new value text. For Rename, this is the new primary-key value for the selected key field.';
                 }
                 field("Rollback Snapshot Mode"; Rec."Rollback Snapshot Mode")
                 {
@@ -95,9 +107,9 @@ page 88115 "BCDA Correction Lines"
             action(SelectRecord)
             {
                 ApplicationArea = All;
-                Caption = 'Select Record';
+                Caption = 'Select Existing Record';
                 Image = View;
-                ToolTip = 'Opens target record lookup and fills Record ID for the selected correction line.';
+                ToolTip = 'Opens target record lookup and fills the target record identity for the selected Update, Rename, or Delete correction line.';
 
                 trigger OnAction()
                 begin
@@ -133,6 +145,16 @@ page 88115 "BCDA Correction Lines"
         AccessMgt.EnsureSuperUser();
     end;
 
+    trigger OnAfterGetRecord()
+    begin
+        UpdateLineContext();
+    end;
+
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        UpdateLineContext();
+    end;
+
     local procedure SelectTargetRecord()
     var
         TargetRecordLookup: Page "BCDA Target Record Lookup";
@@ -152,8 +174,34 @@ page 88115 "BCDA Correction Lines"
         end;
     end;
 
+    local procedure UpdateLineContext()
+    begin
+        IsInsertLine := Rec.Type = Rec.Type::Insert;
+        OperationTarget := ResolveOperationTarget();
+    end;
+
+    local procedure ResolveOperationTarget(): Text[80]
+    begin
+        case Rec.Type of
+            Rec.Type::Rename:
+                exit(RenameOperationTargetTxt);
+            Rec.Type::Delete:
+                exit(DeleteOperationTargetTxt);
+            Rec.Type::Insert:
+                exit(InsertOperationTargetTxt);
+        end;
+
+        exit(UpdateOperationTargetTxt);
+    end;
+
     var
-        RecordIdNotUsedForInsertErr: Label 'Record ID is not selected for Insert correction lines. Execution assigns the created record identity after a successful insert.';
+        DeleteOperationTargetTxt: Label 'Existing record delete';
+        IsInsertLine: Boolean;
+        InsertOperationTargetTxt: Label 'New record insert group';
+        OperationTarget: Text[80];
+        RecordIdNotUsedForInsertErr: Label 'Target record identity is not selected for Insert correction lines. Use Insert Group No. to group fields for each new record; execution stores the created identity after a successful insert.';
+        RenameOperationTargetTxt: Label 'Existing record primary-key rename';
         RequestRequiredBeforeMatrixErr: Label 'Save the correction request before previewing the data matrix.';
         TableRequiredBeforeRecordErr: Label 'Select a table before selecting a record.';
+        UpdateOperationTargetTxt: Label 'Existing record field update';
 }

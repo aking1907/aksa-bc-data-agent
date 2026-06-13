@@ -23,6 +23,7 @@ page 88119 "BCDA Preview Data Matrix"
                 field("Correction Type"; Rec."Correction Type") { ApplicationArea = All; Editable = false; Style = Strong; StyleExpr = IsInitialRow; ToolTip = 'Specifies the staged correction operation type.'; }
                 field("Table ID"; Rec."Table ID") { ApplicationArea = All; Editable = false; Style = Strong; StyleExpr = IsInitialRow; ToolTip = 'Specifies the target table ID.'; Visible = false; }
                 field("Record ID"; Format(Rec."Record ID")) { ApplicationArea = All; Editable = false; Style = Strong; StyleExpr = IsInitialRow; ToolTip = 'Specifies the target record identity.'; Caption = 'Record ID'; }
+                field("Insert Group No."; Rec."Insert Group No.") { ApplicationArea = All; Editable = false; Style = Strong; StyleExpr = IsInitialRow; ToolTip = 'Specifies the Insert group used to create one new record from staged fields.'; Visible = InsertGroupNoVisible; }
                 field("Field 1 Id"; Rec."Field 1 Id") { ApplicationArea = All; Editable = false; Style = Strong; StyleExpr = IsInitialRow; ToolTip = 'Specifies the target field ID for this preview matrix column.'; Visible = false; }
                 field("Field 1 Value"; Rec."Field 1 Value") { ApplicationArea = All; Editable = Field1Editable; Style = Strong; StyleExpr = IsInitialRow; ToolTip = 'Specifies preview matrix data.'; Visible = Field1Visible; }
                 field("Field 2 Id"; Rec."Field 2 Id") { ApplicationArea = All; Editable = false; Style = Strong; StyleExpr = IsInitialRow; ToolTip = 'Specifies the target field ID for this preview matrix column.'; Visible = false; }
@@ -233,7 +234,7 @@ page 88119 "BCDA Preview Data Matrix"
     begin
         AccessMgt.EnsureSuperUser();
 
-        Rec.SetCurrentKey("Correction Type", "Table ID", "Record ID");
+        Rec.SetCurrentKey("Correction Type", "Table ID", "Record ID", "Insert Group No.");
     end;
 
     trigger OnAfterGetRecord()
@@ -262,6 +263,7 @@ page 88119 "BCDA Preview Data Matrix"
         MaxFieldCount := 0;
         Rec.DeleteAll();
         ResetVisibleColumns();
+        InsertGroupNoVisible := false;
 
         CorrectionLine.SetRange("Request ID", RequestID);
         if not CorrectionLine.FindSet() then
@@ -269,6 +271,9 @@ page 88119 "BCDA Preview Data Matrix"
 
         //build field table mapping
         repeat
+            if CorrectionLine.Type = CorrectionLine.Type::Insert then
+                InsertGroupNoVisible := true;
+
             if CorrectionLine."Field ID" = 0 then
                 continue;
 
@@ -303,14 +308,15 @@ page 88119 "BCDA Preview Data Matrix"
                 if CorrectionLine."Field ID" = 0 then
                     continue;
 
-                if not Rec.Get(Rec.Type::Current, CorrectionLine."Request ID", CorrectionLine.Type, CorrectionLine."Table ID", CorrectionLine."Record ID") then begin
-                    if not Rec.Get(Rec.Type::Initial, CorrectionLine."Request ID", CorrectionLine.Type, CorrectionLine."Table ID", InitialRecordId) then begin
+                if not Rec.Get(Rec.Type::Current, CorrectionLine."Request ID", CorrectionLine.Type, CorrectionLine."Table ID", CorrectionLine."Record ID", CorrectionLine."Insert Group No.") then begin
+                    if not Rec.Get(Rec.Type::Initial, CorrectionLine."Request ID", CorrectionLine.Type, CorrectionLine."Table ID", InitialRecordId, CorrectionLine."Insert Group No.") then begin
                         Rec.Init();
                         Rec.Type := Rec.Type::Initial;
                         Rec."Request ID" := CorrectionLine."Request ID";
                         Rec."Correction Type" := CorrectionLine.Type;
                         Rec."Table ID" := CorrectionLine."Table ID";
                         Rec."Record ID" := InitialRecordId;
+                        Rec."Insert Group No." := CorrectionLine."Insert Group No.";
                         Rec.Insert();
 
                         FieldCounter := 0;
@@ -336,6 +342,7 @@ page 88119 "BCDA Preview Data Matrix"
                     Rec.Type := Rec.Type::Current;
                     Rec."Correction Type" := CorrectionLine.Type;
                     Rec."Record ID" := CorrectionLine."Record ID";
+                    Rec."Insert Group No." := CorrectionLine."Insert Group No.";
 
                     TempRecordRef := Rec;
                     for i := 101011 to 102001 do begin
@@ -354,11 +361,12 @@ page 88119 "BCDA Preview Data Matrix"
                 Rec := TempRecordRef;
                 Rec.Modify();
 
-                if not Rec.Get(Rec.Type::New, CorrectionLine."Request ID", CorrectionLine.Type, CorrectionLine."Table ID", CorrectionLine."Record ID") then begin
-                    Rec.Get(Rec.Type::Initial, CorrectionLine."Request ID", CorrectionLine.Type, CorrectionLine."Table ID", InitialRecordId);
+                if not Rec.Get(Rec.Type::New, CorrectionLine."Request ID", CorrectionLine.Type, CorrectionLine."Table ID", CorrectionLine."Record ID", CorrectionLine."Insert Group No.") then begin
+                    Rec.Get(Rec.Type::Initial, CorrectionLine."Request ID", CorrectionLine.Type, CorrectionLine."Table ID", InitialRecordId, CorrectionLine."Insert Group No.");
                     Rec.Type := Rec.Type::New;
                     Rec."Correction Type" := CorrectionLine.Type;
                     Rec."Record ID" := CorrectionLine."Record ID";
+                    Rec."Insert Group No." := CorrectionLine."Insert Group No.";
                     TempRecordRef := Rec;
                     for i := 101011 to 102001 do begin
                         TempRecordRef.Field(i).Value('');
@@ -820,6 +828,7 @@ page 88119 "BCDA Preview Data Matrix"
 
     var
         IsInitialRow: Boolean;
+        InsertGroupNoVisible: Boolean;
         Field1Visible: Boolean;
         Field2Visible: Boolean;
         Field3Visible: Boolean;

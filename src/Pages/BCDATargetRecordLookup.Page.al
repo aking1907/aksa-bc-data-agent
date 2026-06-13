@@ -22,12 +22,14 @@ page 88143 "BCDA Target Record Lookup"
                 field("Display Key"; Rec."Display Key")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the formatted primary key values for the target record.';
+                    Caption = 'Primary Key Values';
+                    ToolTip = 'Shows the primary-key field captions and values for the target record. A simple key shows one value; a composite key shows each key part.';
                 }
                 field("Record ID"; Rec."Record ID")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the canonical Business Central record identity.';
+                    Caption = 'Target Record Identity';
+                    ToolTip = 'Specifies the canonical Business Central target record identity populated after choosing the primary-key values.';
                 }
             }
         }
