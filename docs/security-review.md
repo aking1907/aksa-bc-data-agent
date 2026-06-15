@@ -2,7 +2,7 @@
 
 ## Review Status
 
-Draft. Phase 8 filtered audit metadata export, governed retention cleanup, Phase 7 request-level rollback staging, Phase 6 grouped update execution, supported primary-key rename execution, supported record-level delete execution, supported grouped insert execution, and `Allow Data Policies` are implemented locally. Local code development is under standing authorization, while rename/delete/insert rollback, other non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, external APIs, and production enablement remain runtime-gated by controls, sandbox validation, and readiness evidence.
+Draft. Phase 8 correction request Excel export/import, filtered audit metadata export, governed retention cleanup, Phase 7 request-level rollback staging, Phase 6 grouped update execution, supported primary-key rename execution, supported record-level delete execution, supported grouped insert execution, and `Allow Data Policies` are implemented locally. Local code development is under standing authorization, while rename/delete/insert rollback, other non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, external APIs, and production enablement remain runtime-gated by controls, sandbox validation, and readiness evidence.
 
 ## Security Objectives
 
@@ -45,6 +45,8 @@ Draft. Phase 8 filtered audit metadata export, governed retention cleanup, Phase
 | THR-015 | A setup switch that disables data policy enforcement turns BCDA into a broad table editor | `Allow Data Policies` is enabled by default. When disabled, execution still blocks BCDA app-owned tables, unsupported fields, and any operation lacking `SUPER`, required request metadata, audit, rollback snapshot controls, and sandbox validation. |
 | THR-016 | BCDA app-owned operation tables are selected as correction targets | Foundation metadata validation, table lookup, and policy evaluation permanently block BCDA app-owned tables in the object range 88100..88149 from correction and policy targets. |
 | THR-017 | Standing implementation authorization is mistaken for approval to enable unsafe runtime behavior | Local code development is separated from runtime/production enablement; runtime behavior still requires user review, policies, `SUPER`, audit, redaction, rollback controls, tests, and sandbox validation evidence. |
+| THR-018 | Correction request workbook export leaks staged current or proposed values | Request Excel export requires existing `SUPER` access, setup `Export Enabled`, user initiation from a saved request, and request-export audit evidence. Export files must follow approved support handling. |
+| THR-019 | Correction request workbook import replaces staged lines with unintended workbook content | Request Excel import requires existing `SUPER` access, saved `Open` request status, explicit delete-and-recreate confirmation, workbook request ID validation when present, temporary-line validation before replacement, and request-import audit evidence. |
 
 ## Access Model
 
@@ -71,6 +73,8 @@ Workflow responsibilities below are audit and process responsibilities, not cust
 - Confirm generated rollback request preview and execution behavior.
 - Confirm retention cleanup protects active requests.
 - Confirm filtered audit export omits target values, target record identity text, and rollback snapshot payloads.
+- Confirm correction request Excel export is `SUPER`-only, setup-enabled, audited, and handled as sensitive support output because it includes staged request-line values and target identities.
+- Confirm correction request Excel import is `SUPER`-only, `Open`-status-only, confirmation-gated, audited, and validates workbooks into temporary lines before replacing stored request lines.
 - Confirm unsupported table/field block list.
 - Confirm target record `RecordId` selection and matrix entry do not expose sensitive target values before preview authorization.
 - Confirm `Allow Data Policies` behavior and which table and field classes remain permanently blocked.

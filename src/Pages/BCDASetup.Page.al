@@ -79,7 +79,7 @@ page 88110 "BCDA Setup"
                 }
                 field("Export Enabled"; Rec."Export Enabled")
                 {
-                    ToolTip = 'Specifies whether filtered audit metadata export is enabled.';
+                    ToolTip = 'Specifies whether BCDA export actions are enabled, including filtered audit metadata export and correction request Excel export.';
                 }
             }
             group(System)

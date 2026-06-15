@@ -340,16 +340,27 @@ codeunit 88125 "BCDA Correction Orchestrator"
     local procedure ValidateExecutionGroups(CorrectionRequest: Record "BCDA Correction Request"; RequestApproved: Boolean)
     var
         TempExecutionGroup: Record "BCDA Correction Line" temporary;
-        TempGroupLine: Record "BCDA Correction Line" temporary;
     begin
         BuildExecutionGroups(CorrectionRequest, TempExecutionGroup);
 
+        ValidateExecutionGroupsByType(RequestApproved, TempExecutionGroup, "BCDA Correction Type"::Update);
+        ValidateExecutionGroupsByType(RequestApproved, TempExecutionGroup, "BCDA Correction Type"::Rename);
+        ValidateExecutionGroupsByType(RequestApproved, TempExecutionGroup, "BCDA Correction Type"::Delete);
+        ValidateExecutionGroupsByType(RequestApproved, TempExecutionGroup, "BCDA Correction Type"::Insert);
+    end;
+
+    local procedure ValidateExecutionGroupsByType(RequestApproved: Boolean; var TempExecutionGroup: Record "BCDA Correction Line" temporary; CurrentType: Enum "BCDA Correction Type")
+    var
+        TempGroupLine: Record "BCDA Correction Line" temporary;
+    begin
         TempExecutionGroup.Reset();
+        TempExecutionGroup.SetRange(Type, CurrentType);
         if TempExecutionGroup.FindSet() then
             repeat
                 LoadExecutionGroupLines(TempExecutionGroup, TempGroupLine);
-                ValidateExecutionGroup(RequestApproved, TempGroupLine, TempExecutionGroup.Type);
+                ValidateExecutionGroup(RequestApproved, TempGroupLine, CurrentType);
             until TempExecutionGroup.Next() = 0;
+        TempExecutionGroup.Reset();
     end;
 
     local procedure ValidateExecutionGroup(RequestApproved: Boolean; var TempGroupLine: Record "BCDA Correction Line" temporary; CurrentType: Enum "BCDA Correction Type")
@@ -371,16 +382,27 @@ codeunit 88125 "BCDA Correction Orchestrator"
     local procedure ProcessExecutionGroups(var CorrectionRequest: Record "BCDA Correction Request"; var SuccessCount: Integer)
     var
         TempExecutionGroup: Record "BCDA Correction Line" temporary;
-        TempGroupLine: Record "BCDA Correction Line" temporary;
     begin
         BuildExecutionGroups(CorrectionRequest, TempExecutionGroup);
 
+        ProcessExecutionGroupsByType(CorrectionRequest, TempExecutionGroup, "BCDA Correction Type"::Update, SuccessCount);
+        ProcessExecutionGroupsByType(CorrectionRequest, TempExecutionGroup, "BCDA Correction Type"::Rename, SuccessCount);
+        ProcessExecutionGroupsByType(CorrectionRequest, TempExecutionGroup, "BCDA Correction Type"::Delete, SuccessCount);
+        ProcessExecutionGroupsByType(CorrectionRequest, TempExecutionGroup, "BCDA Correction Type"::Insert, SuccessCount);
+    end;
+
+    local procedure ProcessExecutionGroupsByType(var CorrectionRequest: Record "BCDA Correction Request"; var TempExecutionGroup: Record "BCDA Correction Line" temporary; CurrentType: Enum "BCDA Correction Type"; var SuccessCount: Integer)
+    var
+        TempGroupLine: Record "BCDA Correction Line" temporary;
+    begin
         TempExecutionGroup.Reset();
+        TempExecutionGroup.SetRange(Type, CurrentType);
         if TempExecutionGroup.FindSet() then
             repeat
                 LoadExecutionGroupLines(TempExecutionGroup, TempGroupLine);
-                ProcessExecutionGroup(CorrectionRequest, TempGroupLine, TempExecutionGroup.Type, SuccessCount);
+                ProcessExecutionGroup(CorrectionRequest, TempGroupLine, CurrentType, SuccessCount);
             until TempExecutionGroup.Next() = 0;
+        TempExecutionGroup.Reset();
     end;
 
     local procedure BuildExecutionGroups(CorrectionRequest: Record "BCDA Correction Request"; var TempExecutionGroup: Record "BCDA Correction Line" temporary)

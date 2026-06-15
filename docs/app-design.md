@@ -91,6 +91,8 @@ Primary actions:
 - Submit For Approval or Approve only when approval is required; require a different approver only when setup says separate approval is required.
 - Execute.
 - Rollback from a completed correction request.
+- Export to Excel from a correction request, enabled only through setup export controls.
+- Import from Excel from a correction request, enabled only while the request is `Open` and confirmation-gated because it replaces all existing request lines.
 - Export Filtered Metadata.
 - Run Retention Cleanup.
 

@@ -41,4 +41,12 @@ enum 88146 "BCDA Audit Operation"
     {
         Caption = 'Audit Export';
     }
+    value(90; "Request Export")
+    {
+        Caption = 'Request Export';
+    }
+    value(100; "Request Import")
+    {
+        Caption = 'Request Import';
+    }
 }

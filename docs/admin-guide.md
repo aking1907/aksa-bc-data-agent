@@ -2,7 +2,7 @@
 
 ## Status
 
-Phase 9 local hardening is complete for the current Phase 8 build. Local implementation has standing authorization under the SDD, while runtime and production use remain governed by controls and validation evidence. Setup, policy, request, audit, rollback operation, retention-log, Role Center/profile navigation, SUPER-gated shell pages, limited RecordId target selection, selected-field current value refresh, request staged-line preview, policy preview, read-only preview matrix behavior, `Allow Data Policies`, supported grouped update execution, supported primary-key rename execution, supported record-level delete execution, supported grouped insert execution, request-level rollback staging, filtered audit metadata export, governed retention cleanup, and local hardening evidence are available for sandbox validation. Validate-trigger dry-run, non-update rollback, unfiltered export, unredacted export, snapshot payload export, and external APIs are not enabled at runtime.
+Phase 9 local hardening is complete for the current Phase 8 build. Local implementation has standing authorization under the SDD, while runtime and production use remain governed by controls and validation evidence. Setup, policy, request, audit, rollback operation, retention-log, Role Center/profile navigation, SUPER-gated shell pages, limited RecordId target selection, selected-field current value refresh, request staged-line preview, policy preview, read-only preview matrix behavior, `Allow Data Policies`, supported grouped update execution, supported primary-key rename execution, supported record-level delete execution, supported grouped insert execution, request-level rollback staging, correction request Excel export/import, filtered audit metadata export, governed retention cleanup, and local hardening evidence are available for sandbox validation. Validate-trigger dry-run, non-update rollback, unfiltered export, unredacted export, snapshot payload export, and external APIs are not enabled at runtime.
 
 Administrators can support runtime readiness by deploying the current package to sandbox and validating the required access, RecordId, field type, rollback snapshot, grouped update write, primary-key rename, record delete, grouped insert, rollback request creation, generated rollback request preview/execution, rollback-unavailable, audit redaction, filtered export, cleanup, active-record protection, and upgrade-readability behavior without using production data.
 
@@ -42,10 +42,11 @@ Administrators can support runtime readiness by deploying the current package to
 18. Use `Preview Request` and review line statuses/sanitized messages.
 19. Run `Execute` only on artificial sandbox data for supported grouped `Update`, primary-key `Rename`, record-level `Delete`, and grouped `Insert` lines. Confirm rename stores the renamed `RecordId`, insert requires staged primary-key fields, and rename/delete/insert rollback are unavailable.
 20. From a completed correction request, run `Rollback` only when retained snapshots exist for every executed supported line, then confirm a new rollback correction request, rollback operation record, and rollback audit entries are created. Preview and execute the generated request only through the normal governed workflow.
-21. Enable `Export Enabled` only for artificial sandbox data, filter audit entries by request, company, occurred-at date/time, operation, or result, and export filtered metadata.
-22. Run retention cleanup only against artificial sandbox BCDA operation records and confirm active requests and retained rollback dependencies are protected.
-23. Review foundation audit entries, rollback operations, and retention logs.
-24. Do not run production correction, rollback, export, or cleanup tests until sandbox validation is complete and production readiness is approved.
+21. Enable `Export Enabled` only for artificial sandbox data, then test correction request Excel export from a saved request and filtered audit metadata export from filtered audit entries.
+22. Test `Import from Excel` only on an artificial saved request in `Open` status. Confirm the delete-and-recreate warning is shown, the workbook validates before replacement, request-import audit evidence is written, and target records do not change.
+23. Run retention cleanup only against artificial sandbox BCDA operation records and confirm active requests and retained rollback dependencies are protected.
+24. Review foundation audit entries, rollback operations, and retention logs.
+25. Do not run production correction, rollback, export/import, or cleanup tests until sandbox validation is complete and production readiness is approved.
 
 ## Policy Guidance
 

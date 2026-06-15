@@ -1,6 +1,6 @@
 # Data Model
 
-This document describes app-owned data. Phase 2-8 foundation storage, non-mutating preview behavior, grouped update execution, supported primary-key rename execution, supported record-level delete execution, supported grouped insert execution, supported update rollback, filtered audit metadata export, and governed retention cleanup now exist in AL, while non-update rollback, conflict override, unredacted export, snapshot payload export, and external APIs remain gated.
+This document describes app-owned data. Phase 2-8 foundation storage, non-mutating preview behavior, grouped update execution, supported primary-key rename execution, supported record-level delete execution, supported grouped insert execution, supported update rollback, correction request Excel export/import, filtered audit metadata export, and governed retention cleanup now exist in AL, while non-update rollback, conflict override, unredacted export, snapshot payload export, and external APIs remain gated.
 
 ## App-Owned Entities
 
@@ -40,6 +40,7 @@ This document describes app-owned data. Phase 2-8 foundation storage, non-mutati
 - Rollback snapshots are optional by setup/policy and retained according to snapshot retention.
 - Technical logs are retained according to technical log retention.
 - Filtered audit export uses app-owned audit metadata only. It omits target record identity text and rollback snapshot payloads.
+- Request workbook import replaces app-owned correction request lines only after workbook validation succeeds. It does not write target Business Central records.
 - Retention cleanup purges expired rollback snapshot payloads and deletes expired eligible BCDA-owned audit, rollback operation, and retention log records while preserving active requests and retained rollback dependencies.
 - Data policy enforcement bypass, if accepted later, must remain setup-controlled and must not allow mutation of BCDA app-owned, system, protected, unsupported, unaudited, rollback-unready, or non-`SUPER` paths.
 - Retention should use Business Central native retention policy support for BCDA-owned tables when feasible.

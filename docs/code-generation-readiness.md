@@ -14,6 +14,8 @@ Implemented local runtime slices include:
 - supported record-level `Delete` execution with rollback-unavailable status,
 - supported grouped `Insert` execution with one new record per request/table/insert-group and rollback-unavailable status,
 - request-level rollback staging from completed supported `Update` requests,
+- setup-enabled correction request Excel export from staged request-line data,
+- Open-status correction request Excel import that validates workbook data into temporary request lines before replacing stored request lines,
 - filtered audit metadata export,
 - governed retention cleanup for expired BCDA-owned operation records.
 
@@ -57,7 +59,7 @@ Do not implement or enable:
 - Silent target data edits.
 - Target mutation without a correction request.
 - Audit deletion outside governed retention.
-- Export of target values, target record identity text, or rollback snapshot payloads by default.
+- Export of target values, target record identity text, or rollback snapshot payloads by default. Request workbook export must remain user-initiated, `SUPER`-gated, setup-enabled, and audited. Request workbook import must remain user-initiated, `SUPER`-gated, `Open`-status-only, confirmation-gated, audited, and limited to app-owned correction request lines.
 - Production enablement without sandbox validation evidence.
 
 ## Runtime-Gated Work

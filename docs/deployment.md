@@ -6,7 +6,7 @@ Initial target: Business Central 2026 release wave 1 / version 28 sandbox matchi
 
 Production deployment is blocked until sandbox release validation passes and runtime readiness evidence is updated.
 
-Phase 8 filtered audit metadata export and governed retention cleanup are implemented locally. Supported grouped update, primary-key rename, record-level delete, and grouped insert execution are implemented locally. Sandbox validation was skipped by request for implementation and remains required before production use.
+Phase 8 correction request Excel export/import, filtered audit metadata export, and governed retention cleanup are implemented locally. Supported grouped update, primary-key rename, record-level delete, and grouped insert execution are implemented locally. Sandbox validation was skipped by request for implementation and remains required before production use.
 
 ## Pre-Deployment Checklist
 
@@ -21,7 +21,7 @@ Phase 8 filtered audit metadata export and governed retention cleanup are implem
 - Confirm audit metadata, rollback snapshot, and technical log retention.
 - Confirm `Allow Data Policies` is enabled by default, or explicitly accepted before policy records are bypassed.
 - Confirm Business Central retention policy integration approach for BCDA-owned tables.
-- Confirm filtered audit export handling and storage rules.
+- Confirm correction request workbook export/import plus filtered audit export handling and storage rules.
 - Confirm retention cleanup settings and support owner acceptance.
 - Confirm RecordId/RecordRef target selection behavior before enabling the planned target record matrix.
 - Confirm backup or environment restore strategy outside the extension.
@@ -40,7 +40,7 @@ Local implementation is standing-authorized under the SDD. Package deployment is
 7. Configure setup, rollback logging, retention, and data policies.
 8. Create a foundation request and verify audit evidence for foundation actions.
 9. Use RecordId target selection for sandbox request-line staging, proposed-value validation, preview, supported grouped update execution, supported primary-key rename execution, supported record-level delete execution, supported grouped insert execution, and supported update rollback.
-10. For Phase 8 sandbox readiness, use only artificial BCDA operation records to validate audit redaction, export filters, cleanup behavior, active-record protection, and upgrade readability. Do not generate production exports or delete production operation records until release validation is complete.
+10. For Phase 8 sandbox readiness, use only artificial BCDA operation records and artificial correction requests to validate request workbook export/import, audit redaction, export filters, cleanup behavior, active-record protection, and upgrade readability. Do not generate production exports, import production workbooks, or delete production operation records until release validation is complete.
 
 ## Configuration Steps
 
@@ -51,7 +51,7 @@ Local implementation is standing-authorized under the SDD. Package deployment is
 - Configure approval policy among `SUPER` users.
 - Configure whether approval is required and whether required approval needs a different `SUPER` user or allows self-approval for one-person companies.
 - Configure redaction and export policy.
-- Keep audit export disabled until the company is ready to test filtered, redacted export with artificial sandbox data.
+- Keep export disabled until the company is ready to test request workbook export and filtered, redacted audit export with artificial sandbox data. Test request workbook import only on saved artificial requests in `Open` status.
 - Configure rollback snapshot logging mode.
 - Configure audit metadata, rollback snapshot, and technical log retention.
 - Configure or verify Business Central retention policies for BCDA-owned operation tables using the foundation retention registration action.

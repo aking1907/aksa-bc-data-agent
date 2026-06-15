@@ -4,10 +4,10 @@
 
 ## Executive Summary
 
-- Current token-priced cost is about USD 269.30, calculated from 326,289,850 measured tokens across 2,534 telemetry events.
+- Current token-priced cost is about USD 288.73, calculated from 346,357,794 measured tokens across 2,679 telemetry events.
 - Cost health is Review. Spend needs review before repeating similar premium-model work.
-- The main cost driver is input/context: input/context cost is USD 224.16, while model output cost is USD 45.15.
-- Cached context is helping materially: it avoided about USD 1399.77 compared with billing cached input at the full input rate.
+- The main cost driver is input/context: input/context cost is USD 240.49, while model output cost is USD 48.24.
+- Cached context is helping materially: it avoided about USD 1483.26 compared with billing cached input at the full input rate.
 - Actual billed cost remains open until an invoice or billing export is available.
 
 ## At A Glance
@@ -16,40 +16,40 @@
 |---|---:|
 | Project | BC Data Agent |
 | Report period | All logged project checkpoints |
-| Last checkpoint | 2026-06-13T05:01:31.619Z |
+| Last checkpoint | 2026-06-15T19:40:10.697Z |
 | Precision | token-telemetry-estimate |
-| Token-priced cost | USD 269.301671 |
+| Token-priced cost | USD 288.730490 |
 | Actual billed cost | n/a |
 | Pricing source | OpenAI API pricing 2026-05-07 from cost/model-pricing.md; Standard Under 270K |
-| Total tokens | 326,289,850 |
+| Total tokens | 346,357,794 |
 | Sessions/request checkpoints | 9 |
-| Telemetry events | 2,534 |
+| Telemetry events | 2,679 |
 | Cost health | Review |
 
 ## Measurement Dashboard
 
 | Measurement | Value | Why it matters |
 |---|---:|---|
-| Input tokens | 324,785,005 | Main context volume sent to models |
-| Cached input tokens | 311,059,712 | Reused context billed at cached rate |
-| Uncached input tokens | 13,725,293 | Fresh context billed at full input rate |
-| Output tokens | 1,504,845 | Generated response volume |
-| Reasoning output tokens | 483,673 | Reasoning effort visibility |
-| Cache ratio | 95.77% | Higher is usually better for repeated project context |
+| Input tokens | 344,749,714 | Main context volume sent to models |
+| Cached input tokens | 329,613,440 | Reused context billed at cached rate |
+| Uncached input tokens | 15,136,274 | Fresh context billed at full input rate |
+| Output tokens | 1,608,080 | Generated response volume |
+| Reasoning output tokens | 514,442 | Reasoning effort visibility |
+| Cache ratio | 95.61% | Higher is usually better for repeated project context |
 | Output ratio | 0.46% | Shows whether cost is driven by context or generation |
-| Reasoning share of output | 32.14% | Helps spot heavy reasoning work |
-| Average cost per session | USD 29.922408 | Request-level budget signal |
-| Average cost per telemetry event | USD 0.106275 | Checkpoint-level budget signal |
-| Tokens per estimated USD | 1,211,615 | Efficiency view across current pricing |
+| Reasoning share of output | 31.99% | Helps spot heavy reasoning work |
+| Average cost per session | USD 32.081166 | Request-level budget signal |
+| Average cost per telemetry event | USD 0.107775 | Checkpoint-level budget signal |
+| Tokens per estimated USD | 1,199,589 | Efficiency view across current pricing |
 
 ## What Drove The Cost
 
 | Component | Token Volume | Cost | Share | What It Tells Us |
 |---|---:|---:|---:|---|
-| Uncached input context | 13,725,293 | USD 68.626465 | 25.48% | Fresh context billed at the full input rate. |
-| Cached input context | 311,059,712 | USD 155.529856 | 57.75% | Reused project context billed at the cached-input rate. |
-| Model output | 1,504,845 | USD 45.145350 | 16.76% | Generated answer volume, including reasoning output where counted by telemetry. |
-| Estimated cache savings | 311,059,712 | USD 1399.768704 | n/a | Approximate avoided cost from cached-input pricing. |
+| Uncached input context | 15,136,274 | USD 75.681370 | 26.21% | Fresh context billed at the full input rate. |
+| Cached input context | 329,613,440 | USD 164.806720 | 57.08% | Reused project context billed at the cached-input rate. |
+| Model output | 1,608,080 | USD 48.242400 | 16.71% | Generated answer volume, including reasoning output where counted by telemetry. |
+| Estimated cache savings | 329,613,440 | USD 1483.260480 | n/a | Approximate avoided cost from cached-input pricing. |
 
 ## Cost Health Signals
 
@@ -64,8 +64,8 @@
 | Session | Phase | Model | Events | Total Tokens | Token-Priced Cost USD |
 |---|---|---|---:|---:|---:|
 | BC Data Agent Codex session 2026-05-27 | Implementation | gpt-5.5 | 940 | 130,585,290 | 99.417146 |
+| BC Data Agent Codex session 2026-06-12 | Implementation | gpt-5.5 | 429 | 54,373,672 | 50.452548 |
 | BC Data Agent Codex session 2026-05-07 | Implementation | gpt-5.5 | 366 | 45,053,783 | 38.229021 |
-| BC Data Agent Codex session 2026-06-12 | Implementation | gpt-5.5 | 284 | 34,305,728 | 31.023729 |
 | BC Data Agent Codex session 2026-05-08 | Implementation | gpt-5.5 | 231 | 28,135,217 | 24.591581 |
 | BC Data Agent Codex session 2026-05-20 | Implementation | gpt-5.5 | 197 | 21,679,295 | 21.789193 |
 | BC Data Agent Codex session 2026-06-10 | Implementation | gpt-5.5 | 189 | 26,133,826 | 19.496767 |
@@ -77,18 +77,18 @@
 
 | Phase | Sessions | Total Tokens | Token-Priced Cost USD |
 |---|---:|---:|---:|
-| Implementation | 9 | 326,289,850 | 269.301671 |
+| Implementation | 9 | 346,357,794 | 288.730490 |
 
 ## Cost By Model
 
 | Model | Sessions | Total Tokens | Token-Priced Cost USD |
 |---|---:|---:|---:|
-| gpt-5.5 | 9 | 326,289,850 | 269.301671 |
+| gpt-5.5 | 9 | 346,357,794 | 288.730490 |
 
 ## Optimization Notes
 
 - This is above the watch threshold in `cost/ai-cost-policy.md`; repeat similar premium-model loops only when the risk justifies it.
-- The cache ratio is 95.77%; keep prompts tied to existing files and avoid resending broad context unnecessarily.
+- The cache ratio is 95.61%; keep prompts tied to existing files and avoid resending broad context unnecessarily.
 - Use lower-cost models for mechanical document cleanup and reserve premium models for security, rollback, posted-data, and readiness decisions.
 - Reconcile with billing export later if the project needs finance-grade actual billed cost.
 

@@ -54,6 +54,9 @@
 | TST-036 | Supported `Delete` execution deletes the selected target record only after request metadata, policy, approval when required, preview when required, audit, and transaction controls pass, and shows rollback unavailable | AC-006, AC-008, AC-021, AC-033 |
 | TST-037 | Supported `Insert` execution creates one target record per request/table/`Insert Group No.` only after required primary-key fields, request metadata, policy, approval when required, preview when required, audit, and transaction controls pass; distinct insert groups for the same table create distinct records, duplicate fields are blocked only within the same insert group, created `RecordId` values are stored, and rollback shows unavailable | AC-006, AC-008, AC-021, AC-034 |
 | TST-038 | Supported `Rename` execution renames the selected target record only after primary-key field staging, request metadata, policy, approval when required, preview when required, audit, and transaction controls pass, stores the renamed `RecordId`, shows rollback unavailable, and preserves unstaged composite-key fields | AC-006, AC-008, AC-021, AC-035 |
+| TST-039 | Mixed supported execution processes groups in the fixed sequence `Update`, `Rename`, `Delete`, `Insert`; when update and rename groups share the same original target identity, update values are applied before the rename changes the identity | AC-006, AC-035 |
+| TST-040 | Correction request Excel export is blocked when setup export is disabled; when enabled for a saved request, it creates one worksheet per target table caption with request/table identity on row 1, a blank row 2, matrix headers on row 3, staged current/new values by modification type and target identity or insert group, and request-export audit evidence without target mutation | AC-020, AC-036 |
+| TST-041 | Correction request Excel import is enabled only when the request status is `Open`; after user confirmation, a valid multi-worksheet request workbook replaces existing correction lines only after temporary validation succeeds, writes request-import audit evidence, preserves target data, and blocks mismatched request IDs, missing target identities, invalid insert groups, invalid field headers, and unsupported proposed values | AC-020, AC-037 |
 
 ## Local Build Validation
 
@@ -75,8 +78,10 @@ Ongoing local validation should include:
 - Validate selected-line current value preview in sandbox for representative scalar field types and confirm sensitive values are not exposed outside `SUPER`-gated pages.
 - Validate proposed-value staging for Text, Code, Decimal, Date, DateTime, Boolean, GUID, Option, and unsupported types, confirming errors do not echo the proposed value.
 - Validate Preview Data Matrix opens only for `SUPER` users and displays stored correction-line values for one request without changing target data.
+- Validate correction request Excel export stays `SUPER`-only and setup-enabled, creates one table-caption worksheet per target table, starts the staged matrix on row 3, writes request-export audit evidence, and does not read or mutate target records beyond stored request-line data.
+- Validate correction request Excel import stays `SUPER`-only and `Open`-status-only, shows the delete-and-recreate confirmation, validates all workbook worksheets into temporary correction lines before replacing stored request lines, writes request-import audit evidence, and does not mutate target records.
 - Validate `Preview Request` updates line statuses/sanitized messages, confirms delete target records exist, resets line status to `Open` after line edits, and blocks preview-required submit/approve until every line is previewed.
-- Validate correction line and batch line type staging for Update, Rename, Delete, and Insert, including the operation target display, Rename's primary-key-only field rule and renamed RecordId capture, Insert's empty-while-staged target identity rule, Insert Group No. grouping across one or more inserted records, created RecordId capture after successful execution, and non-insert RecordId validation.
+- Validate correction line and batch line type staging for Update, Rename, Delete, and Insert, including the operation target display, execution group ordering of Update before Rename before Delete before Insert, Rename's primary-key-only field rule and renamed RecordId capture, Insert's empty-while-staged target identity rule, Insert Group No. grouping across one or more inserted records, created RecordId capture after successful execution, and non-insert RecordId validation.
 - Validate `Allow Data Policies` in sandbox, including permanent blocks for BCDA app-owned, system-managed, unsupported, unaudited, and non-`SUPER` mutation paths.
 - Deploy only to sandbox until release gates pass; local code development can continue while sandbox validation evidence is being collected.
 
@@ -95,7 +100,7 @@ The ASAP execution-readiness track is defined in `docs/execution-readiness-kicko
 - Normal, hidden, posted, and protected table write results with sanitized errors.
 - Audit, rollback snapshot, and all-or-nothing transaction expectations for execution.
 - Standard-update behavior when approval and ticket/reference evidence are not required by setup or policy.
-- supported rename execution behavior for primary-key field staging, supported insert execution behavior for one or more request/table/insert groups, and `Allow Data Policies` behavior when policy records are bypassed.
+- supported rename execution behavior for primary-key field staging, supported insert execution behavior for one or more request/table/insert groups, mixed Update/Rename/Delete/Insert execution ordering, and `Allow Data Policies` behavior when policy records are bypassed.
 
 ### Phase 6 Final Execution Validation Scenarios
 
@@ -115,6 +120,7 @@ These scenarios are the final Phase 6 validation set after `ExecuteRequest` is i
 | P6-TST-010 | Allowed `Delete` of one artificial normal-table record succeeds as one execution group, writes audit evidence, leaves rollback snapshots empty, and marks delete rollback unavailable | AC-006, AC-008, AC-021, AC-033 / TST-036 | Sandbox delete execution validation |
 | P6-TST-011 | Allowed `Insert` of one or more artificial normal-table records succeeds as distinct request/table/insert groups after all primary-key fields are staged for each group, writes audit evidence with each created record identity, leaves rollback snapshots empty, and marks insert rollback unavailable | AC-006, AC-008, AC-021, AC-034 / TST-037 | Sandbox insert execution validation |
 | P6-TST-012 | Allowed `Rename` of one artificial normal-table record succeeds as one execution group after primary-key fields are staged, writes audit evidence with the renamed record identity, leaves rollback snapshots empty, and marks rename rollback unavailable | AC-006, AC-008, AC-021, AC-035 / TST-038 | Sandbox rename execution validation |
+| P6-TST-013 | Mixed request with supported update and rename groups for the same original artificial target record applies update fields before rename fields, then processes any delete groups and insert groups in that request order | AC-006, AC-035 / TST-039 | Sandbox mixed-order execution validation |
 
 ## Rollback Readiness Validation
 

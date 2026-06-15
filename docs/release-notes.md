@@ -26,6 +26,10 @@ Status: Phase 9 local hardening complete for the current Phase 8 build; local im
 - Rollback readiness kickoff document updated for the implemented Phase 7 local scope and sandbox validation queue.
 - Phase 8 filtered audit metadata export through `BCDA Audit Export Mgt.` and `BCDA Audit Entries`.
 - `Audit Export` audit operation for successful, blocked, and empty export attempts.
+- Correction request Excel export through `Export to Excel` on the request card, with one worksheet per target table and preview-matrix-style staged value rows.
+- `Request Export` audit operation for correction request workbook export attempts.
+- Correction request Excel import through `Import from Excel` on the request card, enabled only for `Open` requests with delete-and-recreate confirmation, temporary workbook validation, and one worksheet per target table.
+- `Request Import` audit operation for correction request workbook import attempts.
 - Phase 8 governed retention cleanup through `BCDA Retention Manager` and the `BCDA Setup` cleanup action.
 - Audit, retention, and export readiness kickoff document plus operations/deployment handling for Phase 8 sandbox validation.
 - Phase 9 local hardening evidence for compile, analyzers, configuration, object range, no-permission-set source scan, and documentation consistency.
@@ -75,10 +79,10 @@ Status: Phase 9 local hardening complete for the current Phase 8 build; local im
 - BCDA app-owned tables are now blocked from table lookup, correction line targets, data policy targets, and policy evaluation.
 - Approval actions now enforce the submit-before-approve sequence, and the request card enables Execute only for supported executable request states.
 - Correction lines now calculate `Current Value Preview` from the selected record and field; Phase 6 grouped update execution refreshes the displayed current value after success.
-- Execution groups correction lines by correction type, table, and canonical target identity when applicable; supported primary-key rename execution is enabled with rollback unavailable, supported record-level delete execution is enabled with rollback unavailable, and supported grouped insert execution uses request/table/Insert Group No. as the created-record grouping identity.
+- Execution groups correction lines by correction type, table, and canonical target identity when applicable, then processes supported groups in `Update`, `Rename`, `Delete`, `Insert` order; supported primary-key rename execution is enabled with rollback unavailable, supported record-level delete execution is enabled with rollback unavailable, and supported grouped insert execution uses request/table/Insert Group No. as the created-record grouping identity.
 - Setup-controlled data policy enforcement bypass is now implemented as `Allow Data Policies`.
 - Execution and rollback target writes no longer run inside AL `[TryFunction]` wrappers; validation remains guarded before the write.
-- `Export Enabled` now controls filtered audit metadata export instead of acting only as a future flag.
+- `Export Enabled` now controls BCDA export actions, including filtered audit metadata export and correction request Excel export, instead of acting only as a future flag.
 - Hardening readiness now records Phase 9 local completion while keeping production release blocked until sandbox validation.
 
 ### Current Boundaries
@@ -90,6 +94,8 @@ Status: Phase 9 local hardening complete for the current Phase 8 build; local im
 - Supported grouped `Insert` correction behavior exists and compiles with rollback unavailable and one new record per request/table/Insert Group No.
 - Supported rollback staging for completed `Update` correction requests exists and compiles.
 - Filtered audit metadata export exists and compiles.
+- Correction request Excel export exists and compiles.
+- Correction request Excel import exists and compiles.
 - Governed retention cleanup exists and compiles.
 - Phase 9 local hardening passed build, analyzer, config, object-range, access-model, and docs consistency checks.
 - Rename/delete/insert rollback, broader non-update rollback, conflict override, and rollback without retained snapshots remain runtime-gated.
@@ -108,5 +114,6 @@ Status: Phase 9 local hardening complete for the current Phase 8 build; local im
 - Verify foundation RecordId lookup behavior for simple and composite keys in sandbox before production use, and before implementing the richer target record matrix selector.
 - Validate supported update rollback request creation, generated rollback request preview/execution, snapshot-unavailable, policy-blocked, and non-`SUPER` behavior in sandbox.
 - Validate filtered audit export redaction, required filters, setup enablement, and non-`SUPER` blocking in sandbox.
+- Validate correction request Excel import Open-status gating, confirmation, workbook validation, request-line replacement, request-import audit evidence, and target-data non-mutation in sandbox.
 - Validate retention cleanup safety, active request protection, retained rollback dependency protection, and upgrade readability in sandbox.
 - Complete sandbox release validation before production use.

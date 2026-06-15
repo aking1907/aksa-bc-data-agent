@@ -2,7 +2,7 @@
 
 ## Current Support Boundary
 
-The project currently has Phase 2-8 AL objects, including grouped update execution, supported primary-key rename execution, supported record-level delete execution, supported grouped insert execution, supported update rollback, filtered audit metadata export, and governed retention cleanup. Phase 8 sandbox validation was skipped by request for implementation and remains required before production use.
+The project currently has Phase 2-8 AL objects, including grouped update execution, supported primary-key rename execution, supported record-level delete execution, supported grouped insert execution, supported update rollback, correction request Excel export/import, filtered audit metadata export, and governed retention cleanup. Phase 8 sandbox validation was skipped by request for implementation and remains required before production use.
 
 ## Setup Checks
 
@@ -17,7 +17,8 @@ The project currently has Phase 2-8 AL objects, including grouped update executi
 - Confirm rollback snapshot logging default is configured.
 - Confirm audit metadata, rollback snapshot, and technical log retention are configured.
 - Confirm `Allow Data Policies` is enabled by default, or explicitly accepted before policy records are bypassed.
-- Confirm `Export Enabled` is intentionally configured before using filtered audit metadata export.
+- Confirm `Export Enabled` is intentionally configured before using correction request Excel export or filtered audit metadata export.
+- Confirm correction request Excel import is tested only on artificial saved requests in `Open` status and that users understand it replaces all existing lines after confirmation.
 - Confirm retention cleanup settings are intentionally configured before running cleanup.
 
 ## Health Checks
@@ -33,6 +34,8 @@ The project currently has Phase 2-8 AL objects, including grouped update executi
 - Confirm selecting `Field ID` after target record identity fills `Current Value Preview` for that selected field only.
 - Confirm entering `Proposed New Value` accepts supported scalar field values, blocks disabled, non-normal, primary-key-for-update, non-primary-key-for-rename, system-managed, removed, unsupported-type, length-invalid, and scalar type-incompatible values, and does not echo sensitive proposed values in errors.
 - Confirm `Preview Data Matrix` opens from the correction lines part, shows staged correction-line data for the current request, and remains read-only.
+- Confirm `Export to Excel` on a saved correction request is blocked while export is disabled, then creates a workbook with one table-caption worksheet per target table after `Export Enabled` is turned on.
+- Confirm `Import from Excel` is enabled only for an `Open` saved correction request, shows the delete-and-recreate confirmation, replaces request lines only after workbook validation succeeds, writes request-import audit evidence, and leaves target data unchanged.
 - Confirm `Batch Add Lines` opens same-table batch entry, can select simple-key and composite-key target records for existing-record operations, uses Insert Group No. for new records, and creates normal correction lines without target mutation.
 - Confirm `Preview Request` does not mutate target data; target value reads stay limited to the selected staged lines and update app-owned line status, rollback/retention text, and audit evidence only.
 - Confirm setup defaults show rollback logging mode, retention period, and rollback availability text.
@@ -71,8 +74,10 @@ The project currently has Phase 2-8 AL objects, including grouped update executi
 | Rollback review difference | The generated rollback correction request preview shows a current target value that differs from the original executed value. Review the generated request and decide whether a separate correction is required. |
 | Rollback unavailable | Confirm the source request is completed, all source lines are executed supported `Update` lines, rollback snapshot logging was enabled, snapshots have not expired or been purged, and no rollback request already exists. |
 | Retention cleanup issue | Review retention status, retention policy setup, and sanitized retention log entries. |
-| Export blocked | Confirm `SUPER` access, `Export Enabled`, and a filter on request, company, occurred-at date/time, operation, or result. |
-| Export missing target values | This is expected. Phase 8 export omits target values, target record identity text, and rollback snapshot payloads by design. |
+| Request Excel export blocked | Confirm `SUPER` access, `Export Enabled`, a saved correction request, and at least one correction line. |
+| Request Excel import blocked | Confirm `SUPER` access, saved correction request status `Open`, workbook request ID match when present, valid field headers with field IDs in parentheses, existing-record target identities, and insert rows with blank target identity plus positive insert group numbers. |
+| Audit export blocked | Confirm `SUPER` access, `Export Enabled`, and a filter on request, company, occurred-at date/time, operation, or result. |
+| Filtered audit export missing target values | This is expected. Phase 8 filtered audit export omits target values, target record identity text, and rollback snapshot payloads by design. Request Excel export is the request-line workbook export and should be handled as sensitive support output. |
 | Upgrade issue | Check extension version, upgrade notes, and audit table compatibility. |
 
 ## Phase 8 Safe Export And Cleanup Handling
@@ -80,9 +85,11 @@ The project currently has Phase 2-8 AL objects, including grouped update executi
 Use these rules when validating Phase 8 in sandbox:
 
 - Use only artificial BCDA operation records.
-- Require request, company, date range, operation, or result filters before export.
-- Start export with app-owned audit metadata only.
-- Omit or redact target values, hidden values, posted values, snapshot payloads, and full platform errors.
+- Use only artificial correction requests when validating request Excel export/import.
+- Require request, company, date range, operation, or result filters before filtered audit export.
+- Start filtered audit export with app-owned audit metadata only.
+- Treat request Excel workbooks as sensitive staged-request output because they include request-line values and target identities. Import workbooks only into saved `Open` requests after the delete-and-recreate warning is accepted.
+- Omit or redact target values, hidden values, posted values, snapshot payloads, and full platform errors from filtered audit exports.
 - Do not share export files through chat, tickets, email, or screenshots unless the destination is allowed by the export-handling policy.
 - Store export files only in the approved support location and delete temporary copies after the support window.
 - Review retention cleanup impact before running cleanup.

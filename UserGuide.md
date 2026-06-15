@@ -4,7 +4,7 @@
 
 This guide explains how to use BC Data Agent from a user and administrator point of view.
 
-Current implementation status: Phase 9 local hardening is complete for the current Phase 8 build. The SDD now allows continuous local implementation without per-phase paper confirmation, while production/runtime use still requires controls and validation evidence. The `BC Data Agent` profile and BCDA Role Center provide navigation, and setup, policy, correction request, correction line, audit entry, rollback operation, retention log, and other shell pages are `SUPER`-gated. Limited RecordId target selection, selected-field current value refresh, request-level staged-line preview, policy preview, read-only preview matrix behavior, `Allow Data Policies`, supported grouped `Update` execution, supported primary-key `Rename` execution, supported record-level `Delete` execution, supported grouped `Insert` execution, request-level rollback staging for completed `Update` requests, filtered audit metadata export, governed retention cleanup, and local hardening evidence are open for sandbox validation. Validate-trigger dry-run, non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, and external APIs are not enabled at runtime.
+Current implementation status: Phase 9 local hardening is complete for the current Phase 8 build. The SDD now allows continuous local implementation without per-phase paper confirmation, while production/runtime use still requires controls and validation evidence. The `BC Data Agent` profile and BCDA Role Center provide navigation, and setup, policy, correction request, correction line, audit entry, rollback operation, retention log, and other shell pages are `SUPER`-gated. Limited RecordId target selection, selected-field current value refresh, request-level staged-line preview, policy preview, read-only preview matrix behavior, `Allow Data Policies`, supported grouped `Update` execution, supported primary-key `Rename` execution, supported record-level `Delete` execution, supported grouped `Insert` execution, request-level rollback staging for completed `Update` requests, correction request Excel export/import, filtered audit metadata export, governed retention cleanup, and local hardening evidence are open for sandbox validation. Validate-trigger dry-run, non-update rollback, conflict override, unfiltered export, unredacted export, snapshot payload export, and external APIs are not enabled at runtime.
 
 Sandbox validation was skipped by request for the Phase 8 implementation pass. Phase 9 completed local hardening only; do not use execution, rollback, export, or cleanup in production until sandbox validation and export-handling rules are complete.
 
@@ -32,8 +32,10 @@ The app is not a casual table editor. It is a break-glass workflow for authorize
 9. Rollback snapshot logging is configurable, but if snapshots are disabled, rollback will be unavailable.
 10. Retention settings control how long app-owned operation records remain available.
 11. In the current build, grouped `Update` execution, supported primary-key `Rename` execution, supported record-level `Delete` execution, supported grouped `Insert` execution, and request-level rollback staging for completed `Update` requests are enabled; rename rollback, delete rollback, insert rollback, and broader non-update rollback are audited, unavailable, or blocked.
-12. Audit export is filtered metadata only. It omits target values, target record identity text, and rollback snapshot payloads.
-13. Retention cleanup must be run only after reviewing retention settings because expired eligible BCDA-owned operation records can be purged or deleted.
+12. Filtered audit export is metadata only. It omits target values, target record identity text, and rollback snapshot payloads.
+13. Request Excel export includes staged request-line values and target identities from the saved request. Treat the workbook as sensitive support output and use it only when `Export Enabled` is approved.
+14. Request Excel import is available only while a request is `Open`. It deletes all existing request lines and recreates them from the selected workbook after confirmation, then writes request-import audit evidence. It does not change target Business Central records.
+15. Retention cleanup must be run only after reviewing retention settings because expired eligible BCDA-owned operation records can be purged or deleted.
 
 ## Who Should Use This Guide
 
@@ -53,12 +55,12 @@ The app is not a casual table editor. It is a break-glass workflow for authorize
 | Access control | Yes | Open BCDA pages only as a `SUPER` user. | Non-`SUPER` access must be denied by runtime checks. |
 | Setup | Yes | Configure default policy, preview, rollback, retention, export flag, retention registration, and cleanup. | Run cleanup only after reviewing retention settings. |
 | Data policies | Yes | Maintain table and field policy records and configure whether policy records participate through `Allow Data Policies`. | When `Allow Data Policies` is off, policy records are bypassed, but BCDA app-owned tables, unsupported fields, non-`SUPER` access, metadata, audit, and rollback controls still apply. |
-| Correction requests | Yes | Create request headers, apply setup defaults, preview staged lines, execute supported grouped updates, primary-key renames, record deletes, and grouped inserts, and manage request state. | Preview is non-mutating; non-update rollback is unavailable. |
+| Correction requests | Yes | Create request headers, apply setup defaults, preview staged lines, export request lines to Excel when export is enabled, execute supported grouped updates, primary-key renames, record deletes, and grouped inserts, and manage request state. | Preview and request Excel export are non-mutating; non-update rollback is unavailable. |
 | Correction lines | Partial | Stage a correction type, use lookup suggestions for target table and field, use `Select Existing Record` to select the target record identity when applicable, review the selected field's current value, enter proposed value text for updates, renames, and inserts, and open `Preview Data Matrix` to review staged line data. | Current value preview and the matrix use stored correction-line data only; `Rename` accepts primary-key fields only and stores the renamed identity after execution; `Insert` keeps target record identity empty while staged and stores the created record identity after successful execution; `Delete` uses a target record identity without field or proposed value and is rollback-unavailable. |
 | Batch line builder | Yes | Create same-table correction lines from selected target records, fields, proposed values, and rollback/validation settings. | No target data is changed by batch creation; unsupported runtime operation types still follow the normal execution gates. |
 | Approval | Yes | Submit and approve requests only when approval is required, with configurable separate-approver or self-approval behavior. | Full policy-driven approval workflow is still future hardening. |
 | Execution | Yes, limited | Execute supported grouped `Update` corrections, supported primary-key `Rename` corrections, supported record-level `Delete` corrections, and supported grouped `Insert` corrections after metadata, preview, approval/policy, audit, and rollback-availability checks pass. | The request is applied as one transaction; `Rename`, `Delete`, and `Insert` rollback are unavailable, `Insert` creates one record per request/table/Insert Group No., and unsupported operation types are blocked before mutation. |
-| Audit entries | Yes | Review append-only audit evidence and export filtered metadata when export is enabled and filters are applied. | Export omits target values, target record identity text, and rollback snapshot payloads. |
+| Audit entries | Yes | Review append-only audit evidence and export filtered metadata when export is enabled and filters are applied. | Filtered audit metadata export omits target values, target record identity text, and rollback snapshot payloads. Request Excel export is a separate request-card action and includes staged request-line values. |
 | Retention logs | Yes | Review retention log records and cleanup evidence. | Cleanup touches only expired eligible BCDA-owned operation records, not target Business Central business data. |
 | Rollback | Yes, limited | Create a new rollback correction request from a completed `Update` request when retained before-image snapshots exist for every executed supported line. | The rollback action itself does not change target data; the generated request must be previewed, approved if required, and executed. |
 
@@ -139,7 +141,7 @@ Rollback snapshot modes:
 | Audit Retention Days | How long audit metadata should remain. | `3650` days. |
 | Snapshot Retention Days | How long rollback snapshots should remain. | `90` days. |
 | Technical Log Retention Days | How long technical logs should remain. | `30` days. |
-| Export Enabled | Allows filtered audit metadata export from `BCDA Audit Entries`. | Disabled unless export policy is approved. |
+| Export Enabled | Allows BCDA export actions, including request Excel export from the request card and filtered audit metadata export from `BCDA Audit Entries`. | Disabled unless export policy is approved. |
 
 Retention guidance:
 
@@ -346,7 +348,7 @@ Set `Type` to `Update`, `Rename`, `Delete`, or `Insert`. `Update`, `Rename`, and
 
 Current builds expose `Target Record Identity` as read-only app-owned storage when an existing target record is applicable. It is not typed manually. After selecting `Table ID`, use either the target record identity assist edit button or the line action `Select Existing Record` to open `BCDA Target Record Lookup`, choose a record by its primary-key display values, and populate the canonical `RecordId`. A simple primary key is shown as one key value. A composite primary key is shown as each key part in one row, for example document type, document number, and line number together.
 
-The foundation lookup reads the selected table's primary-key fields for selection. After both target record identity and `Field ID` are selected on an existing-record line, the app reads that selected field and fills `Current Value Preview`. When you enter `Proposed New Value`, the app checks that the field is an enabled normal stored field, is not system-managed or removed, uses a supported foundation scalar type, and that the text can be parsed for that field type. Primary-key values are blocked for `Update`; `Rename` accepts only primary-key fields and preserves unstaged key fields during execution; `Insert` may stage primary-key and non-primary-key fields. Execution changes Business Central data only for supported grouped `Update` lines, supported primary-key `Rename` lines, supported record-level `Delete` lines, and supported grouped `Insert` lines. Rename execution stores the renamed `RecordId` and marks rollback unavailable. Insert execution creates one new record per request/table/Insert Group No., requires staged nonblank primary-key fields before mutation, and marks rollback unavailable. The richer matrix-style selector, similar to Business Central's Dimension Matrix pattern, is still planned for denser field staging.
+The foundation lookup reads the selected table's primary-key fields for selection. After both target record identity and `Field ID` are selected on an existing-record line, the app reads that selected field and fills `Current Value Preview`. When you enter `Proposed New Value`, the app checks that the field is an enabled normal stored field, is not system-managed or removed, uses a supported foundation scalar type, and that the text can be parsed for that field type. Primary-key values are blocked for `Update`; `Rename` accepts only primary-key fields and preserves unstaged key fields during execution; `Insert` may stage primary-key and non-primary-key fields. Execution changes Business Central data only for supported grouped `Update` lines, supported primary-key `Rename` lines, supported record-level `Delete` lines, and supported grouped `Insert` lines. Execution groups run in the fixed sequence `Update`, `Rename`, `Delete`, `Insert`; if a request updates and renames the same original target record, the update is applied before the rename changes the record identity. Rename execution stores the renamed `RecordId` and marks rollback unavailable. Insert execution creates one new record per request/table/Insert Group No., requires staged nonblank primary-key fields before mutation, and marks rollback unavailable. The richer matrix-style selector, similar to Business Central's Dimension Matrix pattern, is still planned for denser field staging.
 
 Use `Preview Data Matrix` on the correction lines part to open a read-only temporary matrix of the staged lines for the current request. For each correction type and table, the matrix shows a heading row with the unique fields staged for that table, then one `Current` row and one `New` row for each target record or insert group. It does not read additional target data and does not execute a full dry-run.
 
@@ -410,9 +412,11 @@ Reason is required before this action. Ticket/reference is required only when th
 | Batch Add Lines | Yes for open or previewed requests | Opens same-table batch entry and creates normal correction lines from selected existing records, insert groups, and fields. |
 | Preview Data Matrix | Yes from correction lines | Opens a read-only temporary matrix with field columns and `Current`/`New` rows for each staged target record in the current request. |
 | Preview Request | Yes while the request is open or previewed | Runs non-mutating preview, refreshes selected current values, validates staged line shape and proposed values, evaluates policy, updates line statuses/sanitized messages, updates rollback/retention text, and writes preview audit evidence. |
+| Export to Excel | Yes when export is enabled | Exports the saved correction request to an Excel workbook. Each worksheet represents one target table caption; row 1 shows correction request number, table name, and table ID; row 2 is blank; row 3 starts a preview-matrix-style table with modification type, target record identity or insert group, and staged requested field columns. Request-export audit evidence is written and no target data is changed. |
+| Import from Excel | Yes only while the request is Open | Imports correction request lines from an Excel workbook that follows the request workbook layout. The user must confirm that all existing lines for the request will be deleted and recreated. The workbook is parsed into temporary lines first; existing lines are replaced only after import validation succeeds. Request-import audit evidence is written and no target data is changed. |
 | Submit For Approval | Yes when approval is required and the request is not already pending or approved | Sets status to `Pending Approval` after required metadata exists and required preview lines are previewed. |
 | Approve | Yes when approval is required and the request is pending approval | Approves the request after required preview lines are still previewed. The requester can approve only when separate approver is not required. |
-| Execute | Yes for supported states | Executes grouped `Update`, primary-key `Rename`, record-level `Delete`, and grouped `Insert` lines as one request transaction after metadata, preview, approval/policy, `SUPER`, audit, and rollback checks pass. Unsupported operation types are blocked before mutation. |
+| Execute | Yes for supported states | Executes grouped `Update`, primary-key `Rename`, record-level `Delete`, and grouped `Insert` lines as one request transaction after metadata, preview, approval/policy, `SUPER`, audit, and rollback checks pass. Supported groups run in `Update`, `Rename`, `Delete`, `Insert` order. Unsupported operation types are blocked before mutation. |
 | Rollback | Yes from completed requests | Creates a new rollback correction request with suggested inverse `Update` lines from retained before-images. No target data changes until the generated request is previewed, approved if required, and executed. |
 
 ### Request Statuses
@@ -570,7 +574,7 @@ Important columns:
 | Column | Meaning |
 | --- | --- |
 | Entry No. | Audit entry identifier. |
-| Operation | Request Created, Preview, Approval, Execution, Rollback, Retention Cleanup, Policy Change, Setup Change, or Audit Export. |
+| Operation | Request Created, Preview, Approval, Execution, Rollback, Retention Cleanup, Policy Change, Setup Change, Audit Export, Request Export, or Request Import. |
 | Result | Success, Failed, Blocked, or Warning. |
 | Request ID | Related correction request. |
 | Line No. | Related correction line when available. |
@@ -599,6 +603,26 @@ The export requires at least one filter:
 - Result.
 
 The CSV includes audit metadata such as entry number, operation, result, request, line, user, timestamp, company, table/field IDs, reason, ticket, rollback availability, snapshot references, error code, and sanitized error. It does not include target values, target record identity text, or rollback snapshot payload values.
+
+### Exporting A Correction Request Workbook
+
+Use `Export to Excel` on `BCDA Correction Request Card` only after `Export Enabled` is turned on in `BCDA Setup`.
+
+The workbook is built from saved correction request lines. It creates one worksheet per target table, names each worksheet from the table caption, and lays out each sheet like this:
+
+- row 1: correction request number, table name, and table ID,
+- row 2: blank,
+- row 3 onward: a matrix table with value type, modification type, target record identity, insert group number, and the staged field columns for that table.
+
+This export writes request-export audit evidence. It does not import lines, execute the request, preview target data, or mutate target records.
+
+### Importing A Correction Request Workbook
+
+Use `Import from Excel` on `BCDA Correction Request Card` only while the request status is `Open`.
+
+Import expects the same workbook structure generated by `Export to Excel`: one worksheet per table, request/table identity on row 1, a blank row 2, and the preview-matrix-style table beginning on row 3. `Update`, `Rename`, and `Delete` rows must include target record identity. `Insert` rows must leave target record identity blank and include `Insert Group No.` to group the fields for each new record.
+
+Before import, the page asks you to confirm that all existing correction lines for the request will be deleted and recreated. The workbook is validated into temporary correction lines first, so existing lines are replaced only after the import data passes request, table, field, record identity, insert-group, and proposed-value checks. Import writes request-import audit evidence and does not mutate target Business Central records.
 
 ## Retention Logs Guide
 
@@ -699,7 +723,8 @@ Do not use BC Data Agent to:
 - delete or rewrite audit history outside governed retention cleanup,
 - store credentials or secrets in request text,
 - paste sensitive customer data into external chats or generic logs,
-- export target values, target record identity text, or rollback snapshot payloads,
+- export target values, target record identity text, or rollback snapshot payloads through filtered audit export or unsupported channels,
+- share request Excel workbooks outside approved support-handling channels,
 - execute production corrections before sandbox validation and runtime readiness approval.
 
 ## Troubleshooting
@@ -724,7 +749,9 @@ Do not use BC Data Agent to:
 | Rollback action is unavailable | The request is not completed, rollback snapshots are unavailable, or a rollback request already exists for the completed source request. | Open the completed correction request and review rollback availability, line statuses, and existing rollback operations. |
 | Rollback request creation is blocked | Snapshot logging is disabled, expired, purged, a source line is not an executed `Update`, the source request includes `Rename`, `Delete`, or `Insert`, or retained before-images are missing for part of the request. | Review rollback operation evidence, snapshot retention, and whether the completed request is fully eligible for request-level rollback staging. |
 | Audit export is blocked | Export is disabled or no required filter is applied. | Turn on `Export Enabled` only when approved, then filter by request, company, occurred-at date/time, operation, or result. |
-| Audit export omits target values | Phase 8 export is metadata-only by design. | Review audit metadata and use authorized BCDA pages for privileged value review. Do not expect snapshot payloads in CSV export. |
+| Request Excel export is blocked | Export is disabled, the request is unsaved, or no correction lines exist. | Save the request, add lines, and turn on `Export Enabled` only when workbook export is approved. |
+| Import from Excel is blocked | The request is not `Open`, the request is unsaved, the workbook request ID does not match, the workbook has no importable lines, or the worksheet rows fail line validation. | Import only from an open saved request. Confirm the workbook uses the request export layout, target identities for existing-record operations, blank target identity plus positive `Insert Group No.` for insert rows, and valid field headers with field IDs in parentheses. |
+| Audit export omits target values | Filtered audit export is metadata-only by design. | Review audit metadata and use authorized BCDA pages for privileged value review. Do not expect snapshot payloads in CSV export. |
 | Policy blocks the request | No matching allow policy exists, policy is disabled, or decision is Block. | Review table-level and field-level policies. |
 | Need to modify without policy records | `Allow Data Policies` is enabled. | Turn `Allow Data Policies` off only when the business accepts bypassing policy records while preserving permanent runtime controls. |
 | Retention log shows a failure | Retention registration or cleanup had an issue. | Review sanitized error and validate retention policy setup. |
@@ -779,6 +806,7 @@ Use this checklist before enabling any later runtime behavior.
 | Correction line field lookup is used after table selection | The field list is filtered by table and `Field Name` is filled from metadata. |
 | Proposed New Value is entered | Supported scalar values are accepted, unsupported field types and non-modifiable foundation fields are blocked, type mismatch errors do not echo the proposed value, and no target data is changed. |
 | Preview Data Matrix is opened | A read-only temporary matrix opens for the current request, shows one table section at a time with unique field columns and `Current`/`New` rows per record, and no target data is changed. |
+| Request Excel export is tested | Export is blocked until `Export Enabled` is on; exported workbook has one worksheet per target table caption, row 1 request/table identity, blank row 2, matrix headers on row 3, staged correction values by modification type and target identity or insert group, and request-export audit evidence. |
 | Batch Add Lines is checked | Same-table batch entries select canonical target RecordIds for simple-key and composite-key existing records, use Insert Group No. for new records, create standard correction lines, and do not mutate target data. |
 | Request without a reason, or without a configured-required ticket/reference, is submitted | Action is blocked. |
 | Request preview is run | Status changes to `Previewed`, correction lines are marked `Previewed` or `Failed`, and preview audit entry exists. |
@@ -815,6 +843,8 @@ Use this checklist before enabling any later runtime behavior.
 | Execute supported correction | BCDA Correction Request Card | Execute |
 | Review evidence | BCDA Audit Entries | Read-only list |
 | Export filtered audit metadata | BCDA Audit Entries | Export Filtered Metadata |
+| Export correction request workbook | BCDA Correction Request Card | Export to Excel |
+| Import correction request workbook | BCDA Correction Request Card | Import from Excel |
 | Create rollback request | BCDA Correction Request Card | Rollback |
 | Review rollback operations | BCDA Rollback Operations | Read-only list |
 | Review retention evidence | BCDA Retention Logs | Read-only list |

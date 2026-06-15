@@ -43,17 +43,18 @@
 | Retention Manager | Manage operation retention settings and integrate with Business Central retention policies where feasible. |
 | Rollback Service | Create governed rollback correction requests from retained before-images. |
 | Audit Viewer | Search, filter, and export redacted correction metadata. |
+| Request Workbook Export | Export a saved correction request to an Excel workbook from staged request-line data without target mutation. |
 
 ## Object And Module Map
 
-Foundation objects are implemented for setup, policy, request, audit, snapshot, rollback-state, retention-log, SUPER-gated shells, supporting services, grouped update execution, supported primary-key rename execution, supported record-level delete execution, supported grouped insert execution, supported update rollback, filtered audit metadata export, and retention cleanup. Objects marked future remain gated by readiness.
+Foundation objects are implemented for setup, policy, request, audit, snapshot, rollback-state, retention-log, SUPER-gated shells, supporting services, grouped update execution, supported primary-key rename execution, supported record-level delete execution, supported grouped insert execution, supported update rollback, correction request Excel export/import, filtered audit metadata export, and retention cleanup. Objects marked future remain gated by readiness.
 
 | Object Area | Names |
 | --- | --- |
 | Tables | BCDA Setup, BCDA Data Policy, BCDA Correction Request, BCDA Correction Line, BCDA Batch Line Buffer, BCDA Target Record Buffer, BCDA Preview Data Matrix, BCDA Audit Entry, BCDA Value Snapshot, BCDA Rollback Operation, BCDA Retention Log |
 | Pages | BCDA Role Center, BCDA Setup, BCDA Data Policies, BCDA Data Policy Card, BCDA Correction Requests, BCDA Correction Request Card, BCDA Correction Lines, BCDA Preview Data Matrix, BCDA Batch Line Builder, BCDA Audit Entries, BCDA Rollback Operations, BCDA Retention Logs, BCDA Table Lookup, BCDA Field Lookup, BCDA Target Record Lookup. Future: BCDA Target Record Matrix, BCDA Correction Assistant, BCDA Preview Result, BCDA Rollback Wizard, BCDA Retention Status. |
 | Profiles | BC Data Agent profile mapped to BCDA Role Center. |
-| Codeunits | BCDA Access Mgt., BCDA Setup Mgt., BCDA Correction Orchestrator, BCDA Metadata Explorer, BCDA Batch Line Mgt., BCDA Current Value Mgt., BCDA Policy Guard, BCDA Audit Writer, BCDA Value Serializer, BCDA Retention Manager, BCDA Rollback Service, BCDA Audit Export Mgt. Future: BCDA Record Identity Mgt., BCDA Target Matrix Mgt., BCDA Validation Runner. |
+| Codeunits | BCDA Access Mgt., BCDA Setup Mgt., BCDA Correction Orchestrator, BCDA Metadata Explorer, BCDA Batch Line Mgt., BCDA Current Value Mgt., BCDA Policy Guard, BCDA Audit Writer, BCDA Value Serializer, BCDA Retention Manager, BCDA Rollback Service, BCDA Audit Export Mgt., BCDA Request Excel Export Mgt. Future: BCDA Record Identity Mgt., BCDA Target Matrix Mgt., BCDA Validation Runner. |
 | Access Control | Existing Business Central `SUPER` permission set only; no BCDA-specific permission sets |
 
 ## Runtime Flow
@@ -65,12 +66,13 @@ Foundation objects are implemented for setup, policy, request, audit, snapshot, 
 5. Policy Guard evaluates `SUPER` access, table policy, field policy, approval need, and any future reviewed policy-enforcement exception.
 6. Correction Orchestrator performs the current non-mutating staged-line preview and reports warnings, rollback logging mode, retention period, and rollback availability. Full validate-trigger dry-run remains gated.
 7. SUPER approver approves when required by policy.
-8. Correction Orchestrator executes line changes by grouping staged lines by correction type and canonical target identity when applicable. `Insert` execution must not use an input `RecordId`; the current implementation groups insert lines by request/table/`Insert Group No.`, creates one record per group, and stores the created `RecordId` after success.
+8. Correction Orchestrator executes line changes by grouping staged lines by correction type and canonical target identity when applicable. Execution groups run in the fixed type sequence `Update`, `Rename`, `Delete`, `Insert`, so updates against an original target identity are applied before rename groups can change that identity. `Insert` execution must not use an input `RecordId`; the current implementation groups insert lines by request/table/`Insert Group No.`, creates one record per group, and stores the created `RecordId` after success.
 9. Audit Writer records mandatory attempt, outcome, target, user, reason, and ticket metadata.
 10. Snapshot Store keeps rollback material only when rollback snapshot logging is enabled by setup and policy.
 11. Rollback Service can create a new governed correction request from a completed supported `Update` request when retained before-images exist for the whole request.
-12. Audit Export Manager exports filtered audit metadata only when `SUPER` access, setup export enablement, and required filters are present.
-13. Retention Manager purges expired rollback snapshot payloads and deletes expired eligible BCDA-owned operation records while preserving active requests and retained rollback dependencies.
+12. Request Excel Export Manager exports a saved correction request workbook from staged line data only when `SUPER` access and setup export enablement are present.
+13. Audit Export Manager exports filtered audit metadata only when `SUPER` access, setup export enablement, and required filters are present.
+14. Retention Manager purges expired rollback snapshot payloads and deletes expired eligible BCDA-owned operation records while preserving active requests and retained rollback dependencies.
 
 ## Error Flow
 

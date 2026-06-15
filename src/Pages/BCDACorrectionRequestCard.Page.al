@@ -195,7 +195,7 @@ page 88114 "BCDA Correction Request Card"
                 Caption = 'Execute';
                 Enabled = ExecuteEnabled;
                 Image = ExecuteBatch;
-                ToolTip = 'Executes supported update, delete, and insert correction groups after metadata, preview, approval, policy, audit, and rollback checks pass.';
+                ToolTip = 'Executes supported update, rename, delete, and insert correction groups after metadata, preview, approval, policy, audit, and rollback checks pass.';
 
                 trigger OnAction()
                 var
@@ -228,6 +228,65 @@ page 88114 "BCDA Correction Request Card"
                     if RollbackRequest.Get(RollbackRequestId) then
                         Page.Run(Page::"BCDA Correction Request Card", RollbackRequest);
                 end;
+            }
+
+            group(ImportExport)
+            {
+                Caption = 'Import/Export';
+                action(ExportToExcel)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Export to Excel';
+                    Image = ExportToExcel;
+                    ToolTip = 'Exports this correction request to an Excel workbook with one worksheet per target table and preview-matrix-style rows for staged correction values.';
+
+                    trigger OnAction()
+                    var
+                        RequestExcelExportMgt: Codeunit "BCDA Request Excel Export Mgt.";
+                    begin
+                        CurrPage.SaveRecord();
+                        RequestExcelExportMgt.ExportRequest(Rec);
+                    end;
+                }
+                action(ImportFromExcel)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Import from Excel';
+                    Enabled = ImportExcelEnabled;
+                    Image = Import;
+                    ToolTip = 'Imports correction request lines from Excel while the request is Open. Existing lines are deleted and recreated after confirmation.';
+
+                    trigger OnAction()
+                    var
+                        RequestExcelExportMgt: Codeunit "BCDA Request Excel Export Mgt.";
+                        ImportedCount: Integer;
+                    begin
+                        CurrPage.SaveRecord();
+
+                        if not Confirm(ImportFromExcelConfirmQst, false, Rec."Request ID") then
+                            exit;
+
+                        ImportedCount := RequestExcelExportMgt.ImportRequest(Rec);
+                        if ImportedCount = 0 then
+                            exit;
+
+                        Message(ImportFromExcelCompletedMsg, ImportedCount);
+                        CurrPage.Update(false);
+                    end;
+                }
+            }
+        }
+        area(Promoted)
+        {
+            group(ImportExport_Promoted)
+            {
+                Caption = 'Import/Export';
+                actionref(ExportToExcel_Promoted; ExportToExcel)
+                {
+                }
+                actionref(ImportFromExcel_Promoted; ImportFromExcel)
+                {
+                }
             }
         }
     }
@@ -264,6 +323,7 @@ page 88114 "BCDA Correction Request Card"
         ExecuteEnabled := (Rec.Status = Rec.Status::Approved) or
             ((not Rec."Approval Required") and
              ((Rec.Status = Rec.Status::Previewed) or ((not Rec."Preview Required") and (Rec.Status = Rec.Status::Open))));
+        ImportExcelEnabled := Rec.Status = Rec.Status::Open;
         RollbackEnabled := Rec.Status = Rec.Status::Completed;
     end;
 
@@ -272,6 +332,9 @@ page 88114 "BCDA Correction Request Card"
         BatchAddLinesEnabled: Boolean;
         ExecuteEnabled: Boolean;
         ExecutionCompletedMsg: Label 'Execution finished. Review correction line statuses and audit entries for the final result.';
+        ImportExcelEnabled: Boolean;
+        ImportFromExcelCompletedMsg: Label '%1 correction request lines were imported from Excel.', Comment = '%1 = imported line count';
+        ImportFromExcelConfirmQst: Label 'Import from Excel will delete all existing correction lines for request %1 and recreate them from the selected workbook. Continue?', Comment = '%1 = correction request ID';
         PreviewEnabled: Boolean;
         PreviewCompletedMsg: Label 'Preview completed. Review correction line statuses and sanitized messages before approval.';
         RollbackConfirmQst: Label 'Create a new rollback correction request for completed request %1? No target data will be changed until the new request is previewed, approved if required, and executed.', Comment = '%1 = source request ID';

@@ -2,7 +2,7 @@
 
 BC Data Agent is a Business Central AL project for a governed data correction extension. The main idea is to let authorized users correct normally hidden or posted Business Central data when standard correction workflows are not enough, while tracking every change and supporting rollback if something goes wrong.
 
-Phase 9 local hardening is complete for the current Phase 8 build, and local implementation now has standing authorization under the SDD. The project includes supported grouped `Update` corrections, supported primary-key `Rename` execution, supported record-level `Delete` execution, supported grouped `Insert` execution for one new record per request/table/insert-group, request-level rollback staging from completed update requests, filtered audit metadata export, governed retention cleanup, and local build/analyzer/config/security/docs hardening evidence. Sandbox validation remains required before production use.
+Phase 9 local hardening is complete for the current Phase 8 build, and local implementation now has standing authorization under the SDD. The project includes supported grouped `Update` corrections, supported primary-key `Rename` execution, supported record-level `Delete` execution, supported grouped `Insert` execution for one new record per request/table/insert-group, request-level rollback staging from completed update requests, correction request Excel export/import, filtered audit metadata export, governed retention cleanup, and local build/analyzer/config/security/docs hardening evidence. Sandbox validation remains required before production use.
 
 ## Why It Matters
 
@@ -22,6 +22,8 @@ Changing hidden or posted data is powerful and risky. This project treats those 
 - Supported record-level `Delete` execution is implemented with `SUPER`, required request metadata, configurable approval/policy, audit, transaction controls, and rollback-unavailable status.
 - Supported grouped `Insert` execution is implemented with `SUPER`, required request metadata, configurable approval/policy, audit, transaction controls, required staged primary-key fields, created-record identity capture, and rollback-unavailable status.
 - Supported rollback creates a new correction request from a completed `Update` request when retained before-image snapshots exist for every executed supported line.
+- Correction request Excel export is implemented with `SUPER`, `Export Enabled`, one worksheet per target table, preview-matrix-style staged values, and request-export audit evidence.
+- Correction request Excel import is implemented with `SUPER`, `Open` request status, delete-and-recreate confirmation, temporary validation before line replacement, one worksheet per target table, and request-import audit evidence.
 - Filtered audit metadata export is implemented with `SUPER`, `Export Enabled`, required filters, and omission of target values, target record identity text, and snapshot payloads.
 - Retention cleanup is implemented for expired eligible BCDA-owned operation records with active request and retained rollback dependency protection.
 - Phase 9 local hardening has passed compile, analyzers, app manifest/config review, object-range review, no-permission-set source scan, and documentation consistency checks.
